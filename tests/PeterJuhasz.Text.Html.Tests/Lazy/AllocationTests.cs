@@ -17,7 +17,7 @@ public sealed class AllocationTests
 	[TestMethod]
 	public void VisitorTraversalDoesNotAllocate()
 	{
-		var document = new LazyHtmlDocument(Html);
+		var document = LazyHtmlDocument.Parse(Html);
 		var visitor = new CountingVisitor();
 
 		visitor.VisitDocument(document);
@@ -35,7 +35,7 @@ public sealed class AllocationTests
 	[TestMethod]
 	public void DefaultVisitorDoesNotAllocate()
 	{
-		var document = new LazyHtmlDocument(Html);
+		var document = LazyHtmlDocument.Parse(Html);
 		var visitor = new EmptyVisitor();
 		visitor.VisitDocument(document);
 
@@ -49,7 +49,7 @@ public sealed class AllocationTests
 	[TestMethod]
 	public void QuerySelectorDoesNotAllocate()
 	{
-		var document = new LazyHtmlDocument(Html);
+		var document = LazyHtmlDocument.Parse(Html);
 		var expected = CountQuerySelector(document);
 
 		var before = GC.GetAllocatedBytesForCurrentThread();

@@ -16,7 +16,7 @@ public class LazyHtmlBenchmarks
 	public void Setup()
 	{
 		html = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Samples", "sample.html"));
-		document = new LazyHtmlDocument(html);
+		document = LazyHtmlDocument.Parse(html);
 		body = FindBody(document);
 	}
 

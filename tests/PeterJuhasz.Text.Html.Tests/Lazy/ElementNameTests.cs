@@ -52,7 +52,7 @@ public sealed class ElementNameTests
 		var element = TestHelpers.FirstElement("<h1></h1><my-element></my-element>");
 
 		Assert.AreEqual("h1", element.Name);
-		CollectionAssert.AreEqual(new[] { "h1", "my-element" }, new LazyHtmlDocument("<h1></h1><my-element></my-element>").Elements().Names());
+		CollectionAssert.AreEqual(new[] { "h1", "my-element" }, LazyHtmlDocument.Parse("<h1></h1><my-element></my-element>").Elements().Names());
 	}
 
 	[TestMethod]

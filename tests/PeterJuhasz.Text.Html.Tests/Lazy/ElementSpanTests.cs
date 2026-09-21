@@ -90,28 +90,4 @@ public sealed class ElementSpanTests
 		Assert.AreEqual("x", element.InnerSpan.ToString());
 		Assert.AreEqual("a > b", element.TryGetAttribute("title", out var title) ? title.Value : null);
 	}
-
-	[TestMethod]
-	public void ElementCanBeConstructedAtStartTagIndex()
-	{
-		var html = "text<div>x</div>";
-		var element = new LazyHtmlElement(html, html.IndexOf('<'));
-
-		Assert.AreEqual("div", element.Name);
-		Assert.AreEqual("<div>x</div>", element.OuterSpan.ToString());
-	}
-
-	[TestMethod]
-	public void ConstructorRejectsIndexNotPointingToStartTag()
-	{
-		Assert.ThrowsExactly<ArgumentException>(() => new LazyHtmlElement("text<div></div>", 0));
-		Assert.ThrowsExactly<ArgumentException>(() => new LazyHtmlElement("<div></div>", 5));
-	}
-
-	[TestMethod]
-	public void ConstructorRejectsIndexOutOfRange()
-	{
-		Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => new LazyHtmlElement("<div></div>", -1));
-		Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => new LazyHtmlElement("<div></div>", 11));
-	}
 }

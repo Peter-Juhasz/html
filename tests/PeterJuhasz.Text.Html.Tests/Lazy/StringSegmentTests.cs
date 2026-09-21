@@ -10,7 +10,7 @@ public sealed class StringSegmentTests
 	public void DocumentCanBeASegmentOfALargerString()
 	{
 		var segment = new StringSegment("xx<div>a</div>yy", 2, 12);
-		var document = new LazyHtmlDocument(segment);
+		var document = LazyHtmlDocument.Parse(segment);
 
 		var elements = document.Elements().ToList();
 
@@ -25,7 +25,7 @@ public sealed class StringSegmentTests
 		var html = "<div>a</div>";
 		var segment = new StringSegment(html, 0, 6);
 
-		Assert.AreEqual("<div>a", new LazyHtmlDocument(segment).Elements().ToList()[0].OuterSpan.ToString());
+		Assert.AreEqual("<div>a", LazyHtmlDocument.Parse(segment).Elements().ToList()[0].OuterSpan.ToString());
 		Assert.AreEqual("<div>a</div>", TestHelpers.FirstElement(html).OuterSpan.ToString());
 	}
 
@@ -34,8 +34,8 @@ public sealed class StringSegmentTests
 	{
 		var segment = new StringSegment("skip<a href=\"x\"></a>", 4, 16);
 
-		var element = new LazyHtmlElement(segment, 0);
-		var attribute = new LazyHtmlAttribute(segment, 0, 3);
+		var element = LazyHtmlDocument.Parse(segment).Elements().ToList()[0];
+		Assert.IsTrue(element.TryGetAttribute("href", out var attribute));
 
 		Assert.AreEqual("a", element.Name);
 		Assert.AreEqual("href", attribute.Name);
@@ -46,7 +46,7 @@ public sealed class StringSegmentTests
 	[TestMethod]
 	public void StringIsImplicitlyConvertedToSegment()
 	{
-		var document = new LazyHtmlDocument("<a></a>");
+		var document = LazyHtmlDocument.Parse("<a></a>");
 
 		Assert.IsTrue(document.Elements().MoveNext());
 	}

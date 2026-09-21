@@ -1,4 +1,4 @@
-using System.Buffers;
+﻿using System.Buffers;
 using System.Text.Html.Lazy;
 using System.Text.Html.Writer;
 using PeterJuhasz.Text.Html.Tests.Lazy;
@@ -69,7 +69,7 @@ public sealed class DocumentTests
 	[TestMethod]
 	public void OutputCanBeParsedByLazyDocument()
 	{
-		var document = new LazyHtmlDocument(TestHelpers.Write(WriteDocument));
+		var document = LazyHtmlDocument.Parse(TestHelpers.Write(WriteDocument));
 
 		var roots = document.Elements().ToList();
 		Assert.HasCount(1, roots);

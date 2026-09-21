@@ -106,7 +106,7 @@ public sealed class InvalidContentTests
 	[DataRow("a > b < c")]
 	public void ContentWithoutStartTagYieldsNoElements(string html)
 	{
-		var document = new LazyHtmlDocument(html);
+		var document = LazyHtmlDocument.Parse(html);
 
 		Assert.IsFalse(document.Elements().MoveNext());
 	}
@@ -123,7 +123,7 @@ public sealed class InvalidContentTests
 	[TestMethod]
 	public void StrayEndTagBeforeElementIsSkipped()
 	{
-		var document = new LazyHtmlDocument("</p><div></div>");
+		var document = LazyHtmlDocument.Parse("</p><div></div>");
 
 		CollectionAssert.AreEqual(new[] { "div" }, document.Elements().Names());
 	}
@@ -131,7 +131,7 @@ public sealed class InvalidContentTests
 	[TestMethod]
 	public void MismatchedEndTagClosesElement()
 	{
-		var document = new LazyHtmlDocument("<a>x</b>y</a>");
+		var document = LazyHtmlDocument.Parse("<a>x</b>y</a>");
 
 		var elements = document.Elements().ToList();
 
@@ -142,7 +142,7 @@ public sealed class InvalidContentTests
 	[TestMethod]
 	public void OpenAngleInsideTagNameIsPartOfName()
 	{
-		var document = new LazyHtmlDocument("<div<span>>x");
+		var document = LazyHtmlDocument.Parse("<div<span>>x");
 
 		var elements = document.Elements().ToList();
 
@@ -221,7 +221,7 @@ public sealed class InvalidContentTests
 	{
 		var depth = 100_000;
 		var html = string.Concat(Enumerable.Repeat("<div>", depth)) + "x" + string.Concat(Enumerable.Repeat("</div>", depth));
-		var document = new LazyHtmlDocument(html);
+		var document = LazyHtmlDocument.Parse(html);
 
 		var elements = document.Elements().ToList();
 
@@ -234,7 +234,7 @@ public sealed class InvalidContentTests
 	public void ExcessiveNestingOfUnclosedElementsDoesNotOverflowTheStack()
 	{
 		var html = string.Concat(Enumerable.Repeat("<p>", 100_000));
-		var document = new LazyHtmlDocument(html);
+		var document = LazyHtmlDocument.Parse(html);
 
 		Assert.HasCount(100_000, document.Elements().ToList());
 	}
@@ -262,7 +262,7 @@ public sealed class InvalidContentTests
 				buffer[i] = alphabet[random.Next(alphabet.Length)];
 
 			var html = new string(buffer);
-			foreach (var element in new LazyHtmlDocument(html).Elements())
+			foreach (var element in LazyHtmlDocument.Parse(html).Elements())
 				Visit(element);
 		}
 	}

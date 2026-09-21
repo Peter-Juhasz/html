@@ -22,7 +22,7 @@ public sealed class ImplicitlyClosedElementTests
 	[TestMethod]
 	public void ParagraphIsClosedByNextParagraph()
 	{
-		var document = new LazyHtmlDocument("<p>a<p>b<p>c");
+		var document = LazyHtmlDocument.Parse("<p>a<p>b<p>c");
 
 		var paragraphs = document.Elements().ToList();
 
@@ -63,7 +63,7 @@ public sealed class ImplicitlyClosedElementTests
 	[TestMethod]
 	public void ParagraphIsClosedByBlockLevelStartTag()
 	{
-		var document = new LazyHtmlDocument("<p>a<div>b</div><p>c<ul><li>d</ul><p>e<hr><p>f<h1>g</h1>");
+		var document = LazyHtmlDocument.Parse("<p>a<div>b</div><p>c<ul><li>d</ul><p>e<hr><p>f<h1>g</h1>");
 
 		var elements = document.Elements().ToList();
 

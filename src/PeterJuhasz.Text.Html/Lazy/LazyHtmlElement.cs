@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Primitives;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
 namespace System.Text.Html.Lazy;
@@ -13,14 +14,11 @@ public readonly struct LazyHtmlElement
 	private readonly int _contentEnd;
 	private readonly int _end;
 
-	public LazyHtmlElement(StringSegment document, int startIndex)
+	// `startIndex` must point to a start tag; the enumerators guarantee this so the checks are only asserted.
+	internal LazyHtmlElement(StringSegment document, int startIndex)
 	{
-		ArgumentOutOfRangeException.ThrowIfNegative(startIndex);
-		ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(startIndex, document.Length);
-
 		var text = document.AsSpan();
-		if (!HtmlScanner.IsStartTagAt(text, startIndex))
-			throw new ArgumentException("The index does not point to a start tag.", nameof(startIndex));
+		Debug.Assert(HtmlScanner.IsStartTagAt(text, startIndex));
 
 		_document = document;
 		_start = startIndex;

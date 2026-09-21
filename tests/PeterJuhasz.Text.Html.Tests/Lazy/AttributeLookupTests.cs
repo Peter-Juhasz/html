@@ -107,40 +107,6 @@ public sealed class AttributeLookupTests
 	}
 
 	[TestMethod]
-	public void AttributeCanBeConstructedAtIndex()
-	{
-		var html = "<a href=\"x\">";
-		var attribute = new LazyHtmlAttribute(html, 0, html.IndexOf("href", StringComparison.Ordinal));
-
-		Assert.AreEqual("href", attribute.Name);
-		Assert.AreEqual("x", attribute.Value);
-		Assert.AreEqual("a", attribute.Element.Name);
-	}
-
-	[TestMethod]
-	public void AttributeConstructorRejectsIndexOutOfRange()
-	{
-		Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => new LazyHtmlAttribute("<a href=\"x\">", 0, -1));
-		Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => new LazyHtmlAttribute("<a href=\"x\">", 0, 12));
-		Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => new LazyHtmlAttribute("<a href=\"x\">", -1, 3));
-	}
-
-	[TestMethod]
-	public void AttributeConstructorRejectsElementNotBeforeAttribute()
-	{
-		Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => new LazyHtmlAttribute("<a href=\"x\">", 3, 3));
-		Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => new LazyHtmlAttribute("<a href=\"x\">", 4, 3));
-	}
-
-	[TestMethod]
-	public void AttributeConstructorRejectsElementIndexNotAtStartTag()
-	{
-		Assert.ThrowsExactly<ArgumentException>(() => new LazyHtmlAttribute("x<a href=\"y\">", 0, 4));
-		Assert.ThrowsExactly<ArgumentException>(() => new LazyHtmlAttribute("<!--x--><a href=\"y\">", 0, 11));
-		Assert.ThrowsExactly<ArgumentException>(() => new LazyHtmlAttribute("</a><a href=\"y\">", 0, 7));
-	}
-
-	[TestMethod]
 	public void AttributePointsToItsElement()
 	{
 		var element = TestHelpers.FirstElement("<a href=\"x\" class=\"y\">link</a>");
@@ -175,7 +141,7 @@ public sealed class AttributeLookupTests
 	[TestMethod]
 	public void AttributeOfQueriedElementPointsToTheElement()
 	{
-		var document = new LazyHtmlDocument("<div><a class=\"x\">1</a><a class=\"y\">2</a></div>");
+		var document = LazyHtmlDocument.Parse("<div><a class=\"x\">1</a><a class=\"y\">2</a></div>");
 
 		Assert.IsTrue(document.TryQuerySelector(out var element, className: "y"));
 		Assert.IsTrue(element.TryGetAttribute("class", out var attribute));

@@ -6,7 +6,7 @@ internal static class TestHelpers
 {
 	public static LazyHtmlElement FirstElement(string html)
 	{
-		var elements = new LazyHtmlDocument(html).Elements();
+		var elements = LazyHtmlDocument.Parse(html).Elements();
 		Assert.IsTrue(elements.MoveNext(), "Expected at least one element.");
 		return elements.Current;
 	}

@@ -8,7 +8,7 @@ public sealed class CommentAndDeclarationTests
 	[TestMethod]
 	public void CommentIsNotAnElement()
 	{
-		var document = new LazyHtmlDocument("<!-- comment --><div></div>");
+		var document = LazyHtmlDocument.Parse("<!-- comment --><div></div>");
 
 		CollectionAssert.AreEqual(new[] { "div" }, document.Elements().Names());
 	}
@@ -16,7 +16,7 @@ public sealed class CommentAndDeclarationTests
 	[TestMethod]
 	public void MarkupInsideCommentIsIgnored()
 	{
-		var document = new LazyHtmlDocument("<!-- <a></a> <b> --><div></div>");
+		var document = LazyHtmlDocument.Parse("<!-- <a></a> <b> --><div></div>");
 
 		CollectionAssert.AreEqual(new[] { "div" }, document.Elements().Names());
 	}
@@ -33,7 +33,7 @@ public sealed class CommentAndDeclarationTests
 	[TestMethod]
 	public void CommentContainingCloseAngleIsSkippedEntirely()
 	{
-		var document = new LazyHtmlDocument("<!-- a > b --><div></div>");
+		var document = LazyHtmlDocument.Parse("<!-- a > b --><div></div>");
 
 		CollectionAssert.AreEqual(new[] { "div" }, document.Elements().Names());
 	}
@@ -41,7 +41,7 @@ public sealed class CommentAndDeclarationTests
 	[TestMethod]
 	public void CommentContainingDashesIsSkipped()
 	{
-		var document = new LazyHtmlDocument("<!-- a -- b - c --><div></div>");
+		var document = LazyHtmlDocument.Parse("<!-- a -- b - c --><div></div>");
 
 		CollectionAssert.AreEqual(new[] { "div" }, document.Elements().Names());
 	}
@@ -49,7 +49,7 @@ public sealed class CommentAndDeclarationTests
 	[TestMethod]
 	public void MultilineCommentIsSkipped()
 	{
-		var document = new LazyHtmlDocument("<!--\r\n<a>\r\n-->\r\n<div></div>");
+		var document = LazyHtmlDocument.Parse("<!--\r\n<a>\r\n-->\r\n<div></div>");
 
 		CollectionAssert.AreEqual(new[] { "div" }, document.Elements().Names());
 	}
@@ -57,7 +57,7 @@ public sealed class CommentAndDeclarationTests
 	[TestMethod]
 	public void DoctypeIsNotAnElement()
 	{
-		var document = new LazyHtmlDocument("<!DOCTYPE html><html></html>");
+		var document = LazyHtmlDocument.Parse("<!DOCTYPE html><html></html>");
 
 		CollectionAssert.AreEqual(new[] { "html" }, document.Elements().Names());
 	}
@@ -65,7 +65,7 @@ public sealed class CommentAndDeclarationTests
 	[TestMethod]
 	public void LegacyDoctypeWithQuotesIsSkipped()
 	{
-		var document = new LazyHtmlDocument("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\"><html></html>");
+		var document = LazyHtmlDocument.Parse("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\"><html></html>");
 
 		CollectionAssert.AreEqual(new[] { "html" }, document.Elements().Names());
 	}
@@ -73,7 +73,7 @@ public sealed class CommentAndDeclarationTests
 	[TestMethod]
 	public void ProcessingInstructionIsSkipped()
 	{
-		var document = new LazyHtmlDocument("<?xml version=\"1.0\"?><root></root>");
+		var document = LazyHtmlDocument.Parse("<?xml version=\"1.0\"?><root></root>");
 
 		CollectionAssert.AreEqual(new[] { "root" }, document.Elements().Names());
 	}
@@ -89,7 +89,7 @@ public sealed class CommentAndDeclarationTests
 	[TestMethod]
 	public void ConditionalCommentIsSkipped()
 	{
-		var document = new LazyHtmlDocument("<!--[if IE]><p>ie</p><![endif]--><div></div>");
+		var document = LazyHtmlDocument.Parse("<!--[if IE]><p>ie</p><![endif]--><div></div>");
 
 		CollectionAssert.AreEqual(new[] { "div" }, document.Elements().Names());
 	}

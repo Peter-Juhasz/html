@@ -74,7 +74,7 @@ public sealed class RawTextElementTests
 	[TestMethod]
 	public void SiblingAfterRawTextElementIsFound()
 	{
-		var document = new LazyHtmlDocument("<script>'<a>'</script><div></div>");
+		var document = LazyHtmlDocument.Parse("<script>'<a>'</script><div></div>");
 
 		CollectionAssert.AreEqual(new[] { "script", "div" }, document.Elements().Names());
 	}

@@ -8,7 +8,7 @@ public sealed class DocumentTests
 	[TestMethod]
 	public void EmptyDocumentHasNoElements()
 	{
-		var document = new LazyHtmlDocument("");
+		var document = LazyHtmlDocument.Parse("");
 
 		Assert.IsFalse(document.Elements().MoveNext());
 	}
@@ -24,7 +24,7 @@ public sealed class DocumentTests
 	[TestMethod]
 	public void TextOnlyDocumentHasNoElements()
 	{
-		var document = new LazyHtmlDocument("just some text");
+		var document = LazyHtmlDocument.Parse("just some text");
 
 		Assert.IsFalse(document.Elements().MoveNext());
 	}
@@ -32,7 +32,7 @@ public sealed class DocumentTests
 	[TestMethod]
 	public void EnumeratesSingleRootElement()
 	{
-		var document = new LazyHtmlDocument("<html><body></body></html>");
+		var document = LazyHtmlDocument.Parse("<html><body></body></html>");
 
 		CollectionAssert.AreEqual(new[] { "html" }, document.Elements().Names());
 	}
@@ -40,7 +40,7 @@ public sealed class DocumentTests
 	[TestMethod]
 	public void EnumeratesMultipleRootElements()
 	{
-		var document = new LazyHtmlDocument("<a></a><b></b><c></c>");
+		var document = LazyHtmlDocument.Parse("<a></a><b></b><c></c>");
 
 		CollectionAssert.AreEqual(new[] { "a", "b", "c" }, document.Elements().Names());
 	}
@@ -48,7 +48,7 @@ public sealed class DocumentTests
 	[TestMethod]
 	public void SkipsTextBetweenRootElements()
 	{
-		var document = new LazyHtmlDocument("before <a>x</a> between <b>y</b> after");
+		var document = LazyHtmlDocument.Parse("before <a>x</a> between <b>y</b> after");
 
 		CollectionAssert.AreEqual(new[] { "a", "b" }, document.Elements().Names());
 	}
@@ -56,7 +56,7 @@ public sealed class DocumentTests
 	[TestMethod]
 	public void SkipsDoctypeAndWhitespace()
 	{
-		var document = new LazyHtmlDocument("<!DOCTYPE html>\r\n<html>\r\n</html>\r\n");
+		var document = LazyHtmlDocument.Parse("<!DOCTYPE html>\r\n<html>\r\n</html>\r\n");
 
 		CollectionAssert.AreEqual(new[] { "html" }, document.Elements().Names());
 	}
@@ -64,7 +64,7 @@ public sealed class DocumentTests
 	[TestMethod]
 	public void EnumeratorCanBeIteratedWithForeach()
 	{
-		var document = new LazyHtmlDocument("<a></a><b></b>");
+		var document = LazyHtmlDocument.Parse("<a></a><b></b>");
 		var count = 0;
 
 		foreach (var element in document.Elements())
@@ -76,7 +76,7 @@ public sealed class DocumentTests
 	[TestMethod]
 	public void EnumeratorReturnsFalseRepeatedlyAfterEnd()
 	{
-		var elements = new LazyHtmlDocument("<a></a>").Elements();
+		var elements = LazyHtmlDocument.Parse("<a></a>").Elements();
 
 		Assert.IsTrue(elements.MoveNext());
 		Assert.IsFalse(elements.MoveNext());

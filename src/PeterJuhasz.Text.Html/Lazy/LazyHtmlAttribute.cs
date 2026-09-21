@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Primitives;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
 namespace System.Text.Html.Lazy;
@@ -15,15 +16,12 @@ public readonly struct LazyHtmlAttribute
 	private readonly int _valueLength;
 
 	// `elementStartIndex` is the index of the start tag the attribute belongs to; it is only used to construct `Element`.
-	public LazyHtmlAttribute(StringSegment document, int elementStartIndex, int startIndex)
+	// `startIndex` must be inside that start tag; the enumerators guarantee this so the checks are only asserted.
+	internal LazyHtmlAttribute(StringSegment document, int elementStartIndex, int startIndex)
 	{
-		ArgumentOutOfRangeException.ThrowIfNegative(elementStartIndex);
-		ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(startIndex, elementStartIndex);
-		ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(startIndex, document.Length);
-
 		var text = document.AsSpan();
-		if (!HtmlScanner.IsStartTagAt(text, elementStartIndex))
-			throw new ArgumentException("The index does not point to a start tag.", nameof(elementStartIndex));
+		Debug.Assert(HtmlScanner.IsStartTagAt(text, elementStartIndex));
+		Debug.Assert(startIndex > elementStartIndex && startIndex < text.Length);
 
 		_document = document;
 		_elementStart = elementStartIndex;

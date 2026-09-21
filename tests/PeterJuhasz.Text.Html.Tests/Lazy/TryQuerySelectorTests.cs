@@ -8,7 +8,7 @@ public sealed class TryQuerySelectorTests
 	[TestMethod]
 	public void ReturnsFirstMatchInDocumentOrder()
 	{
-		var document = new LazyHtmlDocument("<div><p><a>1</a></p><a>2</a></div><a>3</a>");
+		var document = LazyHtmlDocument.Parse("<div><p><a>1</a></p><a>2</a></div><a>3</a>");
 
 		Assert.IsTrue(document.TryQuerySelector(out var element, name: "a"));
 		Assert.AreEqual("<a>1</a>", element.OuterSpan.ToString());
@@ -17,7 +17,7 @@ public sealed class TryQuerySelectorTests
 	[TestMethod]
 	public void ReturnsFalseWhenNothingMatches()
 	{
-		var document = new LazyHtmlDocument("<div><p>text</p></div>");
+		var document = LazyHtmlDocument.Parse("<div><p>text</p></div>");
 
 		Assert.IsFalse(document.TryQuerySelector(out var element, name: "a"));
 		Assert.AreEqual(default, element);
@@ -26,15 +26,15 @@ public sealed class TryQuerySelectorTests
 	[TestMethod]
 	public void EmptyAndDefaultDocumentsReturnFalse()
 	{
-		Assert.IsFalse(new LazyHtmlDocument("").TryQuerySelector(out _, name: "a"));
+		Assert.IsFalse(LazyHtmlDocument.Parse("").TryQuerySelector(out _, name: "a"));
 		Assert.IsFalse(default(LazyHtmlDocument).TryQuerySelector(out _, name: "a"));
-		Assert.IsFalse(new LazyHtmlDocument("just text").TryQuerySelector(out _, name: "a"));
+		Assert.IsFalse(LazyHtmlDocument.Parse("just text").TryQuerySelector(out _, name: "a"));
 	}
 
 	[TestMethod]
 	public void ElementSearchesOnlyItsOwnContent()
 	{
-		var document = new LazyHtmlDocument("<a>0</a><div><span><a>1</a></span></div><a>2</a>");
+		var document = LazyHtmlDocument.Parse("<a>0</a><div><span><a>1</a></span></div><a>2</a>");
 		var div = document.Elements().ToList()[1];
 
 		Assert.IsTrue(div.TryQuerySelector(out var element, name: "a"));
@@ -61,7 +61,7 @@ public sealed class TryQuerySelectorTests
 	[TestMethod]
 	public void NameComparisonIsCaseInsensitive()
 	{
-		var document = new LazyHtmlDocument("<DIV>x</DIV>");
+		var document = LazyHtmlDocument.Parse("<DIV>x</DIV>");
 
 		Assert.IsTrue(document.TryQuerySelector(out var element, name: "div"));
 		Assert.AreEqual("<DIV>x</DIV>", element.OuterSpan.ToString());
@@ -70,7 +70,7 @@ public sealed class TryQuerySelectorTests
 	[TestMethod]
 	public void DoesNotLookInsideRawTextContent()
 	{
-		var document = new LazyHtmlDocument("<script><b>fake</b></script><b>real</b>");
+		var document = LazyHtmlDocument.Parse("<script><b>fake</b></script><b>real</b>");
 
 		Assert.IsTrue(document.TryQuerySelector(out var element, name: "b"));
 		Assert.AreEqual("<b>real</b>", element.OuterSpan.ToString());
@@ -87,7 +87,7 @@ public sealed class TryQuerySelectorTests
 	[TestMethod]
 	public void FoundElementExposesItsContent()
 	{
-		var document = new LazyHtmlDocument("<html><head><title>Hello</title></head><body><a href=\"/x\">link</a></body></html>");
+		var document = LazyHtmlDocument.Parse("<html><head><title>Hello</title></head><body><a href=\"/x\">link</a></body></html>");
 
 		Assert.IsTrue(document.TryQuerySelector(out var title, name: "title"));
 		Assert.AreEqual("Hello", title.TextContent);
@@ -99,7 +99,7 @@ public sealed class TryQuerySelectorTests
 	[TestMethod]
 	public void CanBeChained()
 	{
-		var document = new LazyHtmlDocument("<html><body><ul><li><a>1</a></li></ul></body></html>");
+		var document = LazyHtmlDocument.Parse("<html><body><ul><li><a>1</a></li></ul></body></html>");
 
 		Assert.IsTrue(document.TryQuerySelector(out var body, name: "body"));
 		Assert.IsTrue(body.TryQuerySelector(out var list, name: "ul"));
@@ -110,7 +110,7 @@ public sealed class TryQuerySelectorTests
 	[TestMethod]
 	public void AgreesWithQuerySelectorAll()
 	{
-		var document = new LazyHtmlDocument("<div><p>a<br>b</p><ul><li>1<li>2</ul><script>x</script><p>c</p></div>");
+		var document = LazyHtmlDocument.Parse("<div><p>a<br>b</p><ul><li>1<li>2</ul><script>x</script><p>c</p></div>");
 
 		foreach (var name in new[] { "div", "p", "br", "li", "script", "ul", "zzz" })
 		{
@@ -126,7 +126,7 @@ public sealed class TryQuerySelectorTests
 	[TestMethod]
 	public void OmittedOrNullNameMatchesTheFirstElementOfAnyName()
 	{
-		var document = new LazyHtmlDocument("text<!-- c --><html><body></body></html>");
+		var document = LazyHtmlDocument.Parse("text<!-- c --><html><body></body></html>");
 		var body = TestHelpers.FirstElement("<body><p><b>x</b></p></body>");
 
 		Assert.IsTrue(document.TryQuerySelector(out var root));
@@ -138,7 +138,7 @@ public sealed class TryQuerySelectorTests
 	[TestMethod]
 	public void MatchesByNameAndAttribute()
 	{
-		var document = new LazyHtmlDocument("<a class=\"link\">1</a><div><a class=\"btn\">2</a></div><a class=\"btn\">3</a>");
+		var document = LazyHtmlDocument.Parse("<a class=\"link\">1</a><div><a class=\"btn\">2</a></div><a class=\"btn\">3</a>");
 
 		Assert.IsTrue(document.TryQuerySelector(out var element, name: "a", attributes: [new("class", "btn")]));
 		Assert.AreEqual("<a class=\"btn\">2</a>", element.OuterSpan.ToString());
@@ -147,7 +147,7 @@ public sealed class TryQuerySelectorTests
 	[TestMethod]
 	public void MatchesByAttributeOnly()
 	{
-		var document = new LazyHtmlDocument("<div id=\"x\"><p id=\"main\">1</p></div><span id=\"main\">2</span>");
+		var document = LazyHtmlDocument.Parse("<div id=\"x\"><p id=\"main\">1</p></div><span id=\"main\">2</span>");
 
 		Assert.IsTrue(document.TryQuerySelector(out var element, attributes: [new("id", "main")]));
 		Assert.AreEqual("<p id=\"main\">1</p>", element.OuterSpan.ToString());
@@ -156,7 +156,7 @@ public sealed class TryQuerySelectorTests
 	[TestMethod]
 	public void ReturnsFalseWhenAttributesDoNotMatch()
 	{
-		var document = new LazyHtmlDocument("<a class=\"btn\" rel=\"nofollow\">1</a>");
+		var document = LazyHtmlDocument.Parse("<a class=\"btn\" rel=\"nofollow\">1</a>");
 
 		Assert.IsFalse(document.TryQuerySelector(out var element, name: "a", attributes: [new("class", "btn"), new("rel", "author")]));
 		Assert.AreEqual(default, element);
@@ -165,7 +165,7 @@ public sealed class TryQuerySelectorTests
 	[TestMethod]
 	public void MatchesById()
 	{
-		var document = new LazyHtmlDocument("<div id=\"x\"><p id=\"main\">1</p></div><span id=\"main\">2</span>");
+		var document = LazyHtmlDocument.Parse("<div id=\"x\"><p id=\"main\">1</p></div><span id=\"main\">2</span>");
 
 		Assert.IsTrue(document.TryQuerySelector(out var element, id: "main"));
 		Assert.AreEqual("<p id=\"main\">1</p>", element.OuterSpan.ToString());
@@ -176,7 +176,7 @@ public sealed class TryQuerySelectorTests
 	[TestMethod]
 	public void MatchesByClassName()
 	{
-		var document = new LazyHtmlDocument("<a class=\"button\">1</a><div><a class=\"big btn\">2</a></div><a class=\"btn\">3</a>");
+		var document = LazyHtmlDocument.Parse("<a class=\"button\">1</a><div><a class=\"big btn\">2</a></div><a class=\"btn\">3</a>");
 
 		Assert.IsTrue(document.TryQuerySelector(out var element, className: "btn"));
 		Assert.AreEqual("<a class=\"big btn\">2</a>", element.OuterSpan.ToString());
@@ -187,7 +187,7 @@ public sealed class TryQuerySelectorTests
 	[TestMethod]
 	public void MatchesByNameIdClassNameAndAttributes()
 	{
-		var document = new LazyHtmlDocument("<a id=\"x\" class=\"btn\">1</a><span id=\"x\" class=\"btn\" href=\"/\">2</span><a id=\"x\" class=\"a btn\" href=\"/\">3</a>");
+		var document = LazyHtmlDocument.Parse("<a id=\"x\" class=\"btn\">1</a><span id=\"x\" class=\"btn\" href=\"/\">2</span><a id=\"x\" class=\"a btn\" href=\"/\">3</a>");
 
 		Assert.IsTrue(document.TryQuerySelector(out var element, name: "a", id: "x", className: "btn", attributes: [new("href", "/")]));
 		Assert.AreEqual("3", element.InnerSpan.ToString());
@@ -196,7 +196,7 @@ public sealed class TryQuerySelectorTests
 	[TestMethod]
 	public void ElementMatchesByIdAndClassNameOnlyInsideItsContent()
 	{
-		var document = new LazyHtmlDocument("<a id=\"x\" class=\"c\">0</a><div><a id=\"x\" class=\"c\">1</a></div>");
+		var document = LazyHtmlDocument.Parse("<a id=\"x\" class=\"c\">0</a><div><a id=\"x\" class=\"c\">1</a></div>");
 		var div = document.Elements().ToList()[1];
 
 		Assert.IsTrue(div.TryQuerySelector(out var byId, id: "x"));
@@ -208,7 +208,7 @@ public sealed class TryQuerySelectorTests
 	[TestMethod]
 	public void EmptyNameThrows()
 	{
-		var document = new LazyHtmlDocument("<a></a>");
+		var document = LazyHtmlDocument.Parse("<a></a>");
 		var element = TestHelpers.FirstElement("<a></a>");
 
 		Assert.ThrowsExactly<ArgumentException>(() => document.TryQuerySelector(out _, name: ""));
@@ -219,7 +219,7 @@ public sealed class TryQuerySelectorTests
 	[TestMethod]
 	public void EmptyIdOrInvalidClassNameThrows()
 	{
-		var document = new LazyHtmlDocument("<a></a>");
+		var document = LazyHtmlDocument.Parse("<a></a>");
 		var element = TestHelpers.FirstElement("<a></a>");
 
 		Assert.ThrowsExactly<ArgumentException>(() => document.TryQuerySelector(out _, id: ""));
