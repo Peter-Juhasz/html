@@ -30,6 +30,9 @@ public readonly struct LazyHtmlElement
 	// Index right after the element, used to continue enumeration.
 	internal int End => _end;
 
+	// Index right after the start tag, used to continue enumeration inside the element.
+	internal int ContentStart => _contentStart;
+
 	public ReadOnlySpan<char> NameSpan => _nameLength == 0 ? default : _document.AsSpan().Slice(_start + 1, _nameLength);
 
 	public string Name => NameSpan.ToString();
@@ -60,6 +63,20 @@ public readonly struct LazyHtmlElement
 	public ElementsEnumerator Elements() => SyntaxFacts.IsRawTextElement(NameSpan)
 		? new(_document, _contentEnd, _contentEnd)
 		: new(_document, _contentStart, _contentEnd);
+
+	// Finds the elements with the given name at any depth inside this element, in document order.
+	public ElementsByNameEnumerator QuerySelectorAll(string name) => SyntaxFacts.IsRawTextElement(NameSpan)
+		? new(_document, name, _contentEnd, _contentEnd)
+		: new(_document, name, _contentStart, _contentEnd);
+
+	// Finds the first element with the given name at any depth inside this element.
+	public bool TryQuerySelector(string name, out LazyHtmlElement element)
+	{
+		var elements = QuerySelectorAll(name);
+		var found = elements.MoveNext();
+		element = found ? elements.Current : default;
+		return found;
+	}
 
 	// Concatenated text of the content with all markup removed, as written (character references are not decoded).
 	public string TextContent

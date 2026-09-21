@@ -10,6 +10,7 @@ public class LazyHtmlBenchmarks
 	private LazyHtmlDocument document;
 	private LazyHtmlElement body;
 	private readonly CountingVisitor visitor = new();
+	private readonly FilteringVisitor filteringVisitor = new("a");
 
 	[GlobalSetup]
 	public void Setup()
@@ -29,6 +30,24 @@ public class LazyHtmlBenchmarks
 
 	[Benchmark]
 	public string TextContent() => body.TextContent;
+
+	[Benchmark]
+	public int QuerySelectorAll()
+	{
+		var count = 0;
+		foreach (var element in document.QuerySelectorAll("a"))
+			count += element.NameSpan.Length;
+		return count;
+	}
+
+	// The same search done by descending through Elements() recursively, for comparison.
+	[Benchmark]
+	public int QuerySelectorAllViaVisitor()
+	{
+		filteringVisitor.Count = 0;
+		filteringVisitor.VisitDocument(document);
+		return filteringVisitor.Count;
+	}
 
 	private static LazyHtmlElement FindBody(LazyHtmlDocument document)
 	{
@@ -61,6 +80,20 @@ public class LazyHtmlBenchmarks
 		public override void VisitAttribute(LazyHtmlElement element, LazyHtmlAttribute attribute)
 		{
 			Count += attribute.NameSpan.Length + attribute.ValueSpan.Length;
+		}
+	}
+
+	private sealed class FilteringVisitor(string name) : LazyHtmlVisitor
+	{
+		public int Count;
+
+		public override void VisitElement(LazyHtmlElement element)
+		{
+			if (element.NameSpan.Equals(name, StringComparison.OrdinalIgnoreCase))
+				Count += element.NameSpan.Length;
+
+			foreach (var child in element.Elements())
+				VisitElement(child);
 		}
 	}
 }

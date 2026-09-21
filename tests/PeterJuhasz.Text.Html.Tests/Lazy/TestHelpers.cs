@@ -19,6 +19,14 @@ internal static class TestHelpers
 		return list;
 	}
 
+	public static List<LazyHtmlElement> ToList(this ElementsByNameEnumerator elements)
+	{
+		var list = new List<LazyHtmlElement>();
+		foreach (var element in elements)
+			list.Add(element);
+		return list;
+	}
+
 	public static List<LazyHtmlAttribute> ToList(this AttributesEnumerator attributes)
 	{
 		var list = new List<LazyHtmlAttribute>();
@@ -29,6 +37,12 @@ internal static class TestHelpers
 
 	public static List<string> Names(this ElementsEnumerator elements)
 		=> elements.ToList().ConvertAll(e => e.Name);
+
+	public static List<string> Names(this ElementsByNameEnumerator elements)
+		=> elements.ToList().ConvertAll(e => e.Name);
+
+	public static List<string> Outers(this ElementsByNameEnumerator elements)
+		=> elements.ToList().ConvertAll(e => e.OuterSpan.ToString());
 
 	public static List<string> Names(this AttributesEnumerator attributes)
 		=> attributes.ToList().ConvertAll(a => a.Name);

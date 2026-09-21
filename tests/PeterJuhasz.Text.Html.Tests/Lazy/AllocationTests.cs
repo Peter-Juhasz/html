@@ -44,6 +44,21 @@ public sealed class AllocationTests
 	}
 
 	[TestMethod]
+	public void QuerySelectorDoesNotAllocate()
+	{
+		var document = new LazyHtmlDocument(Html);
+		var expected = CountQuerySelector(document);
+
+		var before = GC.GetAllocatedBytesForCurrentThread();
+		var count = CountQuerySelector(document);
+		var allocated = GC.GetAllocatedBytesForCurrentThread() - before;
+
+		Assert.AreEqual(expected, count);
+		Assert.IsGreaterThan(0, count);
+		Assert.AreEqual(0, allocated);
+	}
+
+	[TestMethod]
 	public void TextContentWithoutMarkupAllocatesOnlyTheResult()
 	{
 		var element = TestHelpers.FirstElement("<p>hello world</p>");
@@ -59,6 +74,34 @@ public sealed class AllocationTests
 
 	private sealed class EmptyVisitor : LazyHtmlVisitor
 	{
+	}
+
+	// Touches the found elements and searches inside them too, so nested enumerators are measured as well.
+	private static int CountQuerySelector(LazyHtmlDocument document)
+	{
+		var count = 0;
+		foreach (var element in document.QuerySelectorAll("div"))
+		{
+			count += element.OuterSpan.Length;
+			foreach (var link in element.QuerySelectorAll("a"))
+			{
+				if (link.TryGetAttribute("href", out var href))
+					count += href.ValueSpan.Length;
+			}
+
+			foreach (var script in element.QuerySelectorAll("script"))
+				count += script.InnerSpan.Length;
+
+			if (element.TryQuerySelector("b", out var bold))
+				count += bold.InnerSpan.Length;
+		}
+
+		if (document.TryQuerySelector("title", out var title))
+			count += title.InnerSpan.Length;
+
+		count += document.TryQuerySelector("missing", out _) ? 0 : 1;
+
+		return count;
 	}
 
 	// Touches every span-based member so the whole read path is measured.
