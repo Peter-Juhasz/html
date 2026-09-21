@@ -110,16 +110,85 @@ public sealed class AttributeLookupTests
 	public void AttributeCanBeConstructedAtIndex()
 	{
 		var html = "<a href=\"x\">";
-		var attribute = new LazyHtmlAttribute(html, html.IndexOf("href", StringComparison.Ordinal));
+		var attribute = new LazyHtmlAttribute(html, 0, html.IndexOf("href", StringComparison.Ordinal));
 
 		Assert.AreEqual("href", attribute.Name);
 		Assert.AreEqual("x", attribute.Value);
+		Assert.AreEqual("a", attribute.Element.Name);
 	}
 
 	[TestMethod]
 	public void AttributeConstructorRejectsIndexOutOfRange()
 	{
-		Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => new LazyHtmlAttribute("<a href=\"x\">", -1));
-		Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => new LazyHtmlAttribute("<a href=\"x\">", 12));
+		Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => new LazyHtmlAttribute("<a href=\"x\">", 0, -1));
+		Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => new LazyHtmlAttribute("<a href=\"x\">", 0, 12));
+		Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => new LazyHtmlAttribute("<a href=\"x\">", -1, 3));
+	}
+
+	[TestMethod]
+	public void AttributeConstructorRejectsElementNotBeforeAttribute()
+	{
+		Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => new LazyHtmlAttribute("<a href=\"x\">", 3, 3));
+		Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => new LazyHtmlAttribute("<a href=\"x\">", 4, 3));
+	}
+
+	[TestMethod]
+	public void AttributeConstructorRejectsElementIndexNotAtStartTag()
+	{
+		Assert.ThrowsExactly<ArgumentException>(() => new LazyHtmlAttribute("x<a href=\"y\">", 0, 4));
+		Assert.ThrowsExactly<ArgumentException>(() => new LazyHtmlAttribute("<!--x--><a href=\"y\">", 0, 11));
+		Assert.ThrowsExactly<ArgumentException>(() => new LazyHtmlAttribute("</a><a href=\"y\">", 0, 7));
+	}
+
+	[TestMethod]
+	public void AttributePointsToItsElement()
+	{
+		var element = TestHelpers.FirstElement("<a href=\"x\" class=\"y\">link</a>");
+
+		Assert.IsTrue(element.TryGetAttribute("class", out var attribute));
+		Assert.AreEqual(element.OuterSpan.ToString(), attribute.Element.OuterSpan.ToString());
+		Assert.AreEqual("a", attribute.Element.Name);
+		Assert.AreEqual("link", attribute.Element.TextContent);
+	}
+
+	[TestMethod]
+	public void EnumeratedAttributesPointToTheirElement()
+	{
+		var element = TestHelpers.FirstElement("<input type=\"text\" name=\"q\" required>");
+
+		foreach (var attribute in element.Attributes())
+			Assert.AreEqual(element.OuterSpan.ToString(), attribute.Element.OuterSpan.ToString(), $"Attribute {attribute.Name}.");
+	}
+
+	[TestMethod]
+	public void AttributeOfNestedElementPointsToTheNestedElement()
+	{
+		var outer = TestHelpers.FirstElement("<div id=\"o\"><p id=\"i\">x</p></div>");
+		var inner = outer.Elements().ToList()[0];
+
+		Assert.IsTrue(outer.TryGetAttribute("id", out var outerId));
+		Assert.IsTrue(inner.TryGetAttribute("id", out var innerId));
+		Assert.AreEqual("<div id=\"o\"><p id=\"i\">x</p></div>", outerId.Element.OuterSpan.ToString());
+		Assert.AreEqual("<p id=\"i\">x</p>", innerId.Element.OuterSpan.ToString());
+	}
+
+	[TestMethod]
+	public void AttributeOfQueriedElementPointsToTheElement()
+	{
+		var document = new LazyHtmlDocument("<div><a class=\"x\">1</a><a class=\"y\">2</a></div>");
+
+		Assert.IsTrue(document.TryQuerySelector(out var element, className: "y"));
+		Assert.IsTrue(element.TryGetAttribute("class", out var attribute));
+		Assert.AreEqual("<a class=\"y\">2</a>", attribute.Element.OuterSpan.ToString());
+	}
+
+	[TestMethod]
+	public void AttributeElementCanBeRoundTripped()
+	{
+		var element = TestHelpers.FirstElement("<a href=\"x\" title=\"t\">link</a>");
+
+		Assert.IsTrue(element.TryGetAttribute("title", out var attribute));
+		Assert.IsTrue(attribute.Element.TryGetAttribute("href", out var href));
+		Assert.AreEqual("x", href.Value);
 	}
 }

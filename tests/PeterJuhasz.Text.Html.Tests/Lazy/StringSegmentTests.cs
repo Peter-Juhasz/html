@@ -35,11 +35,12 @@ public sealed class StringSegmentTests
 		var segment = new StringSegment("skip<a href=\"x\"></a>", 4, 16);
 
 		var element = new LazyHtmlElement(segment, 0);
-		var attribute = new LazyHtmlAttribute(segment, 3);
+		var attribute = new LazyHtmlAttribute(segment, 0, 3);
 
 		Assert.AreEqual("a", element.Name);
 		Assert.AreEqual("href", attribute.Name);
 		Assert.AreEqual("x", attribute.Value);
+		Assert.AreEqual("<a href=\"x\"></a>", attribute.Element.OuterSpan.ToString());
 	}
 
 	[TestMethod]

@@ -162,7 +162,7 @@ public sealed class AllocationTests
 
 		public override void VisitAttribute(LazyHtmlElement element, LazyHtmlAttribute attribute)
 		{
-			Count += attribute.NameSpan.Length + attribute.ValueSpan.Length + (attribute.HasValue ? 1 : 0);
+			Count += attribute.NameSpan.Length + attribute.ValueSpan.Length + (attribute.HasValue ? 1 : 0) + attribute.Element.NameSpan.Length;
 		}
 	}
 }

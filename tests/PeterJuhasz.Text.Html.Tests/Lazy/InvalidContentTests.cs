@@ -279,6 +279,7 @@ public sealed class InvalidContentTests
 		{
 			_ = attribute.Name;
 			_ = attribute.Value;
+			_ = attribute.Element;
 		}
 
 		foreach (var child in element.Elements())

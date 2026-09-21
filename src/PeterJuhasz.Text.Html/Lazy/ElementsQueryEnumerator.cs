@@ -68,7 +68,7 @@ public ref struct ElementsQueryEnumerator
 
 			// the attributes are only looked at when the name matches, and the element is only scanned when everything matches
 			if ((_name is null || name.Equals(_name, StringComparison.OrdinalIgnoreCase))
-				&& (!_filtersAttributes || HasAttributes(index + 1 + nameLength, _position)))
+				&& (!_filtersAttributes || HasAttributes(index, index + 1 + nameLength, _position)))
 			{
 				_current = new LazyHtmlElement(_document, index);
 
@@ -84,26 +84,27 @@ public ref struct ElementsQueryEnumerator
 		return false;
 	}
 
-	// Checks that the start tag in the given range has the required id, class and every required attribute with the required value.
-	private readonly bool HasAttributes(int start, int end)
+	// Checks that the start tag at `elementStart`, whose attributes are in [start, end), has the required id, class
+	// and every required attribute with the required value.
+	private readonly bool HasAttributes(int elementStart, int start, int end)
 	{
-		if (_id is not null && !(TryFindAttribute(start, end, "id", out var id) && id.ValueSpan.SequenceEqual(_id)))
+		if (_id is not null && !(TryFindAttribute(elementStart, start, end, "id", out var id) && id.ValueSpan.SequenceEqual(_id)))
 			return false;
 
-		if (_className is not null && !(TryFindAttribute(start, end, "class", out var @class) && HasClass(@class.ValueSpan, _className)))
+		if (_className is not null && !(TryFindAttribute(elementStart, start, end, "class", out var @class) && HasClass(@class.ValueSpan, _className)))
 			return false;
 
 		foreach (var (name, value) in _attributes)
 		{
-			if (!TryFindAttribute(start, end, name, out var attribute) || !attribute.ValueSpan.SequenceEqual(value))
+			if (!TryFindAttribute(elementStart, start, end, name, out var attribute) || !attribute.ValueSpan.SequenceEqual(value))
 				return false;
 		}
 
 		return true;
 	}
 
-	private readonly bool TryFindAttribute(int start, int end, ReadOnlySpan<char> name, out LazyHtmlAttribute attribute)
-		=> new AttributesEnumerator(_document, start, end).TryFind(name, out attribute);
+	private readonly bool TryFindAttribute(int elementStart, int start, int end, ReadOnlySpan<char> name, out LazyHtmlAttribute attribute)
+		=> new AttributesEnumerator(_document, elementStart, start, end).TryFind(name, out attribute);
 
 	// Checks whether the whitespace-separated class list contains the class name.
 	private static bool HasClass(ReadOnlySpan<char> classes, ReadOnlySpan<char> className)

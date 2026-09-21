@@ -45,6 +45,10 @@ internal static class HtmlScanner
 		}
 	}
 
+	// Checks whether a start tag begins exactly at `index`; the same as FindMarkup returning StartTag at that index, without searching.
+	public static bool IsStartTagAt(ReadOnlySpan<char> text, int index)
+		=> index + 1 < text.Length && text[index] == SyntaxFacts.OpenTag && char.IsAsciiLetter(text[index + 1]);
+
 	// Returns the index right after the end tag, comment or declaration at `index`.
 	public static int SkipMarkup(ReadOnlySpan<char> text, int index)
 	{

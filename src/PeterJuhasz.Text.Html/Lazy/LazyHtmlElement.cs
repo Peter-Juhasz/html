@@ -19,7 +19,7 @@ public readonly struct LazyHtmlElement
 		ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(startIndex, document.Length);
 
 		var text = document.AsSpan();
-		if (HtmlScanner.FindMarkup(text, startIndex, out var index) != MarkupKind.StartTag || index != startIndex)
+		if (!HtmlScanner.IsStartTagAt(text, startIndex))
 			throw new ArgumentException("The index does not point to a start tag.", nameof(startIndex));
 
 		_document = document;
@@ -41,7 +41,7 @@ public readonly struct LazyHtmlElement
 
 	public ReadOnlySpan<char> InnerSpan => _document.AsSpan().Slice(_contentStart, _contentEnd - _contentStart);
 
-	public AttributesEnumerator Attributes() => new(_document, _start + 1 + _nameLength, _contentStart);
+	public AttributesEnumerator Attributes() => new(_document, _start, _start + 1 + _nameLength, _contentStart);
 
 	public bool TryGetAttribute(ReadOnlySpan<char> name, out LazyHtmlAttribute attribute) => Attributes().TryFind(name, out attribute);
 
@@ -141,6 +141,11 @@ public static partial class Extensions
 		{
 			ArgumentException.ThrowIfNullOrEmpty(className);
 			return element.QuerySelectorAll(className: className);
+		}
+
+		public LazyHtmlAttribute? GetAttribute(string name)
+		{
+			return element.TryGetAttribute(name, out var attribute) ? attribute : null;
 		}
 	}
 }

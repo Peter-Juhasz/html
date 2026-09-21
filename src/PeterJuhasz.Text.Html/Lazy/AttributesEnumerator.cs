@@ -8,13 +8,16 @@ namespace System.Text.Html.Lazy;
 public struct AttributesEnumerator
 {
 	private readonly StringSegment _document;
+	private readonly int _elementStart;
 	private readonly int _end;
 	private int _position;
 	private LazyHtmlAttribute _current;
 
-	internal AttributesEnumerator(StringSegment document, int start, int end)
+	// `elementStart` is the index of the start tag whose attributes are in the [start, end) range.
+	internal AttributesEnumerator(StringSegment document, int elementStart, int start, int end)
 	{
 		_document = document;
+		_elementStart = elementStart;
 		_position = start;
 		_end = end;
 	}
@@ -54,7 +57,7 @@ public struct AttributesEnumerator
 				continue;
 			}
 
-			_current = new LazyHtmlAttribute(_document, _position);
+			_current = new LazyHtmlAttribute(_document, _elementStart, _position);
 			_position = _current.End;
 
 			// an attribute without a name (e.g. a stray '=') is invalid and skipped
