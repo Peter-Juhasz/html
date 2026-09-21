@@ -1,5 +1,4 @@
-﻿using System.Text.Html.Lazy;
-using Microsoft.Extensions.Primitives;
+﻿using Microsoft.Extensions.Primitives;
 
 namespace PeterJuhasz.Text.Html.Tests.Lazy;
 

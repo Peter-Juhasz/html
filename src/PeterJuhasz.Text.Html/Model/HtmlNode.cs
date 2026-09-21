@@ -1,4 +1,4 @@
-﻿namespace System.Text.Html.Model;
+﻿namespace PeterJuhasz.Text.Html.Model;
 
 public abstract class HtmlNode
 {

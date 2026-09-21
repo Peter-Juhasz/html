@@ -1,4 +1,4 @@
-﻿namespace System.Text.Html.Lazy;
+﻿namespace PeterJuhasz.Text.Html.Lazy;
 
 public abstract class LazyHtmlVisitor
 {

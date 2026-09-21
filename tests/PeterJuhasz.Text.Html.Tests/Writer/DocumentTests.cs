@@ -1,6 +1,4 @@
 ﻿using System.Buffers;
-using System.Text.Html.Lazy;
-using System.Text.Html.Writer;
 using PeterJuhasz.Text.Html.Tests.Lazy;
 
 namespace PeterJuhasz.Text.Html.Tests.Writer;

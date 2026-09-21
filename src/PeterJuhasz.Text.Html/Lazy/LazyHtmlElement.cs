@@ -1,8 +1,9 @@
 ﻿using Microsoft.Extensions.Primitives;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
 
-namespace System.Text.Html.Lazy;
+namespace PeterJuhasz.Text.Html.Lazy;
 
 [PerformanceCritical]
 public readonly struct LazyHtmlElement

@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
-namespace System.Text.Html.Lazy;
+namespace PeterJuhasz.Text.Html.Lazy;
 
 [PerformanceCritical]
 public readonly struct LazyHtmlComment

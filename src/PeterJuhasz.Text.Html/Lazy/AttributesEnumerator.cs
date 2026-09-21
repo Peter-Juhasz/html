@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Primitives;
 using System.Diagnostics.CodeAnalysis;
 
-namespace System.Text.Html.Lazy;
+namespace PeterJuhasz.Text.Html.Lazy;
 
 // Enumerates the attributes of a start tag.
 [PerformanceCritical]

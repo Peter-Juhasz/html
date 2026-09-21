@@ -1,4 +1,4 @@
-﻿namespace System.Text.Html;
+﻿namespace PeterJuhasz.Text.Html;
 
 // Argument validation and matching rules shared by the lazy and model query implementations.
 internal static class ElementQuery

@@ -5,7 +5,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-		<RootNamespace>System.Text.Html</RootNamespace>
+		<RootNamespace>PeterJuhasz.Text.Html</RootNamespace>
 	</PropertyGroup>
 
 	<PropertyGroup>

@@ -1,5 +1,4 @@
-﻿using System.Text.Html.Model;
-using static PeterJuhasz.Text.Html.Tests.Model.TestHelpers;
+﻿using static PeterJuhasz.Text.Html.Tests.Model.TestHelpers;
 
 namespace PeterJuhasz.Text.Html.Tests.Model;
 

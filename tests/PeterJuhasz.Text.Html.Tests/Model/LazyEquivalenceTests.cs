@@ -1,7 +1,4 @@
-﻿using System.Text.Html.Lazy;
-using System.Text.Html.Model;
-
-namespace PeterJuhasz.Text.Html.Tests.Model;
+﻿namespace PeterJuhasz.Text.Html.Tests.Model;
 
 // The model is built on the lazy layer, so the two must always agree.
 [TestClass]

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Immutable;
-using System.Text.Html.Lazy;
+using PeterJuhasz.Text.Html.Lazy;
 
-namespace System.Text.Html.Model;
+namespace PeterJuhasz.Text.Html.Model;
 
 // Builds the model tree by walking the lazy layer; a node is created before its attributes and children so they can reference it.
 internal static class HtmlParser

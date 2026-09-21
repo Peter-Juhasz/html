@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Primitives;
 using System.Diagnostics.CodeAnalysis;
 
-namespace System.Text.Html.Lazy;
+namespace PeterJuhasz.Text.Html.Lazy;
 
 // Enumerates the elements matching a name, id, class and/or attributes at any depth inside a range of the document, in document order.
 // A ref struct so the attributes can be kept as a span, letting callers pass them without allocating.

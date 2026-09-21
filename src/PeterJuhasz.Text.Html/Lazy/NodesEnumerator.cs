@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Primitives;
 using System.Diagnostics.CodeAnalysis;
 
-namespace System.Text.Html.Lazy;
+namespace PeterJuhasz.Text.Html.Lazy;
 
 // Enumerates the elements, text and comments directly inside a range of the document, in document order.
 // Doctypes, processing instructions, CDATA sections and stray end tags are skipped; empty text is not reported.

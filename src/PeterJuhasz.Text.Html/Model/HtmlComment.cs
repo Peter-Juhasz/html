@@ -1,6 +1,6 @@
-﻿using System.Text.Html.Lazy;
+﻿using PeterJuhasz.Text.Html.Lazy;
 
-namespace System.Text.Html.Model;
+namespace PeterJuhasz.Text.Html.Model;
 
 public sealed class HtmlComment : HtmlNode
 {

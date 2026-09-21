@@ -1,5 +1,5 @@
 ﻿using BenchmarkDotNet.Attributes;
-using System.Text.Html.Model;
+using PeterJuhasz.Text.Html.Model;
 
 namespace PeterJuhasz.Text.Html.Benchmarks;
 

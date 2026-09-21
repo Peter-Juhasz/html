@@ -1,6 +1,5 @@
-using System.Buffers;
+﻿using System.Buffers;
 using System.Text.Encodings.Web;
-using System.Text.Html.Writer;
 
 namespace PeterJuhasz.Text.Html.Tests.Writer;
 

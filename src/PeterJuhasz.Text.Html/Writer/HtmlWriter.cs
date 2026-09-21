@@ -2,7 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Encodings.Web;
 
-namespace System.Text.Html.Writer;
+namespace PeterJuhasz.Text.Html.Writer;
 
 [PerformanceCritical]
 public class HtmlWriter<TWriter>(TWriter writer, HtmlEncoder htmlEncoder) where TWriter : IBufferWriter<char>

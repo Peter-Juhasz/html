@@ -1,6 +1,4 @@
-﻿using System.Text.Html.Model;
-
-namespace PeterJuhasz.Text.Html.Tests.Model;
+﻿namespace PeterJuhasz.Text.Html.Tests.Model;
 
 internal static class TestHelpers
 {

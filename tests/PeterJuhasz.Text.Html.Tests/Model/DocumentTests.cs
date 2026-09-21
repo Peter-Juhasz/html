@@ -1,6 +1,4 @@
 ﻿using Microsoft.Extensions.Primitives;
-using System.Text.Html.Lazy;
-using System.Text.Html.Model;
 
 namespace PeterJuhasz.Text.Html.Tests.Model;
 

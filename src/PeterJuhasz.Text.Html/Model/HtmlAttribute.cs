@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace System.Text.Html.Model;
+namespace PeterJuhasz.Text.Html.Model;
 
 public sealed class HtmlAttribute
 {

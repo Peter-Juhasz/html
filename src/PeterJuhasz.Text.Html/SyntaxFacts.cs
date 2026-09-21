@@ -1,7 +1,7 @@
 ﻿using System.Buffers;
 using System.Collections.Frozen;
 
-namespace System.Text.Html;
+namespace PeterJuhasz.Text.Html;
 
 internal static class SyntaxFacts
 {

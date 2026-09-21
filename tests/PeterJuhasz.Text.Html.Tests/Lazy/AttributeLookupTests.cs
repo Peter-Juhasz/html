@@ -1,6 +1,4 @@
-﻿using System.Text.Html.Lazy;
-
-namespace PeterJuhasz.Text.Html.Tests.Lazy;
+﻿namespace PeterJuhasz.Text.Html.Tests.Lazy;
 
 [TestClass]
 public sealed class AttributeLookupTests
