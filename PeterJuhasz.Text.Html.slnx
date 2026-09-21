@@ -1,4 +1,5 @@
 <Solution>
   <Project Path="src/PeterJuhasz.Text.Html/PeterJuhasz.Text.Html.csproj" />
   <Project Path="tests/PeterJuhasz.Text.Html.Tests/PeterJuhasz.Text.Html.Tests.csproj" />
+  <Project Path="benchmarks/PeterJuhasz.Text.Html.Benchmarks/PeterJuhasz.Text.Html.Benchmarks.csproj" />
 </Solution>

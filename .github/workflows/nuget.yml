@@ -1,0 +1,80 @@
+﻿name: NuGet
+
+env:
+  PROJECT_NAME: 'PeterJuhasz.Text.Html'
+  DOTNET_VERSION: '10'
+  BUILD_CONFIGURATION: 'Release'
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - docs/**
+      - "**.md"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+
+    steps:
+    - uses: actions/checkout@v7
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v6
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}.x
+        dotnet-quality: ga
+
+    - name: Clean
+      run: dotnet clean
+    - name: NuGet clear cache
+      run: dotnet nuget locals all --clear
+
+    - name: Restore tools
+      run: dotnet tool restore
+    #- name: Check format
+    #  run: dotnet format --verify-no-changes
+
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Check dependencies for deprecated packages
+      run: dotnet list package --deprecated
+    - name: Check dependencies for vulnerable packages
+      run: dotnet list package --vulnerable --include-transitive
+
+    - name: Build
+      run: dotnet build --no-restore
+      
+    - name: Test
+      run: dotnet test --no-build --verbosity normal --collect "Code coverage"
+      
+    - name: Pack
+      working-directory: src/${{ env.PROJECT_NAME }}
+      run: dotnet pack --configuration Release --version-suffix "preview.${{ github.run_number }}" -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg
+      
+    # - name: Attest
+    #   uses: actions/attest-build-provenance@v4
+    #   with:
+    #     subject-path: |
+    #       ./src/${{ env.PROJECT_NAME }}/bin/${{ env.BUILD_CONFIGURATION }}/*.nupkg
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v7
+      if: always()
+      with:
+        name: packages
+        path: src/${{ env.PROJECT_NAME }}/bin/${{ env.BUILD_CONFIGURATION }}/*.nupkg
+
+    - name: NuGet Authenticate
+      uses: NuGet/login@v1
+      id: login
+      with:
+        user: Peter.Juhasz
+
+    - name: NuGet Push
+      run: dotnet nuget push src/${{ env.PROJECT_NAME }}/bin/${{ env.BUILD_CONFIGURATION }}/${{ env.PROJECT_NAME }}.*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{steps.login.outputs.NUGET_API_KEY}}
+      if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'

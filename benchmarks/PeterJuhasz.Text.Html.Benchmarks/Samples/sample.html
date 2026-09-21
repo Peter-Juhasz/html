@@ -1,0 +1,2277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="description" content="Sample document for benchmarking the lazy HTML reader &amp; visitor.">
+	<title>Sample Document &mdash; Lazy HTML Benchmarks</title>
+	<link rel="stylesheet" href="/assets/site.css">
+	<link rel="icon" href="/favicon.ico" type="image/x-icon">
+	<style>
+		body { font-family: system-ui, sans-serif; margin: 0; }
+		.article > h2 { color: #333; }
+		a[href^="http"]::after { content: " \2197"; }
+	</style>
+	<script>
+		window.dataLayer = window.dataLayer || [];
+		function track(e) { if (e.a < e.b && e.b > 0) { dataLayer.push(e); } }
+	</script>
+</head>
+<body class="page page-home" data-theme="light">
+	<!-- Site header -->
+	<header id="top" class="site-header">
+		<a class="logo" href="/"><img src="/assets/logo.svg" alt="Logo" width="120" height="40"></a>
+		<nav aria-label="Main">
+			<ul class="menu">
+				<li><a href="/">Home</a></li>
+				<li><a href="/blog" class="active">Blog</a></li>
+				<li><a href="/docs">Docs</a>
+					<ul>
+						<li><a href="/docs/getting-started">Getting started</a></li>
+						<li><a href="/docs/api">API reference</a></li>
+					</ul>
+				</li>
+				<li><a href="https://github.com/Peter-Juhasz" target="_blank" rel="noopener">GitHub</a></li>
+			</ul>
+		</nav>
+		<form class="search" action="/search" method="get" role="search">
+			<label for="q">Search</label>
+			<input type="search" id="q" name="q" placeholder="Search&hellip;" autocomplete=off required>
+			<button type="submit">Go</button>
+		</form>
+	</header>
+	<main id="content">
+		<h1>Latest articles</h1>
+		<p class="lead">Below is a list of articles with mixed content: paragraphs, lists, tables, forms and code samples.</p>
+		<article class="article" id="article-1" data-index="1" data-tags="html,dotnet">
+			<header>
+				<h2><a href="/blog/article-1">Article 1: Reading HTML without allocations</a></h2>
+				<p class="meta">Posted <time datetime="2025-05-13">January 8, 2025</time> by <a href="/authors/peter" rel="author">Peter</a> &middot; <span class="tags"><a href="/tags/html">#html</a> <a href="/tags/dotnet">#dotnet</a></span></p>
+			</header>
+			<p>Lorem ipsum dolor sit amet, <strong>consectetur</strong> adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis <em>nostrud</em> exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat &mdash; see <a href="/docs/api#element-1">the API</a> for details.</p>
+			<p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.<br>Second line after a line break.</p>
+			<figure>
+				<img src="/images/article-1.jpg" alt="Illustration for article 1" loading="lazy" width="640" height="360">
+				<figcaption>Figure 1. An illustration &copy; 2025.</figcaption>
+			</figure>
+			<h3>Highlights</h3>
+			<ul>
+				<li>Zero-allocation traversal using <code>ReadOnlySpan&lt;char&gt;</code></li>
+				<li>Vectorized scanning with <code>SearchValues&lt;char&gt;</code>
+				<li>Value enumerators for children and attributes</li>
+				<li>Tolerant of <abbr title="malformed markup">invalid</abbr> input
+			</ul>
+			<h3>Results</h3>
+			<table class="results">
+				<caption>Table 1. Measurements</caption>
+				<thead>
+					<tr><th scope="col">Method</th><th scope="col">Mean</th><th scope="col">Allocated</th></tr>
+				</thead>
+				<tbody>
+					<tr><td>Visit</td><td>74.55 &micro;s</td><td>0 B</td>
+					<tr><td>TextContent</td><td>25.77 &micro;s</td><td>5 KB
+					<tr class="alt"><td>Baseline</td><td>310.32 &micro;s</td><td>38 KB</td></tr>
+				</tbody>
+			</table>
+			<pre><code class="language-csharp">var document = new LazyHtmlDocument(html);
+foreach (var element in document.Elements())
+{
+    if (element.NameSpan.SequenceEqual("a") &amp;&amp; element.TryGetAttribute("href", out var href))
+        Console.WriteLine(href.ValueSpan);
+}</code></pre>
+			<blockquote cite="https://example.com/quote/1"><p>&ldquo;Premature optimization is the root of all evil.&rdquo;</p><footer>&mdash; <cite>Donald Knuth</cite></footer></blockquote>
+			<dl class="facts">
+				<dt>Elements<dd>442
+				<dt>Attributes<dd>333
+				<dt>Depth</dt><dd>17</dd>
+			</dl>
+			<footer class="article-footer">
+				<form action="/blog/article-1/comments" method="post">
+					<input type="hidden" name="article" value="1">
+					<textarea name="comment" rows="3" placeholder="Leave a comment <b>here</b>"></textarea>
+					<select name="rating"><option value=1>1<option value=2>2<option value=3 selected>3<option value=4>4<option value=5>5</select>
+					<label><input type="checkbox" name="subscribe" checked> Notify me</label>
+					<button type="submit" disabled>Post</button>
+				</form>
+				<!-- share buttons -->
+				<div class="share"><a href="https://twitter.com/share?url=%2Fblog%2Farticle-1" class="btn btn-twitter">Tweet</a> <a href="mailto:?subject=Article%201" class="btn">Email</a></div>
+			</footer>
+		</article>
+		<hr>
+		<article class="article" id="article-2" data-index="2" data-tags="performance,benchmarks">
+			<header>
+				<h2><a href="/blog/article-2">Article 2: Reading HTML without allocations</a></h2>
+				<p class="meta">Posted <time datetime="2025-04-12">April 3, 2025</time> by <a href="/authors/peter" rel="author">Peter</a> &middot; <span class="tags"><a href="/tags/performance">#performance</a> <a href="/tags/benchmarks">#benchmarks</a></span></p>
+			</header>
+			<p>Lorem ipsum dolor sit amet, <strong>consectetur</strong> adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis <em>nostrud</em> exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat &mdash; see <a href="/docs/api#element-2">the API</a> for details.</p>
+			<p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.<br>Second line after a line break.</p>
+			<figure>
+				<img src="/images/article-2.jpg" alt="Illustration for article 2" loading="lazy" width="640" height="360">
+				<figcaption>Figure 2. An illustration &copy; 2025.</figcaption>
+			</figure>
+			<h3>Highlights</h3>
+			<ul>
+				<li>Zero-allocation traversal using <code>ReadOnlySpan&lt;char&gt;</code></li>
+				<li>Vectorized scanning with <code>SearchValues&lt;char&gt;</code>
+				<li>Value enumerators for children and attributes</li>
+				<li>Tolerant of <abbr title="malformed markup">invalid</abbr> input
+			</ul>
+			<h3>Results</h3>
+			<table class="results">
+				<caption>Table 2. Measurements</caption>
+				<thead>
+					<tr><th scope="col">Method</th><th scope="col">Mean</th><th scope="col">Allocated</th></tr>
+				</thead>
+				<tbody>
+					<tr><td>Visit</td><td>72.82 &micro;s</td><td>0 B</td>
+					<tr><td>TextContent</td><td>58.13 &micro;s</td><td>8 KB
+					<tr class="alt"><td>Baseline</td><td>739.23 &micro;s</td><td>71 KB</td></tr>
+				</tbody>
+			</table>
+			<pre><code class="language-csharp">var document = new LazyHtmlDocument(html);
+foreach (var element in document.Elements())
+{
+    if (element.NameSpan.SequenceEqual("a") &amp;&amp; element.TryGetAttribute("href", out var href))
+        Console.WriteLine(href.ValueSpan);
+}</code></pre>
+			<blockquote cite="https://example.com/quote/2"><p>&ldquo;Premature optimization is the root of all evil.&rdquo;</p><footer>&mdash; <cite>Donald Knuth</cite></footer></blockquote>
+			<dl class="facts">
+				<dt>Elements<dd>564
+				<dt>Attributes<dd>267
+				<dt>Depth</dt><dd>6</dd>
+			</dl>
+			<footer class="article-footer">
+				<form action="/blog/article-2/comments" method="post">
+					<input type="hidden" name="article" value="2">
+					<textarea name="comment" rows="3" placeholder="Leave a comment <b>here</b>"></textarea>
+					<select name="rating"><option value=1>1<option value=2>2<option value=3 selected>3<option value=4>4<option value=5>5</select>
+					<label><input type="checkbox" name="subscribe" checked> Notify me</label>
+					<button type="submit" disabled>Post</button>
+				</form>
+				<!-- share buttons -->
+				<div class="share"><a href="https://twitter.com/share?url=%2Fblog%2Farticle-2" class="btn btn-twitter">Tweet</a> <a href="mailto:?subject=Article%202" class="btn">Email</a></div>
+			</footer>
+		</article>
+		<hr>
+		<article class="article" id="article-3" data-index="3" data-tags="csharp,parsing">
+			<header>
+				<h2><a href="/blog/article-3">Article 3: Reading HTML without allocations</a></h2>
+				<p class="meta">Posted <time datetime="2025-01-19">May 22, 2025</time> by <a href="/authors/peter" rel="author">Peter</a> &middot; <span class="tags"><a href="/tags/csharp">#csharp</a> <a href="/tags/parsing">#parsing</a></span></p>
+			</header>
+			<p>Lorem ipsum dolor sit amet, <strong>consectetur</strong> adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis <em>nostrud</em> exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat &mdash; see <a href="/docs/api#element-3">the API</a> for details.</p>
+			<p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.<br>Second line after a line break.</p>
+			<figure>
+				<img src="/images/article-3.jpg" alt="Illustration for article 3" loading="lazy" width="640" height="360">
+				<figcaption>Figure 3. An illustration &copy; 2025.</figcaption>
+			</figure>
+			<h3>Highlights</h3>
+			<ul>
+				<li>Zero-allocation traversal using <code>ReadOnlySpan&lt;char&gt;</code></li>
+				<li>Vectorized scanning with <code>SearchValues&lt;char&gt;</code>
+				<li>Value enumerators for children and attributes</li>
+				<li>Tolerant of <abbr title="malformed markup">invalid</abbr> input
+			</ul>
+			<h3>Results</h3>
+			<table class="results">
+				<caption>Table 3. Measurements</caption>
+				<thead>
+					<tr><th scope="col">Method</th><th scope="col">Mean</th><th scope="col">Allocated</th></tr>
+				</thead>
+				<tbody>
+					<tr><td>Visit</td><td>76.44 &micro;s</td><td>0 B</td>
+					<tr><td>TextContent</td><td>23.12 &micro;s</td><td>6 KB
+					<tr class="alt"><td>Baseline</td><td>145.79 &micro;s</td><td>20 KB</td></tr>
+				</tbody>
+			</table>
+			<pre><code class="language-csharp">var document = new LazyHtmlDocument(html);
+foreach (var element in document.Elements())
+{
+    if (element.NameSpan.SequenceEqual("a") &amp;&amp; element.TryGetAttribute("href", out var href))
+        Console.WriteLine(href.ValueSpan);
+}</code></pre>
+			<blockquote cite="https://example.com/quote/3"><p>&ldquo;Premature optimization is the root of all evil.&rdquo;</p><footer>&mdash; <cite>Donald Knuth</cite></footer></blockquote>
+			<dl class="facts">
+				<dt>Elements<dd>324
+				<dt>Attributes<dd>794
+				<dt>Depth</dt><dd>12</dd>
+			</dl>
+			<footer class="article-footer">
+				<form action="/blog/article-3/comments" method="post">
+					<input type="hidden" name="article" value="3">
+					<textarea name="comment" rows="3" placeholder="Leave a comment <b>here</b>"></textarea>
+					<select name="rating"><option value=1>1<option value=2>2<option value=3 selected>3<option value=4>4<option value=5>5</select>
+					<label><input type="checkbox" name="subscribe" checked> Notify me</label>
+					<button type="submit" disabled>Post</button>
+				</form>
+				<!-- share buttons -->
+				<div class="share"><a href="https://twitter.com/share?url=%2Fblog%2Farticle-3" class="btn btn-twitter">Tweet</a> <a href="mailto:?subject=Article%203" class="btn">Email</a></div>
+			</footer>
+		</article>
+		<hr>
+		<article class="article" id="article-4" data-index="4" data-tags="html,dotnet">
+			<header>
+				<h2><a href="/blog/article-4">Article 4: Reading HTML without allocations</a></h2>
+				<p class="meta">Posted <time datetime="2025-05-19">January 2, 2025</time> by <a href="/authors/peter" rel="author">Peter</a> &middot; <span class="tags"><a href="/tags/html">#html</a> <a href="/tags/dotnet">#dotnet</a></span></p>
+			</header>
+			<p>Lorem ipsum dolor sit amet, <strong>consectetur</strong> adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis <em>nostrud</em> exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat &mdash; see <a href="/docs/api#element-4">the API</a> for details.</p>
+			<p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.<br>Second line after a line break.</p>
+			<figure>
+				<img src="/images/article-4.jpg" alt="Illustration for article 4" loading="lazy" width="640" height="360">
+				<figcaption>Figure 4. An illustration &copy; 2025.</figcaption>
+			</figure>
+			<h3>Highlights</h3>
+			<ul>
+				<li>Zero-allocation traversal using <code>ReadOnlySpan&lt;char&gt;</code></li>
+				<li>Vectorized scanning with <code>SearchValues&lt;char&gt;</code>
+				<li>Value enumerators for children and attributes</li>
+				<li>Tolerant of <abbr title="malformed markup">invalid</abbr> input
+			</ul>
+			<h3>Results</h3>
+			<table class="results">
+				<caption>Table 4. Measurements</caption>
+				<thead>
+					<tr><th scope="col">Method</th><th scope="col">Mean</th><th scope="col">Allocated</th></tr>
+				</thead>
+				<tbody>
+					<tr><td>Visit</td><td>47.72 &micro;s</td><td>0 B</td>
+					<tr><td>TextContent</td><td>65.29 &micro;s</td><td>3 KB
+					<tr class="alt"><td>Baseline</td><td>111.42 &micro;s</td><td>16 KB</td></tr>
+				</tbody>
+			</table>
+			<pre><code class="language-csharp">var document = new LazyHtmlDocument(html);
+foreach (var element in document.Elements())
+{
+    if (element.NameSpan.SequenceEqual("a") &amp;&amp; element.TryGetAttribute("href", out var href))
+        Console.WriteLine(href.ValueSpan);
+}</code></pre>
+			<blockquote cite="https://example.com/quote/4"><p>&ldquo;Premature optimization is the root of all evil.&rdquo;</p><footer>&mdash; <cite>Donald Knuth</cite></footer></blockquote>
+			<dl class="facts">
+				<dt>Elements<dd>745
+				<dt>Attributes<dd>163
+				<dt>Depth</dt><dd>16</dd>
+			</dl>
+			<footer class="article-footer">
+				<form action="/blog/article-4/comments" method="post">
+					<input type="hidden" name="article" value="4">
+					<textarea name="comment" rows="3" placeholder="Leave a comment <b>here</b>"></textarea>
+					<select name="rating"><option value=1>1<option value=2>2<option value=3 selected>3<option value=4>4<option value=5>5</select>
+					<label><input type="checkbox" name="subscribe" checked> Notify me</label>
+					<button type="submit" disabled>Post</button>
+				</form>
+				<!-- share buttons -->
+				<div class="share"><a href="https://twitter.com/share?url=%2Fblog%2Farticle-4" class="btn btn-twitter">Tweet</a> <a href="mailto:?subject=Article%204" class="btn">Email</a></div>
+			</footer>
+		</article>
+		<hr>
+		<article class="article" id="article-5" data-index="5" data-tags="performance,benchmarks">
+			<header>
+				<h2><a href="/blog/article-5">Article 5: Reading HTML without allocations</a></h2>
+				<p class="meta">Posted <time datetime="2025-05-18">March 1, 2025</time> by <a href="/authors/peter" rel="author">Peter</a> &middot; <span class="tags"><a href="/tags/performance">#performance</a> <a href="/tags/benchmarks">#benchmarks</a></span></p>
+			</header>
+			<p>Lorem ipsum dolor sit amet, <strong>consectetur</strong> adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis <em>nostrud</em> exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat &mdash; see <a href="/docs/api#element-5">the API</a> for details.</p>
+			<p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.<br>Second line after a line break.</p>
+			<figure>
+				<img src="/images/article-5.jpg" alt="Illustration for article 5" loading="lazy" width="640" height="360">
+				<figcaption>Figure 5. An illustration &copy; 2025.</figcaption>
+			</figure>
+			<h3>Highlights</h3>
+			<ul>
+				<li>Zero-allocation traversal using <code>ReadOnlySpan&lt;char&gt;</code></li>
+				<li>Vectorized scanning with <code>SearchValues&lt;char&gt;</code>
+				<li>Value enumerators for children and attributes</li>
+				<li>Tolerant of <abbr title="malformed markup">invalid</abbr> input
+			</ul>
+			<h3>Results</h3>
+			<table class="results">
+				<caption>Table 5. Measurements</caption>
+				<thead>
+					<tr><th scope="col">Method</th><th scope="col">Mean</th><th scope="col">Allocated</th></tr>
+				</thead>
+				<tbody>
+					<tr><td>Visit</td><td>83.11 &micro;s</td><td>0 B</td>
+					<tr><td>TextContent</td><td>10.15 &micro;s</td><td>8 KB
+					<tr class="alt"><td>Baseline</td><td>688.13 &micro;s</td><td>92 KB</td></tr>
+				</tbody>
+			</table>
+			<pre><code class="language-csharp">var document = new LazyHtmlDocument(html);
+foreach (var element in document.Elements())
+{
+    if (element.NameSpan.SequenceEqual("a") &amp;&amp; element.TryGetAttribute("href", out var href))
+        Console.WriteLine(href.ValueSpan);
+}</code></pre>
+			<blockquote cite="https://example.com/quote/5"><p>&ldquo;Premature optimization is the root of all evil.&rdquo;</p><footer>&mdash; <cite>Donald Knuth</cite></footer></blockquote>
+			<dl class="facts">
+				<dt>Elements<dd>514
+				<dt>Attributes<dd>437
+				<dt>Depth</dt><dd>20</dd>
+			</dl>
+			<footer class="article-footer">
+				<form action="/blog/article-5/comments" method="post">
+					<input type="hidden" name="article" value="5">
+					<textarea name="comment" rows="3" placeholder="Leave a comment <b>here</b>"></textarea>
+					<select name="rating"><option value=1>1<option value=2>2<option value=3 selected>3<option value=4>4<option value=5>5</select>
+					<label><input type="checkbox" name="subscribe" checked> Notify me</label>
+					<button type="submit" disabled>Post</button>
+				</form>
+				<!-- share buttons -->
+				<div class="share"><a href="https://twitter.com/share?url=%2Fblog%2Farticle-5" class="btn btn-twitter">Tweet</a> <a href="mailto:?subject=Article%205" class="btn">Email</a></div>
+			</footer>
+		</article>
+		<hr>
+		<article class="article" id="article-6" data-index="6" data-tags="performance,csharp">
+			<header>
+				<h2><a href="/blog/article-6">Article 6: Reading HTML without allocations</a></h2>
+				<p class="meta">Posted <time datetime="2025-04-24">January 15, 2025</time> by <a href="/authors/peter" rel="author">Peter</a> &middot; <span class="tags"><a href="/tags/performance">#performance</a> <a href="/tags/csharp">#csharp</a></span></p>
+			</header>
+			<p>Lorem ipsum dolor sit amet, <strong>consectetur</strong> adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis <em>nostrud</em> exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat &mdash; see <a href="/docs/api#element-6">the API</a> for details.</p>
+			<p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.<br>Second line after a line break.</p>
+			<figure>
+				<img src="/images/article-6.jpg" alt="Illustration for article 6" loading="lazy" width="640" height="360">
+				<figcaption>Figure 6. An illustration &copy; 2025.</figcaption>
+			</figure>
+			<h3>Highlights</h3>
+			<ul>
+				<li>Zero-allocation traversal using <code>ReadOnlySpan&lt;char&gt;</code></li>
+				<li>Vectorized scanning with <code>SearchValues&lt;char&gt;</code>
+				<li>Value enumerators for children and attributes</li>
+				<li>Tolerant of <abbr title="malformed markup">invalid</abbr> input
+			</ul>
+			<h3>Results</h3>
+			<table class="results">
+				<caption>Table 6. Measurements</caption>
+				<thead>
+					<tr><th scope="col">Method</th><th scope="col">Mean</th><th scope="col">Allocated</th></tr>
+				</thead>
+				<tbody>
+					<tr><td>Visit</td><td>45.36 &micro;s</td><td>0 B</td>
+					<tr><td>TextContent</td><td>90.62 &micro;s</td><td>8 KB
+					<tr class="alt"><td>Baseline</td><td>760.11 &micro;s</td><td>95 KB</td></tr>
+				</tbody>
+			</table>
+			<pre><code class="language-csharp">var document = new LazyHtmlDocument(html);
+foreach (var element in document.Elements())
+{
+    if (element.NameSpan.SequenceEqual("a") &amp;&amp; element.TryGetAttribute("href", out var href))
+        Console.WriteLine(href.ValueSpan);
+}</code></pre>
+			<blockquote cite="https://example.com/quote/6"><p>&ldquo;Premature optimization is the root of all evil.&rdquo;</p><footer>&mdash; <cite>Donald Knuth</cite></footer></blockquote>
+			<dl class="facts">
+				<dt>Elements<dd>399
+				<dt>Attributes<dd>738
+				<dt>Depth</dt><dd>9</dd>
+			</dl>
+			<footer class="article-footer">
+				<form action="/blog/article-6/comments" method="post">
+					<input type="hidden" name="article" value="6">
+					<textarea name="comment" rows="3" placeholder="Leave a comment <b>here</b>"></textarea>
+					<select name="rating"><option value=1>1<option value=2>2<option value=3 selected>3<option value=4>4<option value=5>5</select>
+					<label><input type="checkbox" name="subscribe" checked> Notify me</label>
+					<button type="submit" disabled>Post</button>
+				</form>
+				<!-- share buttons -->
+				<div class="share"><a href="https://twitter.com/share?url=%2Fblog%2Farticle-6" class="btn btn-twitter">Tweet</a> <a href="mailto:?subject=Article%206" class="btn">Email</a></div>
+			</footer>
+		</article>
+		<hr>
+		<article class="article" id="article-7" data-index="7" data-tags="performance,spans">
+			<header>
+				<h2><a href="/blog/article-7">Article 7: Reading HTML without allocations</a></h2>
+				<p class="meta">Posted <time datetime="2025-07-12">February 4, 2025</time> by <a href="/authors/peter" rel="author">Peter</a> &middot; <span class="tags"><a href="/tags/performance">#performance</a> <a href="/tags/spans">#spans</a></span></p>
+			</header>
+			<p>Lorem ipsum dolor sit amet, <strong>consectetur</strong> adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis <em>nostrud</em> exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat &mdash; see <a href="/docs/api#element-7">the API</a> for details.</p>
+			<p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.<br>Second line after a line break.</p>
+			<figure>
+				<img src="/images/article-7.jpg" alt="Illustration for article 7" loading="lazy" width="640" height="360">
+				<figcaption>Figure 7. An illustration &copy; 2025.</figcaption>
+			</figure>
+			<h3>Highlights</h3>
+			<ul>
+				<li>Zero-allocation traversal using <code>ReadOnlySpan&lt;char&gt;</code></li>
+				<li>Vectorized scanning with <code>SearchValues&lt;char&gt;</code>
+				<li>Value enumerators for children and attributes</li>
+				<li>Tolerant of <abbr title="malformed markup">invalid</abbr> input
+			</ul>
+			<h3>Results</h3>
+			<table class="results">
+				<caption>Table 7. Measurements</caption>
+				<thead>
+					<tr><th scope="col">Method</th><th scope="col">Mean</th><th scope="col">Allocated</th></tr>
+				</thead>
+				<tbody>
+					<tr><td>Visit</td><td>29.62 &micro;s</td><td>0 B</td>
+					<tr><td>TextContent</td><td>55.97 &micro;s</td><td>6 KB
+					<tr class="alt"><td>Baseline</td><td>788.69 &micro;s</td><td>35 KB</td></tr>
+				</tbody>
+			</table>
+			<pre><code class="language-csharp">var document = new LazyHtmlDocument(html);
+foreach (var element in document.Elements())
+{
+    if (element.NameSpan.SequenceEqual("a") &amp;&amp; element.TryGetAttribute("href", out var href))
+        Console.WriteLine(href.ValueSpan);
+}</code></pre>
+			<blockquote cite="https://example.com/quote/7"><p>&ldquo;Premature optimization is the root of all evil.&rdquo;</p><footer>&mdash; <cite>Donald Knuth</cite></footer></blockquote>
+			<dl class="facts">
+				<dt>Elements<dd>596
+				<dt>Attributes<dd>989
+				<dt>Depth</dt><dd>21</dd>
+			</dl>
+			<footer class="article-footer">
+				<form action="/blog/article-7/comments" method="post">
+					<input type="hidden" name="article" value="7">
+					<textarea name="comment" rows="3" placeholder="Leave a comment <b>here</b>"></textarea>
+					<select name="rating"><option value=1>1<option value=2>2<option value=3 selected>3<option value=4>4<option value=5>5</select>
+					<label><input type="checkbox" name="subscribe" checked> Notify me</label>
+					<button type="submit" disabled>Post</button>
+				</form>
+				<!-- share buttons -->
+				<div class="share"><a href="https://twitter.com/share?url=%2Fblog%2Farticle-7" class="btn btn-twitter">Tweet</a> <a href="mailto:?subject=Article%207" class="btn">Email</a></div>
+			</footer>
+		</article>
+		<hr>
+		<article class="article" id="article-8" data-index="8" data-tags="performance,csharp">
+			<header>
+				<h2><a href="/blog/article-8">Article 8: Reading HTML without allocations</a></h2>
+				<p class="meta">Posted <time datetime="2025-01-13">June 8, 2025</time> by <a href="/authors/peter" rel="author">Peter</a> &middot; <span class="tags"><a href="/tags/performance">#performance</a> <a href="/tags/csharp">#csharp</a></span></p>
+			</header>
+			<p>Lorem ipsum dolor sit amet, <strong>consectetur</strong> adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis <em>nostrud</em> exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat &mdash; see <a href="/docs/api#element-8">the API</a> for details.</p>
+			<p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.<br>Second line after a line break.</p>
+			<figure>
+				<img src="/images/article-8.jpg" alt="Illustration for article 8" loading="lazy" width="640" height="360">
+				<figcaption>Figure 8. An illustration &copy; 2025.</figcaption>
+			</figure>
+			<h3>Highlights</h3>
+			<ul>
+				<li>Zero-allocation traversal using <code>ReadOnlySpan&lt;char&gt;</code></li>
+				<li>Vectorized scanning with <code>SearchValues&lt;char&gt;</code>
+				<li>Value enumerators for children and attributes</li>
+				<li>Tolerant of <abbr title="malformed markup">invalid</abbr> input
+			</ul>
+			<h3>Results</h3>
+			<table class="results">
+				<caption>Table 8. Measurements</caption>
+				<thead>
+					<tr><th scope="col">Method</th><th scope="col">Mean</th><th scope="col">Allocated</th></tr>
+				</thead>
+				<tbody>
+					<tr><td>Visit</td><td>13.29 &micro;s</td><td>0 B</td>
+					<tr><td>TextContent</td><td>62.47 &micro;s</td><td>1 KB
+					<tr class="alt"><td>Baseline</td><td>184.98 &micro;s</td><td>19 KB</td></tr>
+				</tbody>
+			</table>
+			<pre><code class="language-csharp">var document = new LazyHtmlDocument(html);
+foreach (var element in document.Elements())
+{
+    if (element.NameSpan.SequenceEqual("a") &amp;&amp; element.TryGetAttribute("href", out var href))
+        Console.WriteLine(href.ValueSpan);
+}</code></pre>
+			<blockquote cite="https://example.com/quote/8"><p>&ldquo;Premature optimization is the root of all evil.&rdquo;</p><footer>&mdash; <cite>Donald Knuth</cite></footer></blockquote>
+			<dl class="facts">
+				<dt>Elements<dd>388
+				<dt>Attributes<dd>391
+				<dt>Depth</dt><dd>23</dd>
+			</dl>
+			<footer class="article-footer">
+				<form action="/blog/article-8/comments" method="post">
+					<input type="hidden" name="article" value="8">
+					<textarea name="comment" rows="3" placeholder="Leave a comment <b>here</b>"></textarea>
+					<select name="rating"><option value=1>1<option value=2>2<option value=3 selected>3<option value=4>4<option value=5>5</select>
+					<label><input type="checkbox" name="subscribe" checked> Notify me</label>
+					<button type="submit" disabled>Post</button>
+				</form>
+				<!-- share buttons -->
+				<div class="share"><a href="https://twitter.com/share?url=%2Fblog%2Farticle-8" class="btn btn-twitter">Tweet</a> <a href="mailto:?subject=Article%208" class="btn">Email</a></div>
+			</footer>
+		</article>
+		<hr>
+		<article class="article" id="article-9" data-index="9" data-tags="benchmarks,performance">
+			<header>
+				<h2><a href="/blog/article-9">Article 9: Reading HTML without allocations</a></h2>
+				<p class="meta">Posted <time datetime="2025-07-26">January 7, 2025</time> by <a href="/authors/peter" rel="author">Peter</a> &middot; <span class="tags"><a href="/tags/benchmarks">#benchmarks</a> <a href="/tags/performance">#performance</a></span></p>
+			</header>
+			<p>Lorem ipsum dolor sit amet, <strong>consectetur</strong> adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis <em>nostrud</em> exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat &mdash; see <a href="/docs/api#element-9">the API</a> for details.</p>
+			<p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.<br>Second line after a line break.</p>
+			<figure>
+				<img src="/images/article-9.jpg" alt="Illustration for article 9" loading="lazy" width="640" height="360">
+				<figcaption>Figure 9. An illustration &copy; 2025.</figcaption>
+			</figure>
+			<h3>Highlights</h3>
+			<ul>
+				<li>Zero-allocation traversal using <code>ReadOnlySpan&lt;char&gt;</code></li>
+				<li>Vectorized scanning with <code>SearchValues&lt;char&gt;</code>
+				<li>Value enumerators for children and attributes</li>
+				<li>Tolerant of <abbr title="malformed markup">invalid</abbr> input
+			</ul>
+			<h3>Results</h3>
+			<table class="results">
+				<caption>Table 9. Measurements</caption>
+				<thead>
+					<tr><th scope="col">Method</th><th scope="col">Mean</th><th scope="col">Allocated</th></tr>
+				</thead>
+				<tbody>
+					<tr><td>Visit</td><td>92.85 &micro;s</td><td>0 B</td>
+					<tr><td>TextContent</td><td>34.58 &micro;s</td><td>2 KB
+					<tr class="alt"><td>Baseline</td><td>670.65 &micro;s</td><td>36 KB</td></tr>
+				</tbody>
+			</table>
+			<pre><code class="language-csharp">var document = new LazyHtmlDocument(html);
+foreach (var element in document.Elements())
+{
+    if (element.NameSpan.SequenceEqual("a") &amp;&amp; element.TryGetAttribute("href", out var href))
+        Console.WriteLine(href.ValueSpan);
+}</code></pre>
+			<blockquote cite="https://example.com/quote/9"><p>&ldquo;Premature optimization is the root of all evil.&rdquo;</p><footer>&mdash; <cite>Donald Knuth</cite></footer></blockquote>
+			<dl class="facts">
+				<dt>Elements<dd>264
+				<dt>Attributes<dd>126
+				<dt>Depth</dt><dd>10</dd>
+			</dl>
+			<footer class="article-footer">
+				<form action="/blog/article-9/comments" method="post">
+					<input type="hidden" name="article" value="9">
+					<textarea name="comment" rows="3" placeholder="Leave a comment <b>here</b>"></textarea>
+					<select name="rating"><option value=1>1<option value=2>2<option value=3 selected>3<option value=4>4<option value=5>5</select>
+					<label><input type="checkbox" name="subscribe" checked> Notify me</label>
+					<button type="submit" disabled>Post</button>
+				</form>
+				<!-- share buttons -->
+				<div class="share"><a href="https://twitter.com/share?url=%2Fblog%2Farticle-9" class="btn btn-twitter">Tweet</a> <a href="mailto:?subject=Article%209" class="btn">Email</a></div>
+			</footer>
+		</article>
+		<hr>
+		<article class="article" id="article-10" data-index="10" data-tags="allocation,allocation">
+			<header>
+				<h2><a href="/blog/article-10">Article 10: Reading HTML without allocations</a></h2>
+				<p class="meta">Posted <time datetime="2025-02-25">May 6, 2025</time> by <a href="/authors/peter" rel="author">Peter</a> &middot; <span class="tags"><a href="/tags/allocation">#allocation</a> <a href="/tags/allocation">#allocation</a></span></p>
+			</header>
+			<p>Lorem ipsum dolor sit amet, <strong>consectetur</strong> adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis <em>nostrud</em> exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat &mdash; see <a href="/docs/api#element-10">the API</a> for details.</p>
+			<p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.<br>Second line after a line break.</p>
+			<figure>
+				<img src="/images/article-10.jpg" alt="Illustration for article 10" loading="lazy" width="640" height="360">
+				<figcaption>Figure 10. An illustration &copy; 2025.</figcaption>
+			</figure>
+			<h3>Highlights</h3>
+			<ul>
+				<li>Zero-allocation traversal using <code>ReadOnlySpan&lt;char&gt;</code></li>
+				<li>Vectorized scanning with <code>SearchValues&lt;char&gt;</code>
+				<li>Value enumerators for children and attributes</li>
+				<li>Tolerant of <abbr title="malformed markup">invalid</abbr> input
+			</ul>
+			<h3>Results</h3>
+			<table class="results">
+				<caption>Table 10. Measurements</caption>
+				<thead>
+					<tr><th scope="col">Method</th><th scope="col">Mean</th><th scope="col">Allocated</th></tr>
+				</thead>
+				<tbody>
+					<tr><td>Visit</td><td>36.59 &micro;s</td><td>0 B</td>
+					<tr><td>TextContent</td><td>59.73 &micro;s</td><td>4 KB
+					<tr class="alt"><td>Baseline</td><td>209.63 &micro;s</td><td>88 KB</td></tr>
+				</tbody>
+			</table>
+			<pre><code class="language-csharp">var document = new LazyHtmlDocument(html);
+foreach (var element in document.Elements())
+{
+    if (element.NameSpan.SequenceEqual("a") &amp;&amp; element.TryGetAttribute("href", out var href))
+        Console.WriteLine(href.ValueSpan);
+}</code></pre>
+			<blockquote cite="https://example.com/quote/10"><p>&ldquo;Premature optimization is the root of all evil.&rdquo;</p><footer>&mdash; <cite>Donald Knuth</cite></footer></blockquote>
+			<dl class="facts">
+				<dt>Elements<dd>499
+				<dt>Attributes<dd>413
+				<dt>Depth</dt><dd>29</dd>
+			</dl>
+			<footer class="article-footer">
+				<form action="/blog/article-10/comments" method="post">
+					<input type="hidden" name="article" value="10">
+					<textarea name="comment" rows="3" placeholder="Leave a comment <b>here</b>"></textarea>
+					<select name="rating"><option value=1>1<option value=2>2<option value=3 selected>3<option value=4>4<option value=5>5</select>
+					<label><input type="checkbox" name="subscribe" checked> Notify me</label>
+					<button type="submit" disabled>Post</button>
+				</form>
+				<!-- share buttons -->
+				<div class="share"><a href="https://twitter.com/share?url=%2Fblog%2Farticle-10" class="btn btn-twitter">Tweet</a> <a href="mailto:?subject=Article%2010" class="btn">Email</a></div>
+			</footer>
+		</article>
+		<hr>
+		<article class="article" id="article-11" data-index="11" data-tags="spans,parsing">
+			<header>
+				<h2><a href="/blog/article-11">Article 11: Reading HTML without allocations</a></h2>
+				<p class="meta">Posted <time datetime="2025-07-12">June 3, 2025</time> by <a href="/authors/peter" rel="author">Peter</a> &middot; <span class="tags"><a href="/tags/spans">#spans</a> <a href="/tags/parsing">#parsing</a></span></p>
+			</header>
+			<p>Lorem ipsum dolor sit amet, <strong>consectetur</strong> adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis <em>nostrud</em> exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat &mdash; see <a href="/docs/api#element-11">the API</a> for details.</p>
+			<p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.<br>Second line after a line break.</p>
+			<figure>
+				<img src="/images/article-11.jpg" alt="Illustration for article 11" loading="lazy" width="640" height="360">
+				<figcaption>Figure 11. An illustration &copy; 2025.</figcaption>
+			</figure>
+			<h3>Highlights</h3>
+			<ul>
+				<li>Zero-allocation traversal using <code>ReadOnlySpan&lt;char&gt;</code></li>
+				<li>Vectorized scanning with <code>SearchValues&lt;char&gt;</code>
+				<li>Value enumerators for children and attributes</li>
+				<li>Tolerant of <abbr title="malformed markup">invalid</abbr> input
+			</ul>
+			<h3>Results</h3>
+			<table class="results">
+				<caption>Table 11. Measurements</caption>
+				<thead>
+					<tr><th scope="col">Method</th><th scope="col">Mean</th><th scope="col">Allocated</th></tr>
+				</thead>
+				<tbody>
+					<tr><td>Visit</td><td>10.26 &micro;s</td><td>0 B</td>
+					<tr><td>TextContent</td><td>93.74 &micro;s</td><td>4 KB
+					<tr class="alt"><td>Baseline</td><td>463.62 &micro;s</td><td>21 KB</td></tr>
+				</tbody>
+			</table>
+			<pre><code class="language-csharp">var document = new LazyHtmlDocument(html);
+foreach (var element in document.Elements())
+{
+    if (element.NameSpan.SequenceEqual("a") &amp;&amp; element.TryGetAttribute("href", out var href))
+        Console.WriteLine(href.ValueSpan);
+}</code></pre>
+			<blockquote cite="https://example.com/quote/11"><p>&ldquo;Premature optimization is the root of all evil.&rdquo;</p><footer>&mdash; <cite>Donald Knuth</cite></footer></blockquote>
+			<dl class="facts">
+				<dt>Elements<dd>918
+				<dt>Attributes<dd>966
+				<dt>Depth</dt><dd>27</dd>
+			</dl>
+			<footer class="article-footer">
+				<form action="/blog/article-11/comments" method="post">
+					<input type="hidden" name="article" value="11">
+					<textarea name="comment" rows="3" placeholder="Leave a comment <b>here</b>"></textarea>
+					<select name="rating"><option value=1>1<option value=2>2<option value=3 selected>3<option value=4>4<option value=5>5</select>
+					<label><input type="checkbox" name="subscribe" checked> Notify me</label>
+					<button type="submit" disabled>Post</button>
+				</form>
+				<!-- share buttons -->
+				<div class="share"><a href="https://twitter.com/share?url=%2Fblog%2Farticle-11" class="btn btn-twitter">Tweet</a> <a href="mailto:?subject=Article%2011" class="btn">Email</a></div>
+			</footer>
+		</article>
+		<hr>
+		<article class="article" id="article-12" data-index="12" data-tags="dotnet,csharp">
+			<header>
+				<h2><a href="/blog/article-12">Article 12: Reading HTML without allocations</a></h2>
+				<p class="meta">Posted <time datetime="2025-05-26">April 23, 2025</time> by <a href="/authors/peter" rel="author">Peter</a> &middot; <span class="tags"><a href="/tags/dotnet">#dotnet</a> <a href="/tags/csharp">#csharp</a></span></p>
+			</header>
+			<p>Lorem ipsum dolor sit amet, <strong>consectetur</strong> adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis <em>nostrud</em> exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat &mdash; see <a href="/docs/api#element-12">the API</a> for details.</p>
+			<p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.<br>Second line after a line break.</p>
+			<figure>
+				<img src="/images/article-12.jpg" alt="Illustration for article 12" loading="lazy" width="640" height="360">
+				<figcaption>Figure 12. An illustration &copy; 2025.</figcaption>
+			</figure>
+			<h3>Highlights</h3>
+			<ul>
+				<li>Zero-allocation traversal using <code>ReadOnlySpan&lt;char&gt;</code></li>
+				<li>Vectorized scanning with <code>SearchValues&lt;char&gt;</code>
+				<li>Value enumerators for children and attributes</li>
+				<li>Tolerant of <abbr title="malformed markup">invalid</abbr> input
+			</ul>
+			<h3>Results</h3>
+			<table class="results">
+				<caption>Table 12. Measurements</caption>
+				<thead>
+					<tr><th scope="col">Method</th><th scope="col">Mean</th><th scope="col">Allocated</th></tr>
+				</thead>
+				<tbody>
+					<tr><td>Visit</td><td>76.34 &micro;s</td><td>0 B</td>
+					<tr><td>TextContent</td><td>40.56 &micro;s</td><td>8 KB
+					<tr class="alt"><td>Baseline</td><td>823.31 &micro;s</td><td>69 KB</td></tr>
+				</tbody>
+			</table>
+			<pre><code class="language-csharp">var document = new LazyHtmlDocument(html);
+foreach (var element in document.Elements())
+{
+    if (element.NameSpan.SequenceEqual("a") &amp;&amp; element.TryGetAttribute("href", out var href))
+        Console.WriteLine(href.ValueSpan);
+}</code></pre>
+			<blockquote cite="https://example.com/quote/12"><p>&ldquo;Premature optimization is the root of all evil.&rdquo;</p><footer>&mdash; <cite>Donald Knuth</cite></footer></blockquote>
+			<dl class="facts">
+				<dt>Elements<dd>270
+				<dt>Attributes<dd>349
+				<dt>Depth</dt><dd>10</dd>
+			</dl>
+			<footer class="article-footer">
+				<form action="/blog/article-12/comments" method="post">
+					<input type="hidden" name="article" value="12">
+					<textarea name="comment" rows="3" placeholder="Leave a comment <b>here</b>"></textarea>
+					<select name="rating"><option value=1>1<option value=2>2<option value=3 selected>3<option value=4>4<option value=5>5</select>
+					<label><input type="checkbox" name="subscribe" checked> Notify me</label>
+					<button type="submit" disabled>Post</button>
+				</form>
+				<!-- share buttons -->
+				<div class="share"><a href="https://twitter.com/share?url=%2Fblog%2Farticle-12" class="btn btn-twitter">Tweet</a> <a href="mailto:?subject=Article%2012" class="btn">Email</a></div>
+			</footer>
+		</article>
+		<hr>
+		<article class="article" id="article-13" data-index="13" data-tags="benchmarks,html">
+			<header>
+				<h2><a href="/blog/article-13">Article 13: Reading HTML without allocations</a></h2>
+				<p class="meta">Posted <time datetime="2025-04-24">January 24, 2025</time> by <a href="/authors/peter" rel="author">Peter</a> &middot; <span class="tags"><a href="/tags/benchmarks">#benchmarks</a> <a href="/tags/html">#html</a></span></p>
+			</header>
+			<p>Lorem ipsum dolor sit amet, <strong>consectetur</strong> adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis <em>nostrud</em> exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat &mdash; see <a href="/docs/api#element-13">the API</a> for details.</p>
+			<p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.<br>Second line after a line break.</p>
+			<figure>
+				<img src="/images/article-13.jpg" alt="Illustration for article 13" loading="lazy" width="640" height="360">
+				<figcaption>Figure 13. An illustration &copy; 2025.</figcaption>
+			</figure>
+			<h3>Highlights</h3>
+			<ul>
+				<li>Zero-allocation traversal using <code>ReadOnlySpan&lt;char&gt;</code></li>
+				<li>Vectorized scanning with <code>SearchValues&lt;char&gt;</code>
+				<li>Value enumerators for children and attributes</li>
+				<li>Tolerant of <abbr title="malformed markup">invalid</abbr> input
+			</ul>
+			<h3>Results</h3>
+			<table class="results">
+				<caption>Table 13. Measurements</caption>
+				<thead>
+					<tr><th scope="col">Method</th><th scope="col">Mean</th><th scope="col">Allocated</th></tr>
+				</thead>
+				<tbody>
+					<tr><td>Visit</td><td>79.94 &micro;s</td><td>0 B</td>
+					<tr><td>TextContent</td><td>93.51 &micro;s</td><td>2 KB
+					<tr class="alt"><td>Baseline</td><td>900.96 &micro;s</td><td>62 KB</td></tr>
+				</tbody>
+			</table>
+			<pre><code class="language-csharp">var document = new LazyHtmlDocument(html);
+foreach (var element in document.Elements())
+{
+    if (element.NameSpan.SequenceEqual("a") &amp;&amp; element.TryGetAttribute("href", out var href))
+        Console.WriteLine(href.ValueSpan);
+}</code></pre>
+			<blockquote cite="https://example.com/quote/13"><p>&ldquo;Premature optimization is the root of all evil.&rdquo;</p><footer>&mdash; <cite>Donald Knuth</cite></footer></blockquote>
+			<dl class="facts">
+				<dt>Elements<dd>289
+				<dt>Attributes<dd>670
+				<dt>Depth</dt><dd>17</dd>
+			</dl>
+			<footer class="article-footer">
+				<form action="/blog/article-13/comments" method="post">
+					<input type="hidden" name="article" value="13">
+					<textarea name="comment" rows="3" placeholder="Leave a comment <b>here</b>"></textarea>
+					<select name="rating"><option value=1>1<option value=2>2<option value=3 selected>3<option value=4>4<option value=5>5</select>
+					<label><input type="checkbox" name="subscribe" checked> Notify me</label>
+					<button type="submit" disabled>Post</button>
+				</form>
+				<!-- share buttons -->
+				<div class="share"><a href="https://twitter.com/share?url=%2Fblog%2Farticle-13" class="btn btn-twitter">Tweet</a> <a href="mailto:?subject=Article%2013" class="btn">Email</a></div>
+			</footer>
+		</article>
+		<hr>
+		<article class="article" id="article-14" data-index="14" data-tags="html,performance">
+			<header>
+				<h2><a href="/blog/article-14">Article 14: Reading HTML without allocations</a></h2>
+				<p class="meta">Posted <time datetime="2025-03-19">May 20, 2025</time> by <a href="/authors/peter" rel="author">Peter</a> &middot; <span class="tags"><a href="/tags/html">#html</a> <a href="/tags/performance">#performance</a></span></p>
+			</header>
+			<p>Lorem ipsum dolor sit amet, <strong>consectetur</strong> adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis <em>nostrud</em> exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat &mdash; see <a href="/docs/api#element-14">the API</a> for details.</p>
+			<p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.<br>Second line after a line break.</p>
+			<figure>
+				<img src="/images/article-14.jpg" alt="Illustration for article 14" loading="lazy" width="640" height="360">
+				<figcaption>Figure 14. An illustration &copy; 2025.</figcaption>
+			</figure>
+			<h3>Highlights</h3>
+			<ul>
+				<li>Zero-allocation traversal using <code>ReadOnlySpan&lt;char&gt;</code></li>
+				<li>Vectorized scanning with <code>SearchValues&lt;char&gt;</code>
+				<li>Value enumerators for children and attributes</li>
+				<li>Tolerant of <abbr title="malformed markup">invalid</abbr> input
+			</ul>
+			<h3>Results</h3>
+			<table class="results">
+				<caption>Table 14. Measurements</caption>
+				<thead>
+					<tr><th scope="col">Method</th><th scope="col">Mean</th><th scope="col">Allocated</th></tr>
+				</thead>
+				<tbody>
+					<tr><td>Visit</td><td>27.57 &micro;s</td><td>0 B</td>
+					<tr><td>TextContent</td><td>80.61 &micro;s</td><td>1 KB
+					<tr class="alt"><td>Baseline</td><td>278.93 &micro;s</td><td>14 KB</td></tr>
+				</tbody>
+			</table>
+			<pre><code class="language-csharp">var document = new LazyHtmlDocument(html);
+foreach (var element in document.Elements())
+{
+    if (element.NameSpan.SequenceEqual("a") &amp;&amp; element.TryGetAttribute("href", out var href))
+        Console.WriteLine(href.ValueSpan);
+}</code></pre>
+			<blockquote cite="https://example.com/quote/14"><p>&ldquo;Premature optimization is the root of all evil.&rdquo;</p><footer>&mdash; <cite>Donald Knuth</cite></footer></blockquote>
+			<dl class="facts">
+				<dt>Elements<dd>292
+				<dt>Attributes<dd>381
+				<dt>Depth</dt><dd>9</dd>
+			</dl>
+			<footer class="article-footer">
+				<form action="/blog/article-14/comments" method="post">
+					<input type="hidden" name="article" value="14">
+					<textarea name="comment" rows="3" placeholder="Leave a comment <b>here</b>"></textarea>
+					<select name="rating"><option value=1>1<option value=2>2<option value=3 selected>3<option value=4>4<option value=5>5</select>
+					<label><input type="checkbox" name="subscribe" checked> Notify me</label>
+					<button type="submit" disabled>Post</button>
+				</form>
+				<!-- share buttons -->
+				<div class="share"><a href="https://twitter.com/share?url=%2Fblog%2Farticle-14" class="btn btn-twitter">Tweet</a> <a href="mailto:?subject=Article%2014" class="btn">Email</a></div>
+			</footer>
+		</article>
+		<hr>
+		<article class="article" id="article-15" data-index="15" data-tags="csharp,csharp">
+			<header>
+				<h2><a href="/blog/article-15">Article 15: Reading HTML without allocations</a></h2>
+				<p class="meta">Posted <time datetime="2025-04-16">June 13, 2025</time> by <a href="/authors/peter" rel="author">Peter</a> &middot; <span class="tags"><a href="/tags/csharp">#csharp</a> <a href="/tags/csharp">#csharp</a></span></p>
+			</header>
+			<p>Lorem ipsum dolor sit amet, <strong>consectetur</strong> adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis <em>nostrud</em> exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat &mdash; see <a href="/docs/api#element-15">the API</a> for details.</p>
+			<p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.<br>Second line after a line break.</p>
+			<figure>
+				<img src="/images/article-15.jpg" alt="Illustration for article 15" loading="lazy" width="640" height="360">
+				<figcaption>Figure 15. An illustration &copy; 2025.</figcaption>
+			</figure>
+			<h3>Highlights</h3>
+			<ul>
+				<li>Zero-allocation traversal using <code>ReadOnlySpan&lt;char&gt;</code></li>
+				<li>Vectorized scanning with <code>SearchValues&lt;char&gt;</code>
+				<li>Value enumerators for children and attributes</li>
+				<li>Tolerant of <abbr title="malformed markup">invalid</abbr> input
+			</ul>
+			<h3>Results</h3>
+			<table class="results">
+				<caption>Table 15. Measurements</caption>
+				<thead>
+					<tr><th scope="col">Method</th><th scope="col">Mean</th><th scope="col">Allocated</th></tr>
+				</thead>
+				<tbody>
+					<tr><td>Visit</td><td>77.68 &micro;s</td><td>0 B</td>
+					<tr><td>TextContent</td><td>98.41 &micro;s</td><td>2 KB
+					<tr class="alt"><td>Baseline</td><td>870.37 &micro;s</td><td>93 KB</td></tr>
+				</tbody>
+			</table>
+			<pre><code class="language-csharp">var document = new LazyHtmlDocument(html);
+foreach (var element in document.Elements())
+{
+    if (element.NameSpan.SequenceEqual("a") &amp;&amp; element.TryGetAttribute("href", out var href))
+        Console.WriteLine(href.ValueSpan);
+}</code></pre>
+			<blockquote cite="https://example.com/quote/15"><p>&ldquo;Premature optimization is the root of all evil.&rdquo;</p><footer>&mdash; <cite>Donald Knuth</cite></footer></blockquote>
+			<dl class="facts">
+				<dt>Elements<dd>633
+				<dt>Attributes<dd>650
+				<dt>Depth</dt><dd>14</dd>
+			</dl>
+			<footer class="article-footer">
+				<form action="/blog/article-15/comments" method="post">
+					<input type="hidden" name="article" value="15">
+					<textarea name="comment" rows="3" placeholder="Leave a comment <b>here</b>"></textarea>
+					<select name="rating"><option value=1>1<option value=2>2<option value=3 selected>3<option value=4>4<option value=5>5</select>
+					<label><input type="checkbox" name="subscribe" checked> Notify me</label>
+					<button type="submit" disabled>Post</button>
+				</form>
+				<!-- share buttons -->
+				<div class="share"><a href="https://twitter.com/share?url=%2Fblog%2Farticle-15" class="btn btn-twitter">Tweet</a> <a href="mailto:?subject=Article%2015" class="btn">Email</a></div>
+			</footer>
+		</article>
+		<hr>
+		<article class="article" id="article-16" data-index="16" data-tags="allocation,performance">
+			<header>
+				<h2><a href="/blog/article-16">Article 16: Reading HTML without allocations</a></h2>
+				<p class="meta">Posted <time datetime="2025-08-15">March 25, 2025</time> by <a href="/authors/peter" rel="author">Peter</a> &middot; <span class="tags"><a href="/tags/allocation">#allocation</a> <a href="/tags/performance">#performance</a></span></p>
+			</header>
+			<p>Lorem ipsum dolor sit amet, <strong>consectetur</strong> adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis <em>nostrud</em> exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat &mdash; see <a href="/docs/api#element-16">the API</a> for details.</p>
+			<p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.<br>Second line after a line break.</p>
+			<figure>
+				<img src="/images/article-16.jpg" alt="Illustration for article 16" loading="lazy" width="640" height="360">
+				<figcaption>Figure 16. An illustration &copy; 2025.</figcaption>
+			</figure>
+			<h3>Highlights</h3>
+			<ul>
+				<li>Zero-allocation traversal using <code>ReadOnlySpan&lt;char&gt;</code></li>
+				<li>Vectorized scanning with <code>SearchValues&lt;char&gt;</code>
+				<li>Value enumerators for children and attributes</li>
+				<li>Tolerant of <abbr title="malformed markup">invalid</abbr> input
+			</ul>
+			<h3>Results</h3>
+			<table class="results">
+				<caption>Table 16. Measurements</caption>
+				<thead>
+					<tr><th scope="col">Method</th><th scope="col">Mean</th><th scope="col">Allocated</th></tr>
+				</thead>
+				<tbody>
+					<tr><td>Visit</td><td>88.89 &micro;s</td><td>0 B</td>
+					<tr><td>TextContent</td><td>11.36 &micro;s</td><td>8 KB
+					<tr class="alt"><td>Baseline</td><td>621.11 &micro;s</td><td>46 KB</td></tr>
+				</tbody>
+			</table>
+			<pre><code class="language-csharp">var document = new LazyHtmlDocument(html);
+foreach (var element in document.Elements())
+{
+    if (element.NameSpan.SequenceEqual("a") &amp;&amp; element.TryGetAttribute("href", out var href))
+        Console.WriteLine(href.ValueSpan);
+}</code></pre>
+			<blockquote cite="https://example.com/quote/16"><p>&ldquo;Premature optimization is the root of all evil.&rdquo;</p><footer>&mdash; <cite>Donald Knuth</cite></footer></blockquote>
+			<dl class="facts">
+				<dt>Elements<dd>708
+				<dt>Attributes<dd>689
+				<dt>Depth</dt><dd>29</dd>
+			</dl>
+			<footer class="article-footer">
+				<form action="/blog/article-16/comments" method="post">
+					<input type="hidden" name="article" value="16">
+					<textarea name="comment" rows="3" placeholder="Leave a comment <b>here</b>"></textarea>
+					<select name="rating"><option value=1>1<option value=2>2<option value=3 selected>3<option value=4>4<option value=5>5</select>
+					<label><input type="checkbox" name="subscribe" checked> Notify me</label>
+					<button type="submit" disabled>Post</button>
+				</form>
+				<!-- share buttons -->
+				<div class="share"><a href="https://twitter.com/share?url=%2Fblog%2Farticle-16" class="btn btn-twitter">Tweet</a> <a href="mailto:?subject=Article%2016" class="btn">Email</a></div>
+			</footer>
+		</article>
+		<hr>
+		<article class="article" id="article-17" data-index="17" data-tags="csharp,allocation">
+			<header>
+				<h2><a href="/blog/article-17">Article 17: Reading HTML without allocations</a></h2>
+				<p class="meta">Posted <time datetime="2025-01-16">May 18, 2025</time> by <a href="/authors/peter" rel="author">Peter</a> &middot; <span class="tags"><a href="/tags/csharp">#csharp</a> <a href="/tags/allocation">#allocation</a></span></p>
+			</header>
+			<p>Lorem ipsum dolor sit amet, <strong>consectetur</strong> adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis <em>nostrud</em> exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat &mdash; see <a href="/docs/api#element-17">the API</a> for details.</p>
+			<p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.<br>Second line after a line break.</p>
+			<figure>
+				<img src="/images/article-17.jpg" alt="Illustration for article 17" loading="lazy" width="640" height="360">
+				<figcaption>Figure 17. An illustration &copy; 2025.</figcaption>
+			</figure>
+			<h3>Highlights</h3>
+			<ul>
+				<li>Zero-allocation traversal using <code>ReadOnlySpan&lt;char&gt;</code></li>
+				<li>Vectorized scanning with <code>SearchValues&lt;char&gt;</code>
+				<li>Value enumerators for children and attributes</li>
+				<li>Tolerant of <abbr title="malformed markup">invalid</abbr> input
+			</ul>
+			<h3>Results</h3>
+			<table class="results">
+				<caption>Table 17. Measurements</caption>
+				<thead>
+					<tr><th scope="col">Method</th><th scope="col">Mean</th><th scope="col">Allocated</th></tr>
+				</thead>
+				<tbody>
+					<tr><td>Visit</td><td>13.70 &micro;s</td><td>0 B</td>
+					<tr><td>TextContent</td><td>56.42 &micro;s</td><td>5 KB
+					<tr class="alt"><td>Baseline</td><td>409.29 &micro;s</td><td>67 KB</td></tr>
+				</tbody>
+			</table>
+			<pre><code class="language-csharp">var document = new LazyHtmlDocument(html);
+foreach (var element in document.Elements())
+{
+    if (element.NameSpan.SequenceEqual("a") &amp;&amp; element.TryGetAttribute("href", out var href))
+        Console.WriteLine(href.ValueSpan);
+}</code></pre>
+			<blockquote cite="https://example.com/quote/17"><p>&ldquo;Premature optimization is the root of all evil.&rdquo;</p><footer>&mdash; <cite>Donald Knuth</cite></footer></blockquote>
+			<dl class="facts">
+				<dt>Elements<dd>644
+				<dt>Attributes<dd>389
+				<dt>Depth</dt><dd>21</dd>
+			</dl>
+			<footer class="article-footer">
+				<form action="/blog/article-17/comments" method="post">
+					<input type="hidden" name="article" value="17">
+					<textarea name="comment" rows="3" placeholder="Leave a comment <b>here</b>"></textarea>
+					<select name="rating"><option value=1>1<option value=2>2<option value=3 selected>3<option value=4>4<option value=5>5</select>
+					<label><input type="checkbox" name="subscribe" checked> Notify me</label>
+					<button type="submit" disabled>Post</button>
+				</form>
+				<!-- share buttons -->
+				<div class="share"><a href="https://twitter.com/share?url=%2Fblog%2Farticle-17" class="btn btn-twitter">Tweet</a> <a href="mailto:?subject=Article%2017" class="btn">Email</a></div>
+			</footer>
+		</article>
+		<hr>
+		<article class="article" id="article-18" data-index="18" data-tags="performance,dotnet">
+			<header>
+				<h2><a href="/blog/article-18">Article 18: Reading HTML without allocations</a></h2>
+				<p class="meta">Posted <time datetime="2025-03-27">June 10, 2025</time> by <a href="/authors/peter" rel="author">Peter</a> &middot; <span class="tags"><a href="/tags/performance">#performance</a> <a href="/tags/dotnet">#dotnet</a></span></p>
+			</header>
+			<p>Lorem ipsum dolor sit amet, <strong>consectetur</strong> adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis <em>nostrud</em> exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat &mdash; see <a href="/docs/api#element-18">the API</a> for details.</p>
+			<p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.<br>Second line after a line break.</p>
+			<figure>
+				<img src="/images/article-18.jpg" alt="Illustration for article 18" loading="lazy" width="640" height="360">
+				<figcaption>Figure 18. An illustration &copy; 2025.</figcaption>
+			</figure>
+			<h3>Highlights</h3>
+			<ul>
+				<li>Zero-allocation traversal using <code>ReadOnlySpan&lt;char&gt;</code></li>
+				<li>Vectorized scanning with <code>SearchValues&lt;char&gt;</code>
+				<li>Value enumerators for children and attributes</li>
+				<li>Tolerant of <abbr title="malformed markup">invalid</abbr> input
+			</ul>
+			<h3>Results</h3>
+			<table class="results">
+				<caption>Table 18. Measurements</caption>
+				<thead>
+					<tr><th scope="col">Method</th><th scope="col">Mean</th><th scope="col">Allocated</th></tr>
+				</thead>
+				<tbody>
+					<tr><td>Visit</td><td>10.61 &micro;s</td><td>0 B</td>
+					<tr><td>TextContent</td><td>41.23 &micro;s</td><td>1 KB
+					<tr class="alt"><td>Baseline</td><td>264.67 &micro;s</td><td>94 KB</td></tr>
+				</tbody>
+			</table>
+			<pre><code class="language-csharp">var document = new LazyHtmlDocument(html);
+foreach (var element in document.Elements())
+{
+    if (element.NameSpan.SequenceEqual("a") &amp;&amp; element.TryGetAttribute("href", out var href))
+        Console.WriteLine(href.ValueSpan);
+}</code></pre>
+			<blockquote cite="https://example.com/quote/18"><p>&ldquo;Premature optimization is the root of all evil.&rdquo;</p><footer>&mdash; <cite>Donald Knuth</cite></footer></blockquote>
+			<dl class="facts">
+				<dt>Elements<dd>262
+				<dt>Attributes<dd>689
+				<dt>Depth</dt><dd>9</dd>
+			</dl>
+			<footer class="article-footer">
+				<form action="/blog/article-18/comments" method="post">
+					<input type="hidden" name="article" value="18">
+					<textarea name="comment" rows="3" placeholder="Leave a comment <b>here</b>"></textarea>
+					<select name="rating"><option value=1>1<option value=2>2<option value=3 selected>3<option value=4>4<option value=5>5</select>
+					<label><input type="checkbox" name="subscribe" checked> Notify me</label>
+					<button type="submit" disabled>Post</button>
+				</form>
+				<!-- share buttons -->
+				<div class="share"><a href="https://twitter.com/share?url=%2Fblog%2Farticle-18" class="btn btn-twitter">Tweet</a> <a href="mailto:?subject=Article%2018" class="btn">Email</a></div>
+			</footer>
+		</article>
+		<hr>
+		<article class="article" id="article-19" data-index="19" data-tags="html,html">
+			<header>
+				<h2><a href="/blog/article-19">Article 19: Reading HTML without allocations</a></h2>
+				<p class="meta">Posted <time datetime="2025-03-21">June 12, 2025</time> by <a href="/authors/peter" rel="author">Peter</a> &middot; <span class="tags"><a href="/tags/html">#html</a> <a href="/tags/html">#html</a></span></p>
+			</header>
+			<p>Lorem ipsum dolor sit amet, <strong>consectetur</strong> adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis <em>nostrud</em> exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat &mdash; see <a href="/docs/api#element-19">the API</a> for details.</p>
+			<p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.<br>Second line after a line break.</p>
+			<figure>
+				<img src="/images/article-19.jpg" alt="Illustration for article 19" loading="lazy" width="640" height="360">
+				<figcaption>Figure 19. An illustration &copy; 2025.</figcaption>
+			</figure>
+			<h3>Highlights</h3>
+			<ul>
+				<li>Zero-allocation traversal using <code>ReadOnlySpan&lt;char&gt;</code></li>
+				<li>Vectorized scanning with <code>SearchValues&lt;char&gt;</code>
+				<li>Value enumerators for children and attributes</li>
+				<li>Tolerant of <abbr title="malformed markup">invalid</abbr> input
+			</ul>
+			<h3>Results</h3>
+			<table class="results">
+				<caption>Table 19. Measurements</caption>
+				<thead>
+					<tr><th scope="col">Method</th><th scope="col">Mean</th><th scope="col">Allocated</th></tr>
+				</thead>
+				<tbody>
+					<tr><td>Visit</td><td>48.27 &micro;s</td><td>0 B</td>
+					<tr><td>TextContent</td><td>80.59 &micro;s</td><td>4 KB
+					<tr class="alt"><td>Baseline</td><td>583.69 &micro;s</td><td>68 KB</td></tr>
+				</tbody>
+			</table>
+			<pre><code class="language-csharp">var document = new LazyHtmlDocument(html);
+foreach (var element in document.Elements())
+{
+    if (element.NameSpan.SequenceEqual("a") &amp;&amp; element.TryGetAttribute("href", out var href))
+        Console.WriteLine(href.ValueSpan);
+}</code></pre>
+			<blockquote cite="https://example.com/quote/19"><p>&ldquo;Premature optimization is the root of all evil.&rdquo;</p><footer>&mdash; <cite>Donald Knuth</cite></footer></blockquote>
+			<dl class="facts">
+				<dt>Elements<dd>976
+				<dt>Attributes<dd>726
+				<dt>Depth</dt><dd>10</dd>
+			</dl>
+			<footer class="article-footer">
+				<form action="/blog/article-19/comments" method="post">
+					<input type="hidden" name="article" value="19">
+					<textarea name="comment" rows="3" placeholder="Leave a comment <b>here</b>"></textarea>
+					<select name="rating"><option value=1>1<option value=2>2<option value=3 selected>3<option value=4>4<option value=5>5</select>
+					<label><input type="checkbox" name="subscribe" checked> Notify me</label>
+					<button type="submit" disabled>Post</button>
+				</form>
+				<!-- share buttons -->
+				<div class="share"><a href="https://twitter.com/share?url=%2Fblog%2Farticle-19" class="btn btn-twitter">Tweet</a> <a href="mailto:?subject=Article%2019" class="btn">Email</a></div>
+			</footer>
+		</article>
+		<hr>
+		<article class="article" id="article-20" data-index="20" data-tags="csharp,parsing">
+			<header>
+				<h2><a href="/blog/article-20">Article 20: Reading HTML without allocations</a></h2>
+				<p class="meta">Posted <time datetime="2025-06-15">May 16, 2025</time> by <a href="/authors/peter" rel="author">Peter</a> &middot; <span class="tags"><a href="/tags/csharp">#csharp</a> <a href="/tags/parsing">#parsing</a></span></p>
+			</header>
+			<p>Lorem ipsum dolor sit amet, <strong>consectetur</strong> adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis <em>nostrud</em> exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat &mdash; see <a href="/docs/api#element-20">the API</a> for details.</p>
+			<p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.<br>Second line after a line break.</p>
+			<figure>
+				<img src="/images/article-20.jpg" alt="Illustration for article 20" loading="lazy" width="640" height="360">
+				<figcaption>Figure 20. An illustration &copy; 2025.</figcaption>
+			</figure>
+			<h3>Highlights</h3>
+			<ul>
+				<li>Zero-allocation traversal using <code>ReadOnlySpan&lt;char&gt;</code></li>
+				<li>Vectorized scanning with <code>SearchValues&lt;char&gt;</code>
+				<li>Value enumerators for children and attributes</li>
+				<li>Tolerant of <abbr title="malformed markup">invalid</abbr> input
+			</ul>
+			<h3>Results</h3>
+			<table class="results">
+				<caption>Table 20. Measurements</caption>
+				<thead>
+					<tr><th scope="col">Method</th><th scope="col">Mean</th><th scope="col">Allocated</th></tr>
+				</thead>
+				<tbody>
+					<tr><td>Visit</td><td>76.50 &micro;s</td><td>0 B</td>
+					<tr><td>TextContent</td><td>98.54 &micro;s</td><td>4 KB
+					<tr class="alt"><td>Baseline</td><td>872.13 &micro;s</td><td>47 KB</td></tr>
+				</tbody>
+			</table>
+			<pre><code class="language-csharp">var document = new LazyHtmlDocument(html);
+foreach (var element in document.Elements())
+{
+    if (element.NameSpan.SequenceEqual("a") &amp;&amp; element.TryGetAttribute("href", out var href))
+        Console.WriteLine(href.ValueSpan);
+}</code></pre>
+			<blockquote cite="https://example.com/quote/20"><p>&ldquo;Premature optimization is the root of all evil.&rdquo;</p><footer>&mdash; <cite>Donald Knuth</cite></footer></blockquote>
+			<dl class="facts">
+				<dt>Elements<dd>247
+				<dt>Attributes<dd>605
+				<dt>Depth</dt><dd>15</dd>
+			</dl>
+			<footer class="article-footer">
+				<form action="/blog/article-20/comments" method="post">
+					<input type="hidden" name="article" value="20">
+					<textarea name="comment" rows="3" placeholder="Leave a comment <b>here</b>"></textarea>
+					<select name="rating"><option value=1>1<option value=2>2<option value=3 selected>3<option value=4>4<option value=5>5</select>
+					<label><input type="checkbox" name="subscribe" checked> Notify me</label>
+					<button type="submit" disabled>Post</button>
+				</form>
+				<!-- share buttons -->
+				<div class="share"><a href="https://twitter.com/share?url=%2Fblog%2Farticle-20" class="btn btn-twitter">Tweet</a> <a href="mailto:?subject=Article%2020" class="btn">Email</a></div>
+			</footer>
+		</article>
+		<hr>
+		<article class="article" id="article-21" data-index="21" data-tags="performance,allocation">
+			<header>
+				<h2><a href="/blog/article-21">Article 21: Reading HTML without allocations</a></h2>
+				<p class="meta">Posted <time datetime="2025-03-18">March 20, 2025</time> by <a href="/authors/peter" rel="author">Peter</a> &middot; <span class="tags"><a href="/tags/performance">#performance</a> <a href="/tags/allocation">#allocation</a></span></p>
+			</header>
+			<p>Lorem ipsum dolor sit amet, <strong>consectetur</strong> adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis <em>nostrud</em> exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat &mdash; see <a href="/docs/api#element-21">the API</a> for details.</p>
+			<p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.<br>Second line after a line break.</p>
+			<figure>
+				<img src="/images/article-21.jpg" alt="Illustration for article 21" loading="lazy" width="640" height="360">
+				<figcaption>Figure 21. An illustration &copy; 2025.</figcaption>
+			</figure>
+			<h3>Highlights</h3>
+			<ul>
+				<li>Zero-allocation traversal using <code>ReadOnlySpan&lt;char&gt;</code></li>
+				<li>Vectorized scanning with <code>SearchValues&lt;char&gt;</code>
+				<li>Value enumerators for children and attributes</li>
+				<li>Tolerant of <abbr title="malformed markup">invalid</abbr> input
+			</ul>
+			<h3>Results</h3>
+			<table class="results">
+				<caption>Table 21. Measurements</caption>
+				<thead>
+					<tr><th scope="col">Method</th><th scope="col">Mean</th><th scope="col">Allocated</th></tr>
+				</thead>
+				<tbody>
+					<tr><td>Visit</td><td>46.18 &micro;s</td><td>0 B</td>
+					<tr><td>TextContent</td><td>26.80 &micro;s</td><td>8 KB
+					<tr class="alt"><td>Baseline</td><td>516.90 &micro;s</td><td>54 KB</td></tr>
+				</tbody>
+			</table>
+			<pre><code class="language-csharp">var document = new LazyHtmlDocument(html);
+foreach (var element in document.Elements())
+{
+    if (element.NameSpan.SequenceEqual("a") &amp;&amp; element.TryGetAttribute("href", out var href))
+        Console.WriteLine(href.ValueSpan);
+}</code></pre>
+			<blockquote cite="https://example.com/quote/21"><p>&ldquo;Premature optimization is the root of all evil.&rdquo;</p><footer>&mdash; <cite>Donald Knuth</cite></footer></blockquote>
+			<dl class="facts">
+				<dt>Elements<dd>287
+				<dt>Attributes<dd>951
+				<dt>Depth</dt><dd>27</dd>
+			</dl>
+			<footer class="article-footer">
+				<form action="/blog/article-21/comments" method="post">
+					<input type="hidden" name="article" value="21">
+					<textarea name="comment" rows="3" placeholder="Leave a comment <b>here</b>"></textarea>
+					<select name="rating"><option value=1>1<option value=2>2<option value=3 selected>3<option value=4>4<option value=5>5</select>
+					<label><input type="checkbox" name="subscribe" checked> Notify me</label>
+					<button type="submit" disabled>Post</button>
+				</form>
+				<!-- share buttons -->
+				<div class="share"><a href="https://twitter.com/share?url=%2Fblog%2Farticle-21" class="btn btn-twitter">Tweet</a> <a href="mailto:?subject=Article%2021" class="btn">Email</a></div>
+			</footer>
+		</article>
+		<hr>
+		<article class="article" id="article-22" data-index="22" data-tags="html,html">
+			<header>
+				<h2><a href="/blog/article-22">Article 22: Reading HTML without allocations</a></h2>
+				<p class="meta">Posted <time datetime="2025-05-15">June 2, 2025</time> by <a href="/authors/peter" rel="author">Peter</a> &middot; <span class="tags"><a href="/tags/html">#html</a> <a href="/tags/html">#html</a></span></p>
+			</header>
+			<p>Lorem ipsum dolor sit amet, <strong>consectetur</strong> adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis <em>nostrud</em> exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat &mdash; see <a href="/docs/api#element-22">the API</a> for details.</p>
+			<p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.<br>Second line after a line break.</p>
+			<figure>
+				<img src="/images/article-22.jpg" alt="Illustration for article 22" loading="lazy" width="640" height="360">
+				<figcaption>Figure 22. An illustration &copy; 2025.</figcaption>
+			</figure>
+			<h3>Highlights</h3>
+			<ul>
+				<li>Zero-allocation traversal using <code>ReadOnlySpan&lt;char&gt;</code></li>
+				<li>Vectorized scanning with <code>SearchValues&lt;char&gt;</code>
+				<li>Value enumerators for children and attributes</li>
+				<li>Tolerant of <abbr title="malformed markup">invalid</abbr> input
+			</ul>
+			<h3>Results</h3>
+			<table class="results">
+				<caption>Table 22. Measurements</caption>
+				<thead>
+					<tr><th scope="col">Method</th><th scope="col">Mean</th><th scope="col">Allocated</th></tr>
+				</thead>
+				<tbody>
+					<tr><td>Visit</td><td>19.90 &micro;s</td><td>0 B</td>
+					<tr><td>TextContent</td><td>65.91 &micro;s</td><td>4 KB
+					<tr class="alt"><td>Baseline</td><td>611.23 &micro;s</td><td>21 KB</td></tr>
+				</tbody>
+			</table>
+			<pre><code class="language-csharp">var document = new LazyHtmlDocument(html);
+foreach (var element in document.Elements())
+{
+    if (element.NameSpan.SequenceEqual("a") &amp;&amp; element.TryGetAttribute("href", out var href))
+        Console.WriteLine(href.ValueSpan);
+}</code></pre>
+			<blockquote cite="https://example.com/quote/22"><p>&ldquo;Premature optimization is the root of all evil.&rdquo;</p><footer>&mdash; <cite>Donald Knuth</cite></footer></blockquote>
+			<dl class="facts">
+				<dt>Elements<dd>436
+				<dt>Attributes<dd>198
+				<dt>Depth</dt><dd>5</dd>
+			</dl>
+			<footer class="article-footer">
+				<form action="/blog/article-22/comments" method="post">
+					<input type="hidden" name="article" value="22">
+					<textarea name="comment" rows="3" placeholder="Leave a comment <b>here</b>"></textarea>
+					<select name="rating"><option value=1>1<option value=2>2<option value=3 selected>3<option value=4>4<option value=5>5</select>
+					<label><input type="checkbox" name="subscribe" checked> Notify me</label>
+					<button type="submit" disabled>Post</button>
+				</form>
+				<!-- share buttons -->
+				<div class="share"><a href="https://twitter.com/share?url=%2Fblog%2Farticle-22" class="btn btn-twitter">Tweet</a> <a href="mailto:?subject=Article%2022" class="btn">Email</a></div>
+			</footer>
+		</article>
+		<hr>
+		<article class="article" id="article-23" data-index="23" data-tags="html,performance">
+			<header>
+				<h2><a href="/blog/article-23">Article 23: Reading HTML without allocations</a></h2>
+				<p class="meta">Posted <time datetime="2025-08-24">February 23, 2025</time> by <a href="/authors/peter" rel="author">Peter</a> &middot; <span class="tags"><a href="/tags/html">#html</a> <a href="/tags/performance">#performance</a></span></p>
+			</header>
+			<p>Lorem ipsum dolor sit amet, <strong>consectetur</strong> adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis <em>nostrud</em> exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat &mdash; see <a href="/docs/api#element-23">the API</a> for details.</p>
+			<p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.<br>Second line after a line break.</p>
+			<figure>
+				<img src="/images/article-23.jpg" alt="Illustration for article 23" loading="lazy" width="640" height="360">
+				<figcaption>Figure 23. An illustration &copy; 2025.</figcaption>
+			</figure>
+			<h3>Highlights</h3>
+			<ul>
+				<li>Zero-allocation traversal using <code>ReadOnlySpan&lt;char&gt;</code></li>
+				<li>Vectorized scanning with <code>SearchValues&lt;char&gt;</code>
+				<li>Value enumerators for children and attributes</li>
+				<li>Tolerant of <abbr title="malformed markup">invalid</abbr> input
+			</ul>
+			<h3>Results</h3>
+			<table class="results">
+				<caption>Table 23. Measurements</caption>
+				<thead>
+					<tr><th scope="col">Method</th><th scope="col">Mean</th><th scope="col">Allocated</th></tr>
+				</thead>
+				<tbody>
+					<tr><td>Visit</td><td>45.63 &micro;s</td><td>0 B</td>
+					<tr><td>TextContent</td><td>21.80 &micro;s</td><td>1 KB
+					<tr class="alt"><td>Baseline</td><td>359.58 &micro;s</td><td>10 KB</td></tr>
+				</tbody>
+			</table>
+			<pre><code class="language-csharp">var document = new LazyHtmlDocument(html);
+foreach (var element in document.Elements())
+{
+    if (element.NameSpan.SequenceEqual("a") &amp;&amp; element.TryGetAttribute("href", out var href))
+        Console.WriteLine(href.ValueSpan);
+}</code></pre>
+			<blockquote cite="https://example.com/quote/23"><p>&ldquo;Premature optimization is the root of all evil.&rdquo;</p><footer>&mdash; <cite>Donald Knuth</cite></footer></blockquote>
+			<dl class="facts">
+				<dt>Elements<dd>685
+				<dt>Attributes<dd>184
+				<dt>Depth</dt><dd>18</dd>
+			</dl>
+			<footer class="article-footer">
+				<form action="/blog/article-23/comments" method="post">
+					<input type="hidden" name="article" value="23">
+					<textarea name="comment" rows="3" placeholder="Leave a comment <b>here</b>"></textarea>
+					<select name="rating"><option value=1>1<option value=2>2<option value=3 selected>3<option value=4>4<option value=5>5</select>
+					<label><input type="checkbox" name="subscribe" checked> Notify me</label>
+					<button type="submit" disabled>Post</button>
+				</form>
+				<!-- share buttons -->
+				<div class="share"><a href="https://twitter.com/share?url=%2Fblog%2Farticle-23" class="btn btn-twitter">Tweet</a> <a href="mailto:?subject=Article%2023" class="btn">Email</a></div>
+			</footer>
+		</article>
+		<hr>
+		<article class="article" id="article-24" data-index="24" data-tags="benchmarks,parsing">
+			<header>
+				<h2><a href="/blog/article-24">Article 24: Reading HTML without allocations</a></h2>
+				<p class="meta">Posted <time datetime="2025-08-22">May 25, 2025</time> by <a href="/authors/peter" rel="author">Peter</a> &middot; <span class="tags"><a href="/tags/benchmarks">#benchmarks</a> <a href="/tags/parsing">#parsing</a></span></p>
+			</header>
+			<p>Lorem ipsum dolor sit amet, <strong>consectetur</strong> adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis <em>nostrud</em> exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat &mdash; see <a href="/docs/api#element-24">the API</a> for details.</p>
+			<p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.<br>Second line after a line break.</p>
+			<figure>
+				<img src="/images/article-24.jpg" alt="Illustration for article 24" loading="lazy" width="640" height="360">
+				<figcaption>Figure 24. An illustration &copy; 2025.</figcaption>
+			</figure>
+			<h3>Highlights</h3>
+			<ul>
+				<li>Zero-allocation traversal using <code>ReadOnlySpan&lt;char&gt;</code></li>
+				<li>Vectorized scanning with <code>SearchValues&lt;char&gt;</code>
+				<li>Value enumerators for children and attributes</li>
+				<li>Tolerant of <abbr title="malformed markup">invalid</abbr> input
+			</ul>
+			<h3>Results</h3>
+			<table class="results">
+				<caption>Table 24. Measurements</caption>
+				<thead>
+					<tr><th scope="col">Method</th><th scope="col">Mean</th><th scope="col">Allocated</th></tr>
+				</thead>
+				<tbody>
+					<tr><td>Visit</td><td>41.45 &micro;s</td><td>0 B</td>
+					<tr><td>TextContent</td><td>86.80 &micro;s</td><td>7 KB
+					<tr class="alt"><td>Baseline</td><td>859.93 &micro;s</td><td>68 KB</td></tr>
+				</tbody>
+			</table>
+			<pre><code class="language-csharp">var document = new LazyHtmlDocument(html);
+foreach (var element in document.Elements())
+{
+    if (element.NameSpan.SequenceEqual("a") &amp;&amp; element.TryGetAttribute("href", out var href))
+        Console.WriteLine(href.ValueSpan);
+}</code></pre>
+			<blockquote cite="https://example.com/quote/24"><p>&ldquo;Premature optimization is the root of all evil.&rdquo;</p><footer>&mdash; <cite>Donald Knuth</cite></footer></blockquote>
+			<dl class="facts">
+				<dt>Elements<dd>180
+				<dt>Attributes<dd>817
+				<dt>Depth</dt><dd>28</dd>
+			</dl>
+			<footer class="article-footer">
+				<form action="/blog/article-24/comments" method="post">
+					<input type="hidden" name="article" value="24">
+					<textarea name="comment" rows="3" placeholder="Leave a comment <b>here</b>"></textarea>
+					<select name="rating"><option value=1>1<option value=2>2<option value=3 selected>3<option value=4>4<option value=5>5</select>
+					<label><input type="checkbox" name="subscribe" checked> Notify me</label>
+					<button type="submit" disabled>Post</button>
+				</form>
+				<!-- share buttons -->
+				<div class="share"><a href="https://twitter.com/share?url=%2Fblog%2Farticle-24" class="btn btn-twitter">Tweet</a> <a href="mailto:?subject=Article%2024" class="btn">Email</a></div>
+			</footer>
+		</article>
+		<hr>
+		<article class="article" id="article-25" data-index="25" data-tags="benchmarks,dotnet">
+			<header>
+				<h2><a href="/blog/article-25">Article 25: Reading HTML without allocations</a></h2>
+				<p class="meta">Posted <time datetime="2025-08-24">May 22, 2025</time> by <a href="/authors/peter" rel="author">Peter</a> &middot; <span class="tags"><a href="/tags/benchmarks">#benchmarks</a> <a href="/tags/dotnet">#dotnet</a></span></p>
+			</header>
+			<p>Lorem ipsum dolor sit amet, <strong>consectetur</strong> adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis <em>nostrud</em> exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat &mdash; see <a href="/docs/api#element-25">the API</a> for details.</p>
+			<p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.<br>Second line after a line break.</p>
+			<figure>
+				<img src="/images/article-25.jpg" alt="Illustration for article 25" loading="lazy" width="640" height="360">
+				<figcaption>Figure 25. An illustration &copy; 2025.</figcaption>
+			</figure>
+			<h3>Highlights</h3>
+			<ul>
+				<li>Zero-allocation traversal using <code>ReadOnlySpan&lt;char&gt;</code></li>
+				<li>Vectorized scanning with <code>SearchValues&lt;char&gt;</code>
+				<li>Value enumerators for children and attributes</li>
+				<li>Tolerant of <abbr title="malformed markup">invalid</abbr> input
+			</ul>
+			<h3>Results</h3>
+			<table class="results">
+				<caption>Table 25. Measurements</caption>
+				<thead>
+					<tr><th scope="col">Method</th><th scope="col">Mean</th><th scope="col">Allocated</th></tr>
+				</thead>
+				<tbody>
+					<tr><td>Visit</td><td>49.90 &micro;s</td><td>0 B</td>
+					<tr><td>TextContent</td><td>27.34 &micro;s</td><td>5 KB
+					<tr class="alt"><td>Baseline</td><td>837.42 &micro;s</td><td>91 KB</td></tr>
+				</tbody>
+			</table>
+			<pre><code class="language-csharp">var document = new LazyHtmlDocument(html);
+foreach (var element in document.Elements())
+{
+    if (element.NameSpan.SequenceEqual("a") &amp;&amp; element.TryGetAttribute("href", out var href))
+        Console.WriteLine(href.ValueSpan);
+}</code></pre>
+			<blockquote cite="https://example.com/quote/25"><p>&ldquo;Premature optimization is the root of all evil.&rdquo;</p><footer>&mdash; <cite>Donald Knuth</cite></footer></blockquote>
+			<dl class="facts">
+				<dt>Elements<dd>925
+				<dt>Attributes<dd>153
+				<dt>Depth</dt><dd>26</dd>
+			</dl>
+			<footer class="article-footer">
+				<form action="/blog/article-25/comments" method="post">
+					<input type="hidden" name="article" value="25">
+					<textarea name="comment" rows="3" placeholder="Leave a comment <b>here</b>"></textarea>
+					<select name="rating"><option value=1>1<option value=2>2<option value=3 selected>3<option value=4>4<option value=5>5</select>
+					<label><input type="checkbox" name="subscribe" checked> Notify me</label>
+					<button type="submit" disabled>Post</button>
+				</form>
+				<!-- share buttons -->
+				<div class="share"><a href="https://twitter.com/share?url=%2Fblog%2Farticle-25" class="btn btn-twitter">Tweet</a> <a href="mailto:?subject=Article%2025" class="btn">Email</a></div>
+			</footer>
+		</article>
+		<hr>
+		<article class="article" id="article-26" data-index="26" data-tags="csharp,benchmarks">
+			<header>
+				<h2><a href="/blog/article-26">Article 26: Reading HTML without allocations</a></h2>
+				<p class="meta">Posted <time datetime="2025-01-27">March 4, 2025</time> by <a href="/authors/peter" rel="author">Peter</a> &middot; <span class="tags"><a href="/tags/csharp">#csharp</a> <a href="/tags/benchmarks">#benchmarks</a></span></p>
+			</header>
+			<p>Lorem ipsum dolor sit amet, <strong>consectetur</strong> adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis <em>nostrud</em> exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat &mdash; see <a href="/docs/api#element-26">the API</a> for details.</p>
+			<p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.<br>Second line after a line break.</p>
+			<figure>
+				<img src="/images/article-26.jpg" alt="Illustration for article 26" loading="lazy" width="640" height="360">
+				<figcaption>Figure 26. An illustration &copy; 2025.</figcaption>
+			</figure>
+			<h3>Highlights</h3>
+			<ul>
+				<li>Zero-allocation traversal using <code>ReadOnlySpan&lt;char&gt;</code></li>
+				<li>Vectorized scanning with <code>SearchValues&lt;char&gt;</code>
+				<li>Value enumerators for children and attributes</li>
+				<li>Tolerant of <abbr title="malformed markup">invalid</abbr> input
+			</ul>
+			<h3>Results</h3>
+			<table class="results">
+				<caption>Table 26. Measurements</caption>
+				<thead>
+					<tr><th scope="col">Method</th><th scope="col">Mean</th><th scope="col">Allocated</th></tr>
+				</thead>
+				<tbody>
+					<tr><td>Visit</td><td>88.55 &micro;s</td><td>0 B</td>
+					<tr><td>TextContent</td><td>96.12 &micro;s</td><td>3 KB
+					<tr class="alt"><td>Baseline</td><td>598.68 &micro;s</td><td>21 KB</td></tr>
+				</tbody>
+			</table>
+			<pre><code class="language-csharp">var document = new LazyHtmlDocument(html);
+foreach (var element in document.Elements())
+{
+    if (element.NameSpan.SequenceEqual("a") &amp;&amp; element.TryGetAttribute("href", out var href))
+        Console.WriteLine(href.ValueSpan);
+}</code></pre>
+			<blockquote cite="https://example.com/quote/26"><p>&ldquo;Premature optimization is the root of all evil.&rdquo;</p><footer>&mdash; <cite>Donald Knuth</cite></footer></blockquote>
+			<dl class="facts">
+				<dt>Elements<dd>279
+				<dt>Attributes<dd>771
+				<dt>Depth</dt><dd>7</dd>
+			</dl>
+			<footer class="article-footer">
+				<form action="/blog/article-26/comments" method="post">
+					<input type="hidden" name="article" value="26">
+					<textarea name="comment" rows="3" placeholder="Leave a comment <b>here</b>"></textarea>
+					<select name="rating"><option value=1>1<option value=2>2<option value=3 selected>3<option value=4>4<option value=5>5</select>
+					<label><input type="checkbox" name="subscribe" checked> Notify me</label>
+					<button type="submit" disabled>Post</button>
+				</form>
+				<!-- share buttons -->
+				<div class="share"><a href="https://twitter.com/share?url=%2Fblog%2Farticle-26" class="btn btn-twitter">Tweet</a> <a href="mailto:?subject=Article%2026" class="btn">Email</a></div>
+			</footer>
+		</article>
+		<hr>
+		<article class="article" id="article-27" data-index="27" data-tags="dotnet,spans">
+			<header>
+				<h2><a href="/blog/article-27">Article 27: Reading HTML without allocations</a></h2>
+				<p class="meta">Posted <time datetime="2025-05-27">March 20, 2025</time> by <a href="/authors/peter" rel="author">Peter</a> &middot; <span class="tags"><a href="/tags/dotnet">#dotnet</a> <a href="/tags/spans">#spans</a></span></p>
+			</header>
+			<p>Lorem ipsum dolor sit amet, <strong>consectetur</strong> adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis <em>nostrud</em> exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat &mdash; see <a href="/docs/api#element-27">the API</a> for details.</p>
+			<p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.<br>Second line after a line break.</p>
+			<figure>
+				<img src="/images/article-27.jpg" alt="Illustration for article 27" loading="lazy" width="640" height="360">
+				<figcaption>Figure 27. An illustration &copy; 2025.</figcaption>
+			</figure>
+			<h3>Highlights</h3>
+			<ul>
+				<li>Zero-allocation traversal using <code>ReadOnlySpan&lt;char&gt;</code></li>
+				<li>Vectorized scanning with <code>SearchValues&lt;char&gt;</code>
+				<li>Value enumerators for children and attributes</li>
+				<li>Tolerant of <abbr title="malformed markup">invalid</abbr> input
+			</ul>
+			<h3>Results</h3>
+			<table class="results">
+				<caption>Table 27. Measurements</caption>
+				<thead>
+					<tr><th scope="col">Method</th><th scope="col">Mean</th><th scope="col">Allocated</th></tr>
+				</thead>
+				<tbody>
+					<tr><td>Visit</td><td>34.98 &micro;s</td><td>0 B</td>
+					<tr><td>TextContent</td><td>52.65 &micro;s</td><td>3 KB
+					<tr class="alt"><td>Baseline</td><td>577.13 &micro;s</td><td>88 KB</td></tr>
+				</tbody>
+			</table>
+			<pre><code class="language-csharp">var document = new LazyHtmlDocument(html);
+foreach (var element in document.Elements())
+{
+    if (element.NameSpan.SequenceEqual("a") &amp;&amp; element.TryGetAttribute("href", out var href))
+        Console.WriteLine(href.ValueSpan);
+}</code></pre>
+			<blockquote cite="https://example.com/quote/27"><p>&ldquo;Premature optimization is the root of all evil.&rdquo;</p><footer>&mdash; <cite>Donald Knuth</cite></footer></blockquote>
+			<dl class="facts">
+				<dt>Elements<dd>933
+				<dt>Attributes<dd>892
+				<dt>Depth</dt><dd>29</dd>
+			</dl>
+			<footer class="article-footer">
+				<form action="/blog/article-27/comments" method="post">
+					<input type="hidden" name="article" value="27">
+					<textarea name="comment" rows="3" placeholder="Leave a comment <b>here</b>"></textarea>
+					<select name="rating"><option value=1>1<option value=2>2<option value=3 selected>3<option value=4>4<option value=5>5</select>
+					<label><input type="checkbox" name="subscribe" checked> Notify me</label>
+					<button type="submit" disabled>Post</button>
+				</form>
+				<!-- share buttons -->
+				<div class="share"><a href="https://twitter.com/share?url=%2Fblog%2Farticle-27" class="btn btn-twitter">Tweet</a> <a href="mailto:?subject=Article%2027" class="btn">Email</a></div>
+			</footer>
+		</article>
+		<hr>
+		<article class="article" id="article-28" data-index="28" data-tags="csharp,dotnet">
+			<header>
+				<h2><a href="/blog/article-28">Article 28: Reading HTML without allocations</a></h2>
+				<p class="meta">Posted <time datetime="2025-07-25">March 2, 2025</time> by <a href="/authors/peter" rel="author">Peter</a> &middot; <span class="tags"><a href="/tags/csharp">#csharp</a> <a href="/tags/dotnet">#dotnet</a></span></p>
+			</header>
+			<p>Lorem ipsum dolor sit amet, <strong>consectetur</strong> adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis <em>nostrud</em> exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat &mdash; see <a href="/docs/api#element-28">the API</a> for details.</p>
+			<p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.<br>Second line after a line break.</p>
+			<figure>
+				<img src="/images/article-28.jpg" alt="Illustration for article 28" loading="lazy" width="640" height="360">
+				<figcaption>Figure 28. An illustration &copy; 2025.</figcaption>
+			</figure>
+			<h3>Highlights</h3>
+			<ul>
+				<li>Zero-allocation traversal using <code>ReadOnlySpan&lt;char&gt;</code></li>
+				<li>Vectorized scanning with <code>SearchValues&lt;char&gt;</code>
+				<li>Value enumerators for children and attributes</li>
+				<li>Tolerant of <abbr title="malformed markup">invalid</abbr> input
+			</ul>
+			<h3>Results</h3>
+			<table class="results">
+				<caption>Table 28. Measurements</caption>
+				<thead>
+					<tr><th scope="col">Method</th><th scope="col">Mean</th><th scope="col">Allocated</th></tr>
+				</thead>
+				<tbody>
+					<tr><td>Visit</td><td>83.50 &micro;s</td><td>0 B</td>
+					<tr><td>TextContent</td><td>84.79 &micro;s</td><td>8 KB
+					<tr class="alt"><td>Baseline</td><td>899.32 &micro;s</td><td>22 KB</td></tr>
+				</tbody>
+			</table>
+			<pre><code class="language-csharp">var document = new LazyHtmlDocument(html);
+foreach (var element in document.Elements())
+{
+    if (element.NameSpan.SequenceEqual("a") &amp;&amp; element.TryGetAttribute("href", out var href))
+        Console.WriteLine(href.ValueSpan);
+}</code></pre>
+			<blockquote cite="https://example.com/quote/28"><p>&ldquo;Premature optimization is the root of all evil.&rdquo;</p><footer>&mdash; <cite>Donald Knuth</cite></footer></blockquote>
+			<dl class="facts">
+				<dt>Elements<dd>658
+				<dt>Attributes<dd>651
+				<dt>Depth</dt><dd>16</dd>
+			</dl>
+			<footer class="article-footer">
+				<form action="/blog/article-28/comments" method="post">
+					<input type="hidden" name="article" value="28">
+					<textarea name="comment" rows="3" placeholder="Leave a comment <b>here</b>"></textarea>
+					<select name="rating"><option value=1>1<option value=2>2<option value=3 selected>3<option value=4>4<option value=5>5</select>
+					<label><input type="checkbox" name="subscribe" checked> Notify me</label>
+					<button type="submit" disabled>Post</button>
+				</form>
+				<!-- share buttons -->
+				<div class="share"><a href="https://twitter.com/share?url=%2Fblog%2Farticle-28" class="btn btn-twitter">Tweet</a> <a href="mailto:?subject=Article%2028" class="btn">Email</a></div>
+			</footer>
+		</article>
+		<hr>
+		<article class="article" id="article-29" data-index="29" data-tags="benchmarks,spans">
+			<header>
+				<h2><a href="/blog/article-29">Article 29: Reading HTML without allocations</a></h2>
+				<p class="meta">Posted <time datetime="2025-03-16">May 4, 2025</time> by <a href="/authors/peter" rel="author">Peter</a> &middot; <span class="tags"><a href="/tags/benchmarks">#benchmarks</a> <a href="/tags/spans">#spans</a></span></p>
+			</header>
+			<p>Lorem ipsum dolor sit amet, <strong>consectetur</strong> adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis <em>nostrud</em> exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat &mdash; see <a href="/docs/api#element-29">the API</a> for details.</p>
+			<p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.<br>Second line after a line break.</p>
+			<figure>
+				<img src="/images/article-29.jpg" alt="Illustration for article 29" loading="lazy" width="640" height="360">
+				<figcaption>Figure 29. An illustration &copy; 2025.</figcaption>
+			</figure>
+			<h3>Highlights</h3>
+			<ul>
+				<li>Zero-allocation traversal using <code>ReadOnlySpan&lt;char&gt;</code></li>
+				<li>Vectorized scanning with <code>SearchValues&lt;char&gt;</code>
+				<li>Value enumerators for children and attributes</li>
+				<li>Tolerant of <abbr title="malformed markup">invalid</abbr> input
+			</ul>
+			<h3>Results</h3>
+			<table class="results">
+				<caption>Table 29. Measurements</caption>
+				<thead>
+					<tr><th scope="col">Method</th><th scope="col">Mean</th><th scope="col">Allocated</th></tr>
+				</thead>
+				<tbody>
+					<tr><td>Visit</td><td>20.19 &micro;s</td><td>0 B</td>
+					<tr><td>TextContent</td><td>53.55 &micro;s</td><td>6 KB
+					<tr class="alt"><td>Baseline</td><td>416.51 &micro;s</td><td>23 KB</td></tr>
+				</tbody>
+			</table>
+			<pre><code class="language-csharp">var document = new LazyHtmlDocument(html);
+foreach (var element in document.Elements())
+{
+    if (element.NameSpan.SequenceEqual("a") &amp;&amp; element.TryGetAttribute("href", out var href))
+        Console.WriteLine(href.ValueSpan);
+}</code></pre>
+			<blockquote cite="https://example.com/quote/29"><p>&ldquo;Premature optimization is the root of all evil.&rdquo;</p><footer>&mdash; <cite>Donald Knuth</cite></footer></blockquote>
+			<dl class="facts">
+				<dt>Elements<dd>663
+				<dt>Attributes<dd>796
+				<dt>Depth</dt><dd>13</dd>
+			</dl>
+			<footer class="article-footer">
+				<form action="/blog/article-29/comments" method="post">
+					<input type="hidden" name="article" value="29">
+					<textarea name="comment" rows="3" placeholder="Leave a comment <b>here</b>"></textarea>
+					<select name="rating"><option value=1>1<option value=2>2<option value=3 selected>3<option value=4>4<option value=5>5</select>
+					<label><input type="checkbox" name="subscribe" checked> Notify me</label>
+					<button type="submit" disabled>Post</button>
+				</form>
+				<!-- share buttons -->
+				<div class="share"><a href="https://twitter.com/share?url=%2Fblog%2Farticle-29" class="btn btn-twitter">Tweet</a> <a href="mailto:?subject=Article%2029" class="btn">Email</a></div>
+			</footer>
+		</article>
+		<hr>
+		<article class="article" id="article-30" data-index="30" data-tags="benchmarks,allocation">
+			<header>
+				<h2><a href="/blog/article-30">Article 30: Reading HTML without allocations</a></h2>
+				<p class="meta">Posted <time datetime="2025-03-15">March 12, 2025</time> by <a href="/authors/peter" rel="author">Peter</a> &middot; <span class="tags"><a href="/tags/benchmarks">#benchmarks</a> <a href="/tags/allocation">#allocation</a></span></p>
+			</header>
+			<p>Lorem ipsum dolor sit amet, <strong>consectetur</strong> adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis <em>nostrud</em> exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat &mdash; see <a href="/docs/api#element-30">the API</a> for details.</p>
+			<p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.<br>Second line after a line break.</p>
+			<figure>
+				<img src="/images/article-30.jpg" alt="Illustration for article 30" loading="lazy" width="640" height="360">
+				<figcaption>Figure 30. An illustration &copy; 2025.</figcaption>
+			</figure>
+			<h3>Highlights</h3>
+			<ul>
+				<li>Zero-allocation traversal using <code>ReadOnlySpan&lt;char&gt;</code></li>
+				<li>Vectorized scanning with <code>SearchValues&lt;char&gt;</code>
+				<li>Value enumerators for children and attributes</li>
+				<li>Tolerant of <abbr title="malformed markup">invalid</abbr> input
+			</ul>
+			<h3>Results</h3>
+			<table class="results">
+				<caption>Table 30. Measurements</caption>
+				<thead>
+					<tr><th scope="col">Method</th><th scope="col">Mean</th><th scope="col">Allocated</th></tr>
+				</thead>
+				<tbody>
+					<tr><td>Visit</td><td>59.19 &micro;s</td><td>0 B</td>
+					<tr><td>TextContent</td><td>22.92 &micro;s</td><td>5 KB
+					<tr class="alt"><td>Baseline</td><td>447.76 &micro;s</td><td>52 KB</td></tr>
+				</tbody>
+			</table>
+			<pre><code class="language-csharp">var document = new LazyHtmlDocument(html);
+foreach (var element in document.Elements())
+{
+    if (element.NameSpan.SequenceEqual("a") &amp;&amp; element.TryGetAttribute("href", out var href))
+        Console.WriteLine(href.ValueSpan);
+}</code></pre>
+			<blockquote cite="https://example.com/quote/30"><p>&ldquo;Premature optimization is the root of all evil.&rdquo;</p><footer>&mdash; <cite>Donald Knuth</cite></footer></blockquote>
+			<dl class="facts">
+				<dt>Elements<dd>918
+				<dt>Attributes<dd>486
+				<dt>Depth</dt><dd>25</dd>
+			</dl>
+			<footer class="article-footer">
+				<form action="/blog/article-30/comments" method="post">
+					<input type="hidden" name="article" value="30">
+					<textarea name="comment" rows="3" placeholder="Leave a comment <b>here</b>"></textarea>
+					<select name="rating"><option value=1>1<option value=2>2<option value=3 selected>3<option value=4>4<option value=5>5</select>
+					<label><input type="checkbox" name="subscribe" checked> Notify me</label>
+					<button type="submit" disabled>Post</button>
+				</form>
+				<!-- share buttons -->
+				<div class="share"><a href="https://twitter.com/share?url=%2Fblog%2Farticle-30" class="btn btn-twitter">Tweet</a> <a href="mailto:?subject=Article%2030" class="btn">Email</a></div>
+			</footer>
+		</article>
+		<hr>
+		<article class="article" id="article-31" data-index="31" data-tags="performance,spans">
+			<header>
+				<h2><a href="/blog/article-31">Article 31: Reading HTML without allocations</a></h2>
+				<p class="meta">Posted <time datetime="2025-06-27">February 3, 2025</time> by <a href="/authors/peter" rel="author">Peter</a> &middot; <span class="tags"><a href="/tags/performance">#performance</a> <a href="/tags/spans">#spans</a></span></p>
+			</header>
+			<p>Lorem ipsum dolor sit amet, <strong>consectetur</strong> adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis <em>nostrud</em> exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat &mdash; see <a href="/docs/api#element-31">the API</a> for details.</p>
+			<p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.<br>Second line after a line break.</p>
+			<figure>
+				<img src="/images/article-31.jpg" alt="Illustration for article 31" loading="lazy" width="640" height="360">
+				<figcaption>Figure 31. An illustration &copy; 2025.</figcaption>
+			</figure>
+			<h3>Highlights</h3>
+			<ul>
+				<li>Zero-allocation traversal using <code>ReadOnlySpan&lt;char&gt;</code></li>
+				<li>Vectorized scanning with <code>SearchValues&lt;char&gt;</code>
+				<li>Value enumerators for children and attributes</li>
+				<li>Tolerant of <abbr title="malformed markup">invalid</abbr> input
+			</ul>
+			<h3>Results</h3>
+			<table class="results">
+				<caption>Table 31. Measurements</caption>
+				<thead>
+					<tr><th scope="col">Method</th><th scope="col">Mean</th><th scope="col">Allocated</th></tr>
+				</thead>
+				<tbody>
+					<tr><td>Visit</td><td>36.74 &micro;s</td><td>0 B</td>
+					<tr><td>TextContent</td><td>43.58 &micro;s</td><td>2 KB
+					<tr class="alt"><td>Baseline</td><td>528.97 &micro;s</td><td>66 KB</td></tr>
+				</tbody>
+			</table>
+			<pre><code class="language-csharp">var document = new LazyHtmlDocument(html);
+foreach (var element in document.Elements())
+{
+    if (element.NameSpan.SequenceEqual("a") &amp;&amp; element.TryGetAttribute("href", out var href))
+        Console.WriteLine(href.ValueSpan);
+}</code></pre>
+			<blockquote cite="https://example.com/quote/31"><p>&ldquo;Premature optimization is the root of all evil.&rdquo;</p><footer>&mdash; <cite>Donald Knuth</cite></footer></blockquote>
+			<dl class="facts">
+				<dt>Elements<dd>336
+				<dt>Attributes<dd>527
+				<dt>Depth</dt><dd>18</dd>
+			</dl>
+			<footer class="article-footer">
+				<form action="/blog/article-31/comments" method="post">
+					<input type="hidden" name="article" value="31">
+					<textarea name="comment" rows="3" placeholder="Leave a comment <b>here</b>"></textarea>
+					<select name="rating"><option value=1>1<option value=2>2<option value=3 selected>3<option value=4>4<option value=5>5</select>
+					<label><input type="checkbox" name="subscribe" checked> Notify me</label>
+					<button type="submit" disabled>Post</button>
+				</form>
+				<!-- share buttons -->
+				<div class="share"><a href="https://twitter.com/share?url=%2Fblog%2Farticle-31" class="btn btn-twitter">Tweet</a> <a href="mailto:?subject=Article%2031" class="btn">Email</a></div>
+			</footer>
+		</article>
+		<hr>
+		<article class="article" id="article-32" data-index="32" data-tags="csharp,html">
+			<header>
+				<h2><a href="/blog/article-32">Article 32: Reading HTML without allocations</a></h2>
+				<p class="meta">Posted <time datetime="2025-02-18">February 2, 2025</time> by <a href="/authors/peter" rel="author">Peter</a> &middot; <span class="tags"><a href="/tags/csharp">#csharp</a> <a href="/tags/html">#html</a></span></p>
+			</header>
+			<p>Lorem ipsum dolor sit amet, <strong>consectetur</strong> adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis <em>nostrud</em> exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat &mdash; see <a href="/docs/api#element-32">the API</a> for details.</p>
+			<p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.<br>Second line after a line break.</p>
+			<figure>
+				<img src="/images/article-32.jpg" alt="Illustration for article 32" loading="lazy" width="640" height="360">
+				<figcaption>Figure 32. An illustration &copy; 2025.</figcaption>
+			</figure>
+			<h3>Highlights</h3>
+			<ul>
+				<li>Zero-allocation traversal using <code>ReadOnlySpan&lt;char&gt;</code></li>
+				<li>Vectorized scanning with <code>SearchValues&lt;char&gt;</code>
+				<li>Value enumerators for children and attributes</li>
+				<li>Tolerant of <abbr title="malformed markup">invalid</abbr> input
+			</ul>
+			<h3>Results</h3>
+			<table class="results">
+				<caption>Table 32. Measurements</caption>
+				<thead>
+					<tr><th scope="col">Method</th><th scope="col">Mean</th><th scope="col">Allocated</th></tr>
+				</thead>
+				<tbody>
+					<tr><td>Visit</td><td>21.25 &micro;s</td><td>0 B</td>
+					<tr><td>TextContent</td><td>29.29 &micro;s</td><td>8 KB
+					<tr class="alt"><td>Baseline</td><td>753.42 &micro;s</td><td>13 KB</td></tr>
+				</tbody>
+			</table>
+			<pre><code class="language-csharp">var document = new LazyHtmlDocument(html);
+foreach (var element in document.Elements())
+{
+    if (element.NameSpan.SequenceEqual("a") &amp;&amp; element.TryGetAttribute("href", out var href))
+        Console.WriteLine(href.ValueSpan);
+}</code></pre>
+			<blockquote cite="https://example.com/quote/32"><p>&ldquo;Premature optimization is the root of all evil.&rdquo;</p><footer>&mdash; <cite>Donald Knuth</cite></footer></blockquote>
+			<dl class="facts">
+				<dt>Elements<dd>496
+				<dt>Attributes<dd>134
+				<dt>Depth</dt><dd>26</dd>
+			</dl>
+			<footer class="article-footer">
+				<form action="/blog/article-32/comments" method="post">
+					<input type="hidden" name="article" value="32">
+					<textarea name="comment" rows="3" placeholder="Leave a comment <b>here</b>"></textarea>
+					<select name="rating"><option value=1>1<option value=2>2<option value=3 selected>3<option value=4>4<option value=5>5</select>
+					<label><input type="checkbox" name="subscribe" checked> Notify me</label>
+					<button type="submit" disabled>Post</button>
+				</form>
+				<!-- share buttons -->
+				<div class="share"><a href="https://twitter.com/share?url=%2Fblog%2Farticle-32" class="btn btn-twitter">Tweet</a> <a href="mailto:?subject=Article%2032" class="btn">Email</a></div>
+			</footer>
+		</article>
+		<hr>
+		<article class="article" id="article-33" data-index="33" data-tags="performance,dotnet">
+			<header>
+				<h2><a href="/blog/article-33">Article 33: Reading HTML without allocations</a></h2>
+				<p class="meta">Posted <time datetime="2025-06-25">April 24, 2025</time> by <a href="/authors/peter" rel="author">Peter</a> &middot; <span class="tags"><a href="/tags/performance">#performance</a> <a href="/tags/dotnet">#dotnet</a></span></p>
+			</header>
+			<p>Lorem ipsum dolor sit amet, <strong>consectetur</strong> adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis <em>nostrud</em> exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat &mdash; see <a href="/docs/api#element-33">the API</a> for details.</p>
+			<p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.<br>Second line after a line break.</p>
+			<figure>
+				<img src="/images/article-33.jpg" alt="Illustration for article 33" loading="lazy" width="640" height="360">
+				<figcaption>Figure 33. An illustration &copy; 2025.</figcaption>
+			</figure>
+			<h3>Highlights</h3>
+			<ul>
+				<li>Zero-allocation traversal using <code>ReadOnlySpan&lt;char&gt;</code></li>
+				<li>Vectorized scanning with <code>SearchValues&lt;char&gt;</code>
+				<li>Value enumerators for children and attributes</li>
+				<li>Tolerant of <abbr title="malformed markup">invalid</abbr> input
+			</ul>
+			<h3>Results</h3>
+			<table class="results">
+				<caption>Table 33. Measurements</caption>
+				<thead>
+					<tr><th scope="col">Method</th><th scope="col">Mean</th><th scope="col">Allocated</th></tr>
+				</thead>
+				<tbody>
+					<tr><td>Visit</td><td>13.60 &micro;s</td><td>0 B</td>
+					<tr><td>TextContent</td><td>90.87 &micro;s</td><td>8 KB
+					<tr class="alt"><td>Baseline</td><td>168.21 &micro;s</td><td>36 KB</td></tr>
+				</tbody>
+			</table>
+			<pre><code class="language-csharp">var document = new LazyHtmlDocument(html);
+foreach (var element in document.Elements())
+{
+    if (element.NameSpan.SequenceEqual("a") &amp;&amp; element.TryGetAttribute("href", out var href))
+        Console.WriteLine(href.ValueSpan);
+}</code></pre>
+			<blockquote cite="https://example.com/quote/33"><p>&ldquo;Premature optimization is the root of all evil.&rdquo;</p><footer>&mdash; <cite>Donald Knuth</cite></footer></blockquote>
+			<dl class="facts">
+				<dt>Elements<dd>211
+				<dt>Attributes<dd>342
+				<dt>Depth</dt><dd>6</dd>
+			</dl>
+			<footer class="article-footer">
+				<form action="/blog/article-33/comments" method="post">
+					<input type="hidden" name="article" value="33">
+					<textarea name="comment" rows="3" placeholder="Leave a comment <b>here</b>"></textarea>
+					<select name="rating"><option value=1>1<option value=2>2<option value=3 selected>3<option value=4>4<option value=5>5</select>
+					<label><input type="checkbox" name="subscribe" checked> Notify me</label>
+					<button type="submit" disabled>Post</button>
+				</form>
+				<!-- share buttons -->
+				<div class="share"><a href="https://twitter.com/share?url=%2Fblog%2Farticle-33" class="btn btn-twitter">Tweet</a> <a href="mailto:?subject=Article%2033" class="btn">Email</a></div>
+			</footer>
+		</article>
+		<hr>
+		<article class="article" id="article-34" data-index="34" data-tags="dotnet,dotnet">
+			<header>
+				<h2><a href="/blog/article-34">Article 34: Reading HTML without allocations</a></h2>
+				<p class="meta">Posted <time datetime="2025-06-21">January 12, 2025</time> by <a href="/authors/peter" rel="author">Peter</a> &middot; <span class="tags"><a href="/tags/dotnet">#dotnet</a> <a href="/tags/dotnet">#dotnet</a></span></p>
+			</header>
+			<p>Lorem ipsum dolor sit amet, <strong>consectetur</strong> adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis <em>nostrud</em> exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat &mdash; see <a href="/docs/api#element-34">the API</a> for details.</p>
+			<p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.<br>Second line after a line break.</p>
+			<figure>
+				<img src="/images/article-34.jpg" alt="Illustration for article 34" loading="lazy" width="640" height="360">
+				<figcaption>Figure 34. An illustration &copy; 2025.</figcaption>
+			</figure>
+			<h3>Highlights</h3>
+			<ul>
+				<li>Zero-allocation traversal using <code>ReadOnlySpan&lt;char&gt;</code></li>
+				<li>Vectorized scanning with <code>SearchValues&lt;char&gt;</code>
+				<li>Value enumerators for children and attributes</li>
+				<li>Tolerant of <abbr title="malformed markup">invalid</abbr> input
+			</ul>
+			<h3>Results</h3>
+			<table class="results">
+				<caption>Table 34. Measurements</caption>
+				<thead>
+					<tr><th scope="col">Method</th><th scope="col">Mean</th><th scope="col">Allocated</th></tr>
+				</thead>
+				<tbody>
+					<tr><td>Visit</td><td>17.55 &micro;s</td><td>0 B</td>
+					<tr><td>TextContent</td><td>74.88 &micro;s</td><td>4 KB
+					<tr class="alt"><td>Baseline</td><td>610.41 &micro;s</td><td>55 KB</td></tr>
+				</tbody>
+			</table>
+			<pre><code class="language-csharp">var document = new LazyHtmlDocument(html);
+foreach (var element in document.Elements())
+{
+    if (element.NameSpan.SequenceEqual("a") &amp;&amp; element.TryGetAttribute("href", out var href))
+        Console.WriteLine(href.ValueSpan);
+}</code></pre>
+			<blockquote cite="https://example.com/quote/34"><p>&ldquo;Premature optimization is the root of all evil.&rdquo;</p><footer>&mdash; <cite>Donald Knuth</cite></footer></blockquote>
+			<dl class="facts">
+				<dt>Elements<dd>132
+				<dt>Attributes<dd>951
+				<dt>Depth</dt><dd>12</dd>
+			</dl>
+			<footer class="article-footer">
+				<form action="/blog/article-34/comments" method="post">
+					<input type="hidden" name="article" value="34">
+					<textarea name="comment" rows="3" placeholder="Leave a comment <b>here</b>"></textarea>
+					<select name="rating"><option value=1>1<option value=2>2<option value=3 selected>3<option value=4>4<option value=5>5</select>
+					<label><input type="checkbox" name="subscribe" checked> Notify me</label>
+					<button type="submit" disabled>Post</button>
+				</form>
+				<!-- share buttons -->
+				<div class="share"><a href="https://twitter.com/share?url=%2Fblog%2Farticle-34" class="btn btn-twitter">Tweet</a> <a href="mailto:?subject=Article%2034" class="btn">Email</a></div>
+			</footer>
+		</article>
+		<hr>
+		<article class="article" id="article-35" data-index="35" data-tags="parsing,performance">
+			<header>
+				<h2><a href="/blog/article-35">Article 35: Reading HTML without allocations</a></h2>
+				<p class="meta">Posted <time datetime="2025-07-18">June 22, 2025</time> by <a href="/authors/peter" rel="author">Peter</a> &middot; <span class="tags"><a href="/tags/parsing">#parsing</a> <a href="/tags/performance">#performance</a></span></p>
+			</header>
+			<p>Lorem ipsum dolor sit amet, <strong>consectetur</strong> adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis <em>nostrud</em> exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat &mdash; see <a href="/docs/api#element-35">the API</a> for details.</p>
+			<p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.<br>Second line after a line break.</p>
+			<figure>
+				<img src="/images/article-35.jpg" alt="Illustration for article 35" loading="lazy" width="640" height="360">
+				<figcaption>Figure 35. An illustration &copy; 2025.</figcaption>
+			</figure>
+			<h3>Highlights</h3>
+			<ul>
+				<li>Zero-allocation traversal using <code>ReadOnlySpan&lt;char&gt;</code></li>
+				<li>Vectorized scanning with <code>SearchValues&lt;char&gt;</code>
+				<li>Value enumerators for children and attributes</li>
+				<li>Tolerant of <abbr title="malformed markup">invalid</abbr> input
+			</ul>
+			<h3>Results</h3>
+			<table class="results">
+				<caption>Table 35. Measurements</caption>
+				<thead>
+					<tr><th scope="col">Method</th><th scope="col">Mean</th><th scope="col">Allocated</th></tr>
+				</thead>
+				<tbody>
+					<tr><td>Visit</td><td>30.64 &micro;s</td><td>0 B</td>
+					<tr><td>TextContent</td><td>61.25 &micro;s</td><td>2 KB
+					<tr class="alt"><td>Baseline</td><td>142.14 &micro;s</td><td>91 KB</td></tr>
+				</tbody>
+			</table>
+			<pre><code class="language-csharp">var document = new LazyHtmlDocument(html);
+foreach (var element in document.Elements())
+{
+    if (element.NameSpan.SequenceEqual("a") &amp;&amp; element.TryGetAttribute("href", out var href))
+        Console.WriteLine(href.ValueSpan);
+}</code></pre>
+			<blockquote cite="https://example.com/quote/35"><p>&ldquo;Premature optimization is the root of all evil.&rdquo;</p><footer>&mdash; <cite>Donald Knuth</cite></footer></blockquote>
+			<dl class="facts">
+				<dt>Elements<dd>642
+				<dt>Attributes<dd>186
+				<dt>Depth</dt><dd>25</dd>
+			</dl>
+			<footer class="article-footer">
+				<form action="/blog/article-35/comments" method="post">
+					<input type="hidden" name="article" value="35">
+					<textarea name="comment" rows="3" placeholder="Leave a comment <b>here</b>"></textarea>
+					<select name="rating"><option value=1>1<option value=2>2<option value=3 selected>3<option value=4>4<option value=5>5</select>
+					<label><input type="checkbox" name="subscribe" checked> Notify me</label>
+					<button type="submit" disabled>Post</button>
+				</form>
+				<!-- share buttons -->
+				<div class="share"><a href="https://twitter.com/share?url=%2Fblog%2Farticle-35" class="btn btn-twitter">Tweet</a> <a href="mailto:?subject=Article%2035" class="btn">Email</a></div>
+			</footer>
+		</article>
+		<hr>
+		<article class="article" id="article-36" data-index="36" data-tags="allocation,dotnet">
+			<header>
+				<h2><a href="/blog/article-36">Article 36: Reading HTML without allocations</a></h2>
+				<p class="meta">Posted <time datetime="2025-02-17">June 20, 2025</time> by <a href="/authors/peter" rel="author">Peter</a> &middot; <span class="tags"><a href="/tags/allocation">#allocation</a> <a href="/tags/dotnet">#dotnet</a></span></p>
+			</header>
+			<p>Lorem ipsum dolor sit amet, <strong>consectetur</strong> adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis <em>nostrud</em> exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat &mdash; see <a href="/docs/api#element-36">the API</a> for details.</p>
+			<p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.<br>Second line after a line break.</p>
+			<figure>
+				<img src="/images/article-36.jpg" alt="Illustration for article 36" loading="lazy" width="640" height="360">
+				<figcaption>Figure 36. An illustration &copy; 2025.</figcaption>
+			</figure>
+			<h3>Highlights</h3>
+			<ul>
+				<li>Zero-allocation traversal using <code>ReadOnlySpan&lt;char&gt;</code></li>
+				<li>Vectorized scanning with <code>SearchValues&lt;char&gt;</code>
+				<li>Value enumerators for children and attributes</li>
+				<li>Tolerant of <abbr title="malformed markup">invalid</abbr> input
+			</ul>
+			<h3>Results</h3>
+			<table class="results">
+				<caption>Table 36. Measurements</caption>
+				<thead>
+					<tr><th scope="col">Method</th><th scope="col">Mean</th><th scope="col">Allocated</th></tr>
+				</thead>
+				<tbody>
+					<tr><td>Visit</td><td>53.24 &micro;s</td><td>0 B</td>
+					<tr><td>TextContent</td><td>22.96 &micro;s</td><td>4 KB
+					<tr class="alt"><td>Baseline</td><td>528.28 &micro;s</td><td>42 KB</td></tr>
+				</tbody>
+			</table>
+			<pre><code class="language-csharp">var document = new LazyHtmlDocument(html);
+foreach (var element in document.Elements())
+{
+    if (element.NameSpan.SequenceEqual("a") &amp;&amp; element.TryGetAttribute("href", out var href))
+        Console.WriteLine(href.ValueSpan);
+}</code></pre>
+			<blockquote cite="https://example.com/quote/36"><p>&ldquo;Premature optimization is the root of all evil.&rdquo;</p><footer>&mdash; <cite>Donald Knuth</cite></footer></blockquote>
+			<dl class="facts">
+				<dt>Elements<dd>136
+				<dt>Attributes<dd>259
+				<dt>Depth</dt><dd>22</dd>
+			</dl>
+			<footer class="article-footer">
+				<form action="/blog/article-36/comments" method="post">
+					<input type="hidden" name="article" value="36">
+					<textarea name="comment" rows="3" placeholder="Leave a comment <b>here</b>"></textarea>
+					<select name="rating"><option value=1>1<option value=2>2<option value=3 selected>3<option value=4>4<option value=5>5</select>
+					<label><input type="checkbox" name="subscribe" checked> Notify me</label>
+					<button type="submit" disabled>Post</button>
+				</form>
+				<!-- share buttons -->
+				<div class="share"><a href="https://twitter.com/share?url=%2Fblog%2Farticle-36" class="btn btn-twitter">Tweet</a> <a href="mailto:?subject=Article%2036" class="btn">Email</a></div>
+			</footer>
+		</article>
+		<hr>
+		<article class="article" id="article-37" data-index="37" data-tags="html,performance">
+			<header>
+				<h2><a href="/blog/article-37">Article 37: Reading HTML without allocations</a></h2>
+				<p class="meta">Posted <time datetime="2025-02-22">March 13, 2025</time> by <a href="/authors/peter" rel="author">Peter</a> &middot; <span class="tags"><a href="/tags/html">#html</a> <a href="/tags/performance">#performance</a></span></p>
+			</header>
+			<p>Lorem ipsum dolor sit amet, <strong>consectetur</strong> adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis <em>nostrud</em> exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat &mdash; see <a href="/docs/api#element-37">the API</a> for details.</p>
+			<p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.<br>Second line after a line break.</p>
+			<figure>
+				<img src="/images/article-37.jpg" alt="Illustration for article 37" loading="lazy" width="640" height="360">
+				<figcaption>Figure 37. An illustration &copy; 2025.</figcaption>
+			</figure>
+			<h3>Highlights</h3>
+			<ul>
+				<li>Zero-allocation traversal using <code>ReadOnlySpan&lt;char&gt;</code></li>
+				<li>Vectorized scanning with <code>SearchValues&lt;char&gt;</code>
+				<li>Value enumerators for children and attributes</li>
+				<li>Tolerant of <abbr title="malformed markup">invalid</abbr> input
+			</ul>
+			<h3>Results</h3>
+			<table class="results">
+				<caption>Table 37. Measurements</caption>
+				<thead>
+					<tr><th scope="col">Method</th><th scope="col">Mean</th><th scope="col">Allocated</th></tr>
+				</thead>
+				<tbody>
+					<tr><td>Visit</td><td>92.13 &micro;s</td><td>0 B</td>
+					<tr><td>TextContent</td><td>14.32 &micro;s</td><td>4 KB
+					<tr class="alt"><td>Baseline</td><td>129.51 &micro;s</td><td>96 KB</td></tr>
+				</tbody>
+			</table>
+			<pre><code class="language-csharp">var document = new LazyHtmlDocument(html);
+foreach (var element in document.Elements())
+{
+    if (element.NameSpan.SequenceEqual("a") &amp;&amp; element.TryGetAttribute("href", out var href))
+        Console.WriteLine(href.ValueSpan);
+}</code></pre>
+			<blockquote cite="https://example.com/quote/37"><p>&ldquo;Premature optimization is the root of all evil.&rdquo;</p><footer>&mdash; <cite>Donald Knuth</cite></footer></blockquote>
+			<dl class="facts">
+				<dt>Elements<dd>966
+				<dt>Attributes<dd>334
+				<dt>Depth</dt><dd>21</dd>
+			</dl>
+			<footer class="article-footer">
+				<form action="/blog/article-37/comments" method="post">
+					<input type="hidden" name="article" value="37">
+					<textarea name="comment" rows="3" placeholder="Leave a comment <b>here</b>"></textarea>
+					<select name="rating"><option value=1>1<option value=2>2<option value=3 selected>3<option value=4>4<option value=5>5</select>
+					<label><input type="checkbox" name="subscribe" checked> Notify me</label>
+					<button type="submit" disabled>Post</button>
+				</form>
+				<!-- share buttons -->
+				<div class="share"><a href="https://twitter.com/share?url=%2Fblog%2Farticle-37" class="btn btn-twitter">Tweet</a> <a href="mailto:?subject=Article%2037" class="btn">Email</a></div>
+			</footer>
+		</article>
+		<hr>
+		<article class="article" id="article-38" data-index="38" data-tags="parsing,benchmarks">
+			<header>
+				<h2><a href="/blog/article-38">Article 38: Reading HTML without allocations</a></h2>
+				<p class="meta">Posted <time datetime="2025-01-13">January 11, 2025</time> by <a href="/authors/peter" rel="author">Peter</a> &middot; <span class="tags"><a href="/tags/parsing">#parsing</a> <a href="/tags/benchmarks">#benchmarks</a></span></p>
+			</header>
+			<p>Lorem ipsum dolor sit amet, <strong>consectetur</strong> adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis <em>nostrud</em> exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat &mdash; see <a href="/docs/api#element-38">the API</a> for details.</p>
+			<p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.<br>Second line after a line break.</p>
+			<figure>
+				<img src="/images/article-38.jpg" alt="Illustration for article 38" loading="lazy" width="640" height="360">
+				<figcaption>Figure 38. An illustration &copy; 2025.</figcaption>
+			</figure>
+			<h3>Highlights</h3>
+			<ul>
+				<li>Zero-allocation traversal using <code>ReadOnlySpan&lt;char&gt;</code></li>
+				<li>Vectorized scanning with <code>SearchValues&lt;char&gt;</code>
+				<li>Value enumerators for children and attributes</li>
+				<li>Tolerant of <abbr title="malformed markup">invalid</abbr> input
+			</ul>
+			<h3>Results</h3>
+			<table class="results">
+				<caption>Table 38. Measurements</caption>
+				<thead>
+					<tr><th scope="col">Method</th><th scope="col">Mean</th><th scope="col">Allocated</th></tr>
+				</thead>
+				<tbody>
+					<tr><td>Visit</td><td>46.71 &micro;s</td><td>0 B</td>
+					<tr><td>TextContent</td><td>38.83 &micro;s</td><td>2 KB
+					<tr class="alt"><td>Baseline</td><td>778.45 &micro;s</td><td>82 KB</td></tr>
+				</tbody>
+			</table>
+			<pre><code class="language-csharp">var document = new LazyHtmlDocument(html);
+foreach (var element in document.Elements())
+{
+    if (element.NameSpan.SequenceEqual("a") &amp;&amp; element.TryGetAttribute("href", out var href))
+        Console.WriteLine(href.ValueSpan);
+}</code></pre>
+			<blockquote cite="https://example.com/quote/38"><p>&ldquo;Premature optimization is the root of all evil.&rdquo;</p><footer>&mdash; <cite>Donald Knuth</cite></footer></blockquote>
+			<dl class="facts">
+				<dt>Elements<dd>105
+				<dt>Attributes<dd>882
+				<dt>Depth</dt><dd>18</dd>
+			</dl>
+			<footer class="article-footer">
+				<form action="/blog/article-38/comments" method="post">
+					<input type="hidden" name="article" value="38">
+					<textarea name="comment" rows="3" placeholder="Leave a comment <b>here</b>"></textarea>
+					<select name="rating"><option value=1>1<option value=2>2<option value=3 selected>3<option value=4>4<option value=5>5</select>
+					<label><input type="checkbox" name="subscribe" checked> Notify me</label>
+					<button type="submit" disabled>Post</button>
+				</form>
+				<!-- share buttons -->
+				<div class="share"><a href="https://twitter.com/share?url=%2Fblog%2Farticle-38" class="btn btn-twitter">Tweet</a> <a href="mailto:?subject=Article%2038" class="btn">Email</a></div>
+			</footer>
+		</article>
+		<hr>
+		<article class="article" id="article-39" data-index="39" data-tags="dotnet,parsing">
+			<header>
+				<h2><a href="/blog/article-39">Article 39: Reading HTML without allocations</a></h2>
+				<p class="meta">Posted <time datetime="2025-05-13">May 21, 2025</time> by <a href="/authors/peter" rel="author">Peter</a> &middot; <span class="tags"><a href="/tags/dotnet">#dotnet</a> <a href="/tags/parsing">#parsing</a></span></p>
+			</header>
+			<p>Lorem ipsum dolor sit amet, <strong>consectetur</strong> adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis <em>nostrud</em> exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat &mdash; see <a href="/docs/api#element-39">the API</a> for details.</p>
+			<p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.<br>Second line after a line break.</p>
+			<figure>
+				<img src="/images/article-39.jpg" alt="Illustration for article 39" loading="lazy" width="640" height="360">
+				<figcaption>Figure 39. An illustration &copy; 2025.</figcaption>
+			</figure>
+			<h3>Highlights</h3>
+			<ul>
+				<li>Zero-allocation traversal using <code>ReadOnlySpan&lt;char&gt;</code></li>
+				<li>Vectorized scanning with <code>SearchValues&lt;char&gt;</code>
+				<li>Value enumerators for children and attributes</li>
+				<li>Tolerant of <abbr title="malformed markup">invalid</abbr> input
+			</ul>
+			<h3>Results</h3>
+			<table class="results">
+				<caption>Table 39. Measurements</caption>
+				<thead>
+					<tr><th scope="col">Method</th><th scope="col">Mean</th><th scope="col">Allocated</th></tr>
+				</thead>
+				<tbody>
+					<tr><td>Visit</td><td>95.25 &micro;s</td><td>0 B</td>
+					<tr><td>TextContent</td><td>42.52 &micro;s</td><td>6 KB
+					<tr class="alt"><td>Baseline</td><td>511.72 &micro;s</td><td>10 KB</td></tr>
+				</tbody>
+			</table>
+			<pre><code class="language-csharp">var document = new LazyHtmlDocument(html);
+foreach (var element in document.Elements())
+{
+    if (element.NameSpan.SequenceEqual("a") &amp;&amp; element.TryGetAttribute("href", out var href))
+        Console.WriteLine(href.ValueSpan);
+}</code></pre>
+			<blockquote cite="https://example.com/quote/39"><p>&ldquo;Premature optimization is the root of all evil.&rdquo;</p><footer>&mdash; <cite>Donald Knuth</cite></footer></blockquote>
+			<dl class="facts">
+				<dt>Elements<dd>561
+				<dt>Attributes<dd>950
+				<dt>Depth</dt><dd>23</dd>
+			</dl>
+			<footer class="article-footer">
+				<form action="/blog/article-39/comments" method="post">
+					<input type="hidden" name="article" value="39">
+					<textarea name="comment" rows="3" placeholder="Leave a comment <b>here</b>"></textarea>
+					<select name="rating"><option value=1>1<option value=2>2<option value=3 selected>3<option value=4>4<option value=5>5</select>
+					<label><input type="checkbox" name="subscribe" checked> Notify me</label>
+					<button type="submit" disabled>Post</button>
+				</form>
+				<!-- share buttons -->
+				<div class="share"><a href="https://twitter.com/share?url=%2Fblog%2Farticle-39" class="btn btn-twitter">Tweet</a> <a href="mailto:?subject=Article%2039" class="btn">Email</a></div>
+			</footer>
+		</article>
+		<hr>
+		<article class="article" id="article-40" data-index="40" data-tags="html,dotnet">
+			<header>
+				<h2><a href="/blog/article-40">Article 40: Reading HTML without allocations</a></h2>
+				<p class="meta">Posted <time datetime="2025-05-19">January 18, 2025</time> by <a href="/authors/peter" rel="author">Peter</a> &middot; <span class="tags"><a href="/tags/html">#html</a> <a href="/tags/dotnet">#dotnet</a></span></p>
+			</header>
+			<p>Lorem ipsum dolor sit amet, <strong>consectetur</strong> adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis <em>nostrud</em> exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat &mdash; see <a href="/docs/api#element-40">the API</a> for details.</p>
+			<p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.<br>Second line after a line break.</p>
+			<figure>
+				<img src="/images/article-40.jpg" alt="Illustration for article 40" loading="lazy" width="640" height="360">
+				<figcaption>Figure 40. An illustration &copy; 2025.</figcaption>
+			</figure>
+			<h3>Highlights</h3>
+			<ul>
+				<li>Zero-allocation traversal using <code>ReadOnlySpan&lt;char&gt;</code></li>
+				<li>Vectorized scanning with <code>SearchValues&lt;char&gt;</code>
+				<li>Value enumerators for children and attributes</li>
+				<li>Tolerant of <abbr title="malformed markup">invalid</abbr> input
+			</ul>
+			<h3>Results</h3>
+			<table class="results">
+				<caption>Table 40. Measurements</caption>
+				<thead>
+					<tr><th scope="col">Method</th><th scope="col">Mean</th><th scope="col">Allocated</th></tr>
+				</thead>
+				<tbody>
+					<tr><td>Visit</td><td>94.57 &micro;s</td><td>0 B</td>
+					<tr><td>TextContent</td><td>43.65 &micro;s</td><td>8 KB
+					<tr class="alt"><td>Baseline</td><td>251.66 &micro;s</td><td>48 KB</td></tr>
+				</tbody>
+			</table>
+			<pre><code class="language-csharp">var document = new LazyHtmlDocument(html);
+foreach (var element in document.Elements())
+{
+    if (element.NameSpan.SequenceEqual("a") &amp;&amp; element.TryGetAttribute("href", out var href))
+        Console.WriteLine(href.ValueSpan);
+}</code></pre>
+			<blockquote cite="https://example.com/quote/40"><p>&ldquo;Premature optimization is the root of all evil.&rdquo;</p><footer>&mdash; <cite>Donald Knuth</cite></footer></blockquote>
+			<dl class="facts">
+				<dt>Elements<dd>123
+				<dt>Attributes<dd>631
+				<dt>Depth</dt><dd>28</dd>
+			</dl>
+			<footer class="article-footer">
+				<form action="/blog/article-40/comments" method="post">
+					<input type="hidden" name="article" value="40">
+					<textarea name="comment" rows="3" placeholder="Leave a comment <b>here</b>"></textarea>
+					<select name="rating"><option value=1>1<option value=2>2<option value=3 selected>3<option value=4>4<option value=5>5</select>
+					<label><input type="checkbox" name="subscribe" checked> Notify me</label>
+					<button type="submit" disabled>Post</button>
+				</form>
+				<!-- share buttons -->
+				<div class="share"><a href="https://twitter.com/share?url=%2Fblog%2Farticle-40" class="btn btn-twitter">Tweet</a> <a href="mailto:?subject=Article%2040" class="btn">Email</a></div>
+			</footer>
+		</article>
+		<hr>
+		<nav class="pagination" aria-label="Pagination">
+			<a href="/blog?page=1" rel="prev">&laquo; Previous</a>
+			<span class="current">2</span>
+			<a href="/blog?page=3" rel="next">Next &raquo;</a>
+		</nav>
+	</main>
+	<aside class="sidebar">
+		<section>
+			<h2>Tags</h2>
+			<ul class="tag-cloud">
+				<li><a href="/tags/performance" data-count="12">performance</a></li>
+				<li><a href="/tags/dotnet" data-count="9">dotnet</a></li>
+				<li><a href="/tags/csharp" data-count="7">csharp</a></li>
+				<li><a href="/tags/spans" data-count="4">spans</a></li>
+			</ul>
+		</section>
+		<section>
+			<h2>Newsletter</h2>
+			<form action="/subscribe" method="post">
+				<input type="email" name="email" placeholder="you@example.com" required>
+				<button>Subscribe</button>
+			</form>
+		</section>
+	</aside>
+	<footer class="site-footer">
+		<p>&copy; 2025 Peter Juhasz. All rights reserved. <a href="/privacy">Privacy</a> &middot; <a href="/terms">Terms</a></p>
+		<address>Contact: <a href="mailto:hello@example.com">hello@example.com</a></address>
+	</footer>
+	<script src="/assets/site.js" defer></script>
+	<script type="application/ld+json">{"@context":"https://schema.org","@type":"Blog","name":"Sample Blog","url":"https://example.com/"}</script>
+</body>
+</html>

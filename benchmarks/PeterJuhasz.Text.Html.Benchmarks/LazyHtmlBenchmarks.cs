@@ -1,0 +1,66 @@
+﻿using BenchmarkDotNet.Attributes;
+using System.Text.Html.Lazy;
+
+namespace PeterJuhasz.Text.Html.Benchmarks;
+
+[MemoryDiagnoser]
+public class LazyHtmlBenchmarks
+{
+	private string html = null!;
+	private LazyHtmlDocument document;
+	private LazyHtmlElement body;
+	private readonly CountingVisitor visitor = new();
+
+	[GlobalSetup]
+	public void Setup()
+	{
+		html = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Samples", "sample.html"));
+		document = new LazyHtmlDocument(html);
+		body = FindBody(document);
+	}
+
+	[Benchmark]
+	public int Visit()
+	{
+		visitor.Count = 0;
+		visitor.VisitDocument(document);
+		return visitor.Count;
+	}
+
+	[Benchmark]
+	public string TextContent() => body.TextContent;
+
+	private static LazyHtmlElement FindBody(LazyHtmlDocument document)
+	{
+		foreach (var element in document.Elements())
+		{
+			if (element.NameSpan.Equals("html", StringComparison.OrdinalIgnoreCase))
+			{
+				foreach (var child in element.Elements())
+				{
+					if (child.NameSpan.Equals("body", StringComparison.OrdinalIgnoreCase))
+						return child;
+				}
+			}
+		}
+
+		throw new InvalidOperationException("Sample has no <body>.");
+	}
+
+	// Reads every element and attribute so the whole traversal is measured.
+	private sealed class CountingVisitor : LazyHtmlVisitor
+	{
+		public int Count;
+
+		public override void VisitElement(LazyHtmlElement element)
+		{
+			Count += element.NameSpan.Length;
+			base.VisitElement(element);
+		}
+
+		public override void VisitAttribute(LazyHtmlElement element, LazyHtmlAttribute attribute)
+		{
+			Count += attribute.NameSpan.Length + attribute.ValueSpan.Length;
+		}
+	}
+}

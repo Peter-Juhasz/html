@@ -1,0 +1,79 @@
+﻿name: Benchmark
+
+env:
+  PROJECT_NAME: 'PeterJuhasz.Text.Html.Benchmarks'
+  DOTNET_VERSION: '10'
+  BUILD_CONFIGURATION: 'Release'
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+on:
+  push:
+  workflow_dispatch:
+    inputs:
+      job:
+        description: 'How long to run each benchmark for'
+        type: choice
+        default: 'short'
+        options:
+          - dry
+          - short
+          - default
+          - long
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v7
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v6
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}.x
+        dotnet-quality: ga
+
+    - name: Restore dependencies
+      working-directory: benchmarks/${{ env.PROJECT_NAME }}
+      run: dotnet restore
+
+    - name: Build
+      working-directory: benchmarks/${{ env.PROJECT_NAME }}
+      run: dotnet build --no-restore --configuration ${{ env.BUILD_CONFIGURATION }}
+
+    - name: Verify sample document
+      working-directory: benchmarks/${{ env.PROJECT_NAME }}
+      run: dotnet run --no-build --configuration ${{ env.BUILD_CONFIGURATION }} -- verify
+
+    - name: Run benchmarks
+      working-directory: benchmarks/${{ env.PROJECT_NAME }}
+      run: >
+        dotnet run --no-build --configuration ${{ env.BUILD_CONFIGURATION }} --
+        --filter '*'
+        --job ${{ inputs.job || 'short' }}
+        --artifacts ${{ github.workspace }}/BenchmarkDotNet.Artifacts
+
+    - name: Write results to job summary
+      if: always()
+      shell: bash
+      run: |
+        shopt -s nullglob
+        reports=(BenchmarkDotNet.Artifacts/results/*-report-github.md)
+        if [ ${#reports[@]} -eq 0 ]; then
+          echo "No benchmark results were produced." >> "$GITHUB_STEP_SUMMARY"
+          exit 0
+        fi
+        for report in "${reports[@]}"; do
+          name=$(basename "$report" -report-github.md)
+          echo "## ${name}" >> "$GITHUB_STEP_SUMMARY"
+          cat "$report" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+        done
+
+    - name: Upload results
+      uses: actions/upload-artifact@v7
+      if: always()
+      with:
+        name: benchmark-results
+        path: BenchmarkDotNet.Artifacts/results/

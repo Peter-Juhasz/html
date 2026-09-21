@@ -12,16 +12,34 @@ public sealed class AllocationTests
 		"<script>if (a<b) {}</script></div></body></html>";
 
 	[TestMethod]
-	public void TraversalDoesNotAllocate()
+	public void VisitorTraversalDoesNotAllocate()
 	{
 		var document = new LazyHtmlDocument(Html);
-		var expected = Traverse(document);
+		var visitor = new CountingVisitor();
+
+		visitor.VisitDocument(document);
+		var expected = visitor.Count;
+		visitor.Count = 0;
 
 		var before = GC.GetAllocatedBytesForCurrentThread();
-		var actual = Traverse(document);
+		visitor.VisitDocument(document);
 		var allocated = GC.GetAllocatedBytesForCurrentThread() - before;
 
-		Assert.AreEqual(expected, actual);
+		Assert.AreEqual(expected, visitor.Count);
+		Assert.AreEqual(0, allocated);
+	}
+
+	[TestMethod]
+	public void DefaultVisitorDoesNotAllocate()
+	{
+		var document = new LazyHtmlDocument(Html);
+		var visitor = new EmptyVisitor();
+		visitor.VisitDocument(document);
+
+		var before = GC.GetAllocatedBytesForCurrentThread();
+		visitor.VisitDocument(document);
+		var allocated = GC.GetAllocatedBytesForCurrentThread() - before;
+
 		Assert.AreEqual(0, allocated);
 	}
 
@@ -39,30 +57,31 @@ public sealed class AllocationTests
 		Assert.IsLessThanOrEqualTo(64, allocated, $"Allocated {allocated} bytes.");
 	}
 
-	private static int Traverse(LazyHtmlDocument document)
+	private sealed class EmptyVisitor : LazyHtmlVisitor
 	{
-		var count = 0;
-		foreach (var element in document.Elements())
-			count += Visit(element);
-		return count;
 	}
 
-	private static int Visit(LazyHtmlElement element)
+	// Touches every span-based member so the whole read path is measured.
+	private sealed class CountingVisitor : LazyHtmlVisitor
 	{
-		var count = 1 + element.NameSpan.Length + element.OuterSpan.Length + element.InnerSpan.Length;
+		public int Count;
 
-		foreach (var attribute in element.Attributes())
-			count += attribute.NameSpan.Length + attribute.ValueSpan.Length + (attribute.HasValue ? 1 : 0);
+		public override void VisitElement(LazyHtmlElement element)
+		{
+			Count += 1 + element.NameSpan.Length + element.OuterSpan.Length + element.InnerSpan.Length;
 
-		if (element.TryGetAttribute("href", out var href))
-			count += href.ValueSpan.Length;
+			if (element.TryGetAttribute("href", out var href))
+				Count += href.ValueSpan.Length;
 
-		if (element.HasAttribute("class"))
-			count++;
+			if (element.HasAttribute("class"))
+				Count++;
 
-		foreach (var child in element.Elements())
-			count += Visit(child);
+			base.VisitElement(element);
+		}
 
-		return count;
+		public override void VisitAttribute(LazyHtmlElement element, LazyHtmlAttribute attribute)
+		{
+			Count += attribute.NameSpan.Length + attribute.ValueSpan.Length + (attribute.HasValue ? 1 : 0);
+		}
 	}
 }
