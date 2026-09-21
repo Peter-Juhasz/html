@@ -38,6 +38,30 @@ public sealed class ChildElementTests
 	}
 
 	[TestMethod]
+	public void VoidElementHasNoChildren()
+	{
+		var element = TestHelpers.FirstElement("<br><span></span>");
+
+		Assert.IsFalse(element.Elements().MoveNext());
+	}
+
+	[TestMethod]
+	public void ChildrenEndAtMismatchedEndTag()
+	{
+		var element = TestHelpers.FirstElement("<div><a>x</a></span><b>y</b>");
+
+		CollectionAssert.AreEqual(new[] { "a" }, element.Elements().Names());
+	}
+
+	[TestMethod]
+	public void ChildrenEndAtImplicitlyClosingStartTag()
+	{
+		var element = TestHelpers.FirstElement("<p><b>x</b><div>y</div>");
+
+		CollectionAssert.AreEqual(new[] { "b" }, element.Elements().Names());
+	}
+
+	[TestMethod]
 	public void ChildrenDoNotLeakOutsideParent()
 	{
 		var element = TestHelpers.FirstElement("<div><a></a></div><b></b>");

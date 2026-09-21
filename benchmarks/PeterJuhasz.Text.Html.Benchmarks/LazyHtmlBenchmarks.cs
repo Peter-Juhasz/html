@@ -76,6 +76,31 @@ public class LazyHtmlBenchmarks
 	public int TryQuerySelectorById()
 		=> document.TryQuerySelector(out var element, id: "article-40") ? element.OuterSpan.Length : 0;
 
+	// Includes the cost of scanning the found element, unlike TextContent which reads an element scanned in Setup.
+	[Benchmark]
+	public int TryQuerySelectorByIdTextContent()
+		=> document.TryQuerySelector(out var element, id: "article-40") ? element.TextContent.Length : 0;
+
+	// Matches elements with large subtrees without needing where they end.
+	[Benchmark]
+	public int QuerySelectorAllArticles()
+	{
+		var count = 0;
+		foreach (var element in document.QuerySelectorAll(name: "article"))
+			count += element.NameSpan.Length;
+		return count;
+	}
+
+	// Needs where each match ends.
+	[Benchmark]
+	public int QuerySelectorAllOuterLength()
+	{
+		var count = 0;
+		foreach (var element in document.QuerySelectorAll(name: "a"))
+			count += element.OuterSpan.Length;
+		return count;
+	}
+
 	// The same search done by descending through Elements() recursively, for comparison.
 	[Benchmark]
 	public int QuerySelectorAllViaVisitor()

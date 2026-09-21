@@ -9,7 +9,7 @@ public readonly struct LazyHtmlDocument(StringSegment document)
 	public static LazyHtmlDocument Parse(string html) => Parse(new StringSegment(html));
 	public static LazyHtmlDocument Parse(StringSegment html) => new(html);
 
-	public ElementsEnumerator Elements() => new(document, 0, document.Length);
+	public ElementsEnumerator Elements() => new(document);
 
 	// Finds the elements at any depth in the document that have the given name (any name if null), id, class
 	// and all of the given attributes with the given values, in document order.

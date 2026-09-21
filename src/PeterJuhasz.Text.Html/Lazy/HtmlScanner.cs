@@ -1,5 +1,7 @@
 ﻿using System.Buffers;
+using System.Collections.Frozen;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 
 namespace System.Text.Html.Lazy;
 
@@ -10,6 +12,17 @@ internal enum MarkupKind
 	EndTag,
 	// comment, declaration, processing instruction or bogus tag
 	Other,
+}
+
+// What an element contains, decided by its start tag alone.
+internal enum ContentKind : byte
+{
+	// nothing: a void or self-closing element (also the default, so a default element has no content)
+	None,
+	// text and child elements
+	Elements,
+	// plain text in which markup is not parsed
+	RawText,
 }
 
 [PerformanceCritical]
@@ -126,28 +139,58 @@ internal static class HtmlScanner
 	}
 
 	// Scans the element at `start` and returns the index right after it.
-	public static int ScanElement(ReadOnlySpan<char> text, int start, out int nameLength, out int contentStart, out int contentEnd, int depth = 0)
+	// This is the hot path of scanning nested content, so it decides everything inline instead of going through ScanContent.
+	public static int ScanElement(ReadOnlySpan<char> text, int start, int depth = 0)
 	{
-		contentStart = ScanStartTag(text, start, out nameLength, out var isSelfClosing);
+		var contentStart = ScanStartTag(text, start, out var nameLength, out var isSelfClosing);
 		var name = text.Slice(start + 1, nameLength);
 		if (isSelfClosing || SyntaxFacts.IsVoidElement(name) || depth > MaxDepth)
+			return contentStart;
+
+		if (SyntaxFacts.IsRawTextElement(name))
+			return SkipMarkup(text, FindRawTextEnd(text, contentStart, name));
+
+		var hasClosers = SyntaxFacts.TryGetImplicitClosers(name, out var closers);
+		return ScanElements(text, name, contentStart, hasClosers, closers, out _, depth);
+	}
+
+	public static ContentKind GetContentKind(ReadOnlySpan<char> name, bool isSelfClosing)
+	{
+		if (isSelfClosing || SyntaxFacts.IsVoidElement(name))
+			return ContentKind.None;
+
+		return SyntaxFacts.IsRawTextElement(name) ? ContentKind.RawText : ContentKind.Elements;
+	}
+
+	// Scans the content of the element at `start`, whose start tag has already been scanned, and returns the index right after the element.
+	public static int ScanContent(ReadOnlySpan<char> text, int start, int nameLength, int contentStart, ContentKind kind, out int contentEnd, int depth = 0)
+	{
+		if (kind == ContentKind.None || depth > MaxDepth)
 		{
 			contentEnd = contentStart;
 			return contentStart;
 		}
 
-		if (SyntaxFacts.IsRawTextElement(name))
+		var name = text.Slice(start + 1, nameLength);
+		if (kind == ContentKind.RawText)
 		{
 			contentEnd = FindRawTextEnd(text, contentStart, name);
 			return SkipMarkup(text, contentEnd);
 		}
 
 		var hasClosers = SyntaxFacts.TryGetImplicitClosers(name, out var closers);
+		return ScanElements(text, name, contentStart, hasClosers, closers, out contentEnd, depth);
+	}
+
+	// Scans the text and elements in the content of the element with the given name, and returns the index right after the element.
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	private static int ScanElements(ReadOnlySpan<char> text, ReadOnlySpan<char> name, int contentStart, bool hasClosers, FrozenSet<string>.AlternateLookup<ReadOnlySpan<char>> closers, out int contentEnd, int depth)
+	{
 		var position = contentStart;
 		while (true)
 		{
-			var kind = FindMarkup(text, position, out var index);
-			switch (kind)
+			var markup = FindMarkup(text, position, out var index);
+			switch (markup)
 			{
 				case MarkupKind.None:
 					contentEnd = text.Length;
@@ -163,7 +206,7 @@ internal static class HtmlScanner
 					return index;
 
 				case MarkupKind.StartTag:
-					position = ScanElement(text, index, out _, out _, out _, depth + 1);
+					position = ScanElement(text, index, depth + 1);
 					break;
 
 				default:
@@ -198,7 +241,7 @@ internal static class HtmlScanner
 			&& (rest.Length == name.Length || SyntaxFacts.TagNameTerminators.Contains(rest[name.Length]));
 	}
 
-	private static ReadOnlySpan<char> TagNameAt(ReadOnlySpan<char> text, int position)
+	public static ReadOnlySpan<char> TagNameAt(ReadOnlySpan<char> text, int position)
 		=> text.Slice(position, LengthUntil(text, position, SyntaxFacts.TagNameTerminators));
 
 	private static int LengthUntil(ReadOnlySpan<char> text, int position, SearchValues<char> terminators)

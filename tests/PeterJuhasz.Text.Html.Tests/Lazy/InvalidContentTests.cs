@@ -70,6 +70,27 @@ public sealed class InvalidContentTests
 	}
 
 	[TestMethod]
+	public void UnterminatedAttributeQuoteFollowedByWhitespaceHasEmptyValue()
+	{
+		var element = TestHelpers.FirstElement("<a href=\" id='x>text</a>");
+
+		Assert.IsTrue(element.TryGetAttribute("href", out var href));
+		Assert.IsTrue(href.HasValue);
+		Assert.AreEqual("", href.Value);
+		Assert.IsTrue(element.TryGetAttribute("id", out var id));
+		Assert.AreEqual("x", id.Value);
+	}
+
+	[TestMethod]
+	public void UnterminatedAttributeQuoteEndingInOtherQuoteExtendsToEnd()
+	{
+		var element = TestHelpers.FirstElement("<a href=\"x'");
+
+		Assert.IsTrue(element.TryGetAttribute("href", out var href));
+		Assert.AreEqual("x'", href.Value);
+	}
+
+	[TestMethod]
 	public void UnterminatedEndTagStillClosesElement()
 	{
 		var element = TestHelpers.FirstElement("<div>a</div");

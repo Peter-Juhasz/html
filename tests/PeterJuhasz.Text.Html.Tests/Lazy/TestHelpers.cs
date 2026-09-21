@@ -11,6 +11,13 @@ internal static class TestHelpers
 		return elements.Current;
 	}
 
+	// The first element found by a query, which is not scanned as a whole up front, unlike an enumerated one.
+	public static LazyHtmlElement FirstQueriedElement(string html)
+	{
+		Assert.IsTrue(LazyHtmlDocument.Parse(html).TryQuerySelector(out var element), "Expected at least one element.");
+		return element;
+	}
+
 	public static List<LazyHtmlElement> ToList(this ElementsEnumerator elements)
 	{
 		var list = new List<LazyHtmlElement>();
