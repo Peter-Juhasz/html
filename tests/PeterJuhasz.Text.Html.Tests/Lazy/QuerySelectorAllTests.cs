@@ -10,7 +10,7 @@ public sealed class QuerySelectorAllTests
 	{
 		var document = LazyHtmlDocument.Parse("<a>1</a><b>2</b><a>3</a>");
 
-		CollectionAssert.AreEqual(new[] { "<a>1</a>", "<a>3</a>" }, document.QuerySelectorAll(name: "a").Outers());
+		Assert.AreSequenceEqual(["<a>1</a>", "<a>3</a>"], document.QuerySelectorAll(name: "a").Outers());
 	}
 
 	[TestMethod]
@@ -18,7 +18,7 @@ public sealed class QuerySelectorAllTests
 	{
 		var document = LazyHtmlDocument.Parse("<html><body><div><ul><li><a>1</a></li></ul><p><a>2</a></p></div><a>3</a></body></html>");
 
-		CollectionAssert.AreEqual(new[] { "<a>1</a>", "<a>2</a>", "<a>3</a>" }, document.QuerySelectorAll(name: "a").Outers());
+		Assert.AreSequenceEqual(["<a>1</a>", "<a>2</a>", "<a>3</a>"], document.QuerySelectorAll(name: "a").Outers());
 	}
 
 	[TestMethod]
@@ -28,7 +28,7 @@ public sealed class QuerySelectorAllTests
 
 		var ids = document.QuerySelectorAll(name: "div").ToList().ConvertAll(e => e.TryGetAttribute("id", out var id) ? id.Value : "");
 
-		CollectionAssert.AreEqual(new[] { "1", "2", "3" }, ids);
+		Assert.AreSequenceEqual(["1", "2", "3"], ids);
 	}
 
 	[TestMethod]
@@ -36,7 +36,7 @@ public sealed class QuerySelectorAllTests
 	{
 		var document = LazyHtmlDocument.Parse("<x><i>1</i><y><i>2</i><z><i>3</i></z><i>4</i></y><i>5</i></x>");
 
-		CollectionAssert.AreEqual(new[] { "1", "2", "3", "4", "5" }, document.QuerySelectorAll(name: "i").ToList().ConvertAll(e => e.InnerSpan.ToString()));
+		Assert.AreSequenceEqual(["1", "2", "3", "4", "5"], document.QuerySelectorAll(name: "i").ToList().ConvertAll(e => e.InnerSpan.ToString()));
 	}
 
 	[TestMethod]
@@ -45,7 +45,7 @@ public sealed class QuerySelectorAllTests
 		var document = LazyHtmlDocument.Parse("<a>0</a><div><a>1</a><p><a>2</a></p></div><a>3</a>");
 		var div = document.Elements().ToList()[1];
 
-		CollectionAssert.AreEqual(new[] { "<a>1</a>", "<a>2</a>" }, div.QuerySelectorAll(name: "a").Outers());
+		Assert.AreSequenceEqual(["<a>1</a>", "<a>2</a>"], div.QuerySelectorAll(name: "a").Outers());
 	}
 
 	[TestMethod]
@@ -71,10 +71,10 @@ public sealed class QuerySelectorAllTests
 	{
 		var document = LazyHtmlDocument.Parse("<b>1</b><br><a>2</a><abbr>3</abbr><li>4<link></li><p>5</p>");
 
-		CollectionAssert.AreEqual(new[] { "<b>1</b>" }, document.QuerySelectorAll(name: "b").Outers());
-		CollectionAssert.AreEqual(new[] { "<a>2</a>" }, document.QuerySelectorAll(name: "a").Outers());
-		CollectionAssert.AreEqual(new[] { "<li>4<link></li>" }, document.QuerySelectorAll(name: "li").Outers());
-		CollectionAssert.AreEqual(new[] { "<br>" }, document.QuerySelectorAll(name: "br").Outers());
+		Assert.AreSequenceEqual(["<b>1</b>"], document.QuerySelectorAll(name: "b").Outers());
+		Assert.AreSequenceEqual(["<a>2</a>"], document.QuerySelectorAll(name: "a").Outers());
+		Assert.AreSequenceEqual(["<li>4<link></li>"], document.QuerySelectorAll(name: "li").Outers());
+		Assert.AreSequenceEqual(["<br>"], document.QuerySelectorAll(name: "br").Outers());
 	}
 
 	[TestMethod]
@@ -83,8 +83,8 @@ public sealed class QuerySelectorAllTests
 		var document = LazyHtmlDocument.Parse("<p>a<br>b<br/>c<br />d</p><img src=x><input/>");
 
 		Assert.HasCount(3, document.QuerySelectorAll(name: "br").ToList());
-		CollectionAssert.AreEqual(new[] { "<img src=x>" }, document.QuerySelectorAll(name: "img").Outers());
-		CollectionAssert.AreEqual(new[] { "<input/>" }, document.QuerySelectorAll(name: "input").Outers());
+		Assert.AreSequenceEqual(["<img src=x>"], document.QuerySelectorAll(name: "img").Outers());
+		Assert.AreSequenceEqual(["<input/>"], document.QuerySelectorAll(name: "input").Outers());
 	}
 
 	[TestMethod]
@@ -92,8 +92,8 @@ public sealed class QuerySelectorAllTests
 	{
 		var document = LazyHtmlDocument.Parse("<ul><li>1<li>2<li>3</ul><p>a<p>b");
 
-		CollectionAssert.AreEqual(new[] { "<li>1", "<li>2", "<li>3" }, document.QuerySelectorAll(name: "li").Outers());
-		CollectionAssert.AreEqual(new[] { "<p>a", "<p>b" }, document.QuerySelectorAll(name: "p").Outers());
+		Assert.AreSequenceEqual(["<li>1", "<li>2", "<li>3"], document.QuerySelectorAll(name: "li").Outers());
+		Assert.AreSequenceEqual(["<p>a", "<p>b"], document.QuerySelectorAll(name: "p").Outers());
 	}
 
 	[TestMethod]
@@ -109,7 +109,7 @@ public sealed class QuerySelectorAllTests
 	{
 		var document = LazyHtmlDocument.Parse("<div><!-- <a>x</a> --><a>y</a></div>");
 
-		CollectionAssert.AreEqual(new[] { "<a>y</a>" }, document.QuerySelectorAll(name: "a").Outers());
+		Assert.AreSequenceEqual(["<a>y</a>"], document.QuerySelectorAll(name: "a").Outers());
 	}
 
 	[TestMethod]
@@ -117,7 +117,7 @@ public sealed class QuerySelectorAllTests
 	{
 		var document = LazyHtmlDocument.Parse("<!DOCTYPE html><?xml version=\"1.0\"?><html></html>");
 
-		CollectionAssert.AreEqual(new[] { "<html></html>" }, document.QuerySelectorAll(name: "html").Outers());
+		Assert.AreSequenceEqual(["<html></html>"], document.QuerySelectorAll(name: "html").Outers());
 		Assert.IsFalse(document.QuerySelectorAll(name: "DOCTYPE").MoveNext());
 		Assert.IsFalse(document.QuerySelectorAll(name: "xml").MoveNext());
 	}
@@ -127,7 +127,7 @@ public sealed class QuerySelectorAllTests
 	{
 		var document = LazyHtmlDocument.Parse("<a title=\"x<b>y\" data='<i>'>1</a><b>2</b>");
 
-		CollectionAssert.AreEqual(new[] { "<b>2</b>" }, document.QuerySelectorAll(name: "b").Outers());
+		Assert.AreSequenceEqual(["<b>2</b>"], document.QuerySelectorAll(name: "b").Outers());
 		Assert.IsFalse(document.QuerySelectorAll(name: "i").MoveNext());
 	}
 
@@ -136,7 +136,7 @@ public sealed class QuerySelectorAllTests
 	{
 		var document = LazyHtmlDocument.Parse("<script>if (a<b) { x = '<i>'; }</script><style>a>b{}</style><textarea><p></textarea><title><em></title><b>real</b>");
 
-		CollectionAssert.AreEqual(new[] { "<b>real</b>" }, document.QuerySelectorAll(name: "b").Outers());
+		Assert.AreSequenceEqual(["<b>real</b>"], document.QuerySelectorAll(name: "b").Outers());
 		Assert.IsFalse(document.QuerySelectorAll(name: "i").MoveNext());
 		Assert.IsFalse(document.QuerySelectorAll(name: "p").MoveNext());
 		Assert.IsFalse(document.QuerySelectorAll(name: "em").MoveNext());
@@ -147,8 +147,8 @@ public sealed class QuerySelectorAllTests
 	{
 		var document = LazyHtmlDocument.Parse("<head><title>T</title><script>1</script></head><body><script>2</script></body>");
 
-		CollectionAssert.AreEqual(new[] { "<script>1</script>", "<script>2</script>" }, document.QuerySelectorAll(name: "script").Outers());
-		CollectionAssert.AreEqual(new[] { "<title>T</title>" }, document.QuerySelectorAll(name: "title").Outers());
+		Assert.AreSequenceEqual(["<script>1</script>", "<script>2</script>"], document.QuerySelectorAll(name: "script").Outers());
+		Assert.AreSequenceEqual(["<title>T</title>"], document.QuerySelectorAll(name: "title").Outers());
 	}
 
 	[TestMethod]
@@ -164,7 +164,7 @@ public sealed class QuerySelectorAllTests
 	{
 		var document = LazyHtmlDocument.Parse("<script/><b>1</b>");
 
-		CollectionAssert.AreEqual(new[] { "<b>1</b>" }, document.QuerySelectorAll(name: "b").Outers());
+		Assert.AreSequenceEqual(["<b>1</b>"], document.QuerySelectorAll(name: "b").Outers());
 	}
 
 	[TestMethod]
@@ -224,7 +224,7 @@ public sealed class QuerySelectorAllTests
 	{
 		var document = LazyHtmlDocument.Parse("<div><a>1<a>2");
 
-		CollectionAssert.AreEqual(new[] { "<a>1<a>2", "<a>2" }, document.QuerySelectorAll(name: "a").Outers());
+		Assert.AreSequenceEqual(["<a>1<a>2", "<a>2"], document.QuerySelectorAll(name: "a").Outers());
 	}
 
 	[TestMethod]
@@ -234,7 +234,7 @@ public sealed class QuerySelectorAllTests
 		var segment = new Microsoft.Extensions.Primitives.StringSegment(html, html.IndexOf("<div>", StringComparison.Ordinal), "<div><a>inside</a></div>".Length);
 		var document = LazyHtmlDocument.Parse(segment);
 
-		CollectionAssert.AreEqual(new[] { "<a>inside</a>" }, document.QuerySelectorAll(name: "a").Outers());
+		Assert.AreSequenceEqual(["<a>inside</a>"], document.QuerySelectorAll(name: "a").Outers());
 	}
 
 	[TestMethod]
@@ -262,7 +262,7 @@ public sealed class QuerySelectorAllTests
 	{
 		var document = LazyHtmlDocument.Parse("<html><head><title>T</title></head><body><p>a<br>b</p><script>x</script></body></html>");
 
-		CollectionAssert.AreEqual(new[] { "html", "head", "title", "body", "p", "br", "script" }, document.QuerySelectorAll().Names());
+		Assert.AreSequenceEqual(["html", "head", "title", "body", "p", "br", "script"], document.QuerySelectorAll().Names());
 	}
 
 	[TestMethod]
@@ -270,7 +270,7 @@ public sealed class QuerySelectorAllTests
 	{
 		var body = TestHelpers.FirstElement("<body><div><p><b>x</b></p></div><hr></body><footer></footer>");
 
-		CollectionAssert.AreEqual(new[] { "div", "p", "b", "hr" }, body.QuerySelectorAll().Names());
+		Assert.AreSequenceEqual(["div", "p", "b", "hr"], body.QuerySelectorAll().Names());
 	}
 
 	[TestMethod]
@@ -278,7 +278,7 @@ public sealed class QuerySelectorAllTests
 	{
 		var document = LazyHtmlDocument.Parse("<div id=\"a\"><p id=\"b\">1</p><span id=\"a\">2</span></div><a id=a>3</a>");
 
-		CollectionAssert.AreEqual(new[] { "div", "span", "a" }, document.QuerySelectorAll(attributes: [new("id", "a")]).Names());
+		Assert.AreSequenceEqual(["div", "span", "a"], document.QuerySelectorAll(attributes: [new("id", "a")]).Names());
 	}
 
 	[TestMethod]
@@ -286,7 +286,7 @@ public sealed class QuerySelectorAllTests
 	{
 		var document = LazyHtmlDocument.Parse("<a class=\"btn\">1</a><button class=\"btn\">2</button><a class=\"link\">3</a><div><a class=\"btn\">4</a></div>");
 
-		CollectionAssert.AreEqual(new[] { "<a class=\"btn\">1</a>", "<a class=\"btn\">4</a>" }, document.QuerySelectorAll(name: "a", attributes: [new("class", "btn")]).Outers());
+		Assert.AreSequenceEqual(["<a class=\"btn\">1</a>", "<a class=\"btn\">4</a>"], document.QuerySelectorAll(name: "a", attributes: [new("class", "btn")]).Outers());
 	}
 
 	[TestMethod]
@@ -300,7 +300,7 @@ public sealed class QuerySelectorAllTests
 
 		var matches = document.QuerySelectorAll(name: "input", attributes: [new("type", "text"), new("name", "q")]).Outers();
 
-		CollectionAssert.AreEqual(new[] { "<input type=\"text\" name=\"q\">", "<input name=\"q\" type=\"text\" id=\"search\">" }, matches);
+		Assert.AreSequenceEqual(["<input type=\"text\" name=\"q\">", "<input name=\"q\" type=\"text\" id=\"search\">"], matches);
 	}
 
 	[TestMethod]
@@ -316,7 +316,7 @@ public sealed class QuerySelectorAllTests
 	{
 		var document = LazyHtmlDocument.Parse("<a rel=\"author\">1</a><a rel=\"authors\">2</a><a rel=\"noauthor\">3</a>");
 
-		CollectionAssert.AreEqual(new[] { "<a rel=\"author\">1</a>" }, document.QuerySelectorAll(name: "a", attributes: Attributes(("rel", "author"))).Outers());
+		Assert.AreSequenceEqual(["<a rel=\"author\">1</a>"], document.QuerySelectorAll(name: "a", attributes: Attributes(("rel", "author"))).Outers());
 	}
 
 	[TestMethod]
@@ -324,8 +324,8 @@ public sealed class QuerySelectorAllTests
 	{
 		var document = LazyHtmlDocument.Parse("<a CLASS=\"Btn\">1</a><a class=\"btn\">2</a><a Class=\"Btn\">3</a>");
 
-		CollectionAssert.AreEqual(new[] { "<a CLASS=\"Btn\">1</a>", "<a Class=\"Btn\">3</a>" }, document.QuerySelectorAll(name: "a", attributes: Attributes(("class", "Btn"))).Outers());
-		CollectionAssert.AreEqual(new[] { "<a class=\"btn\">2</a>" }, document.QuerySelectorAll(name: "a", attributes: Attributes(("CLASS", "btn"))).Outers());
+		Assert.AreSequenceEqual(["<a CLASS=\"Btn\">1</a>", "<a Class=\"Btn\">3</a>"], document.QuerySelectorAll(name: "a", attributes: Attributes(("class", "Btn"))).Outers());
+		Assert.AreSequenceEqual(["<a class=\"btn\">2</a>"], document.QuerySelectorAll(name: "a", attributes: Attributes(("CLASS", "btn"))).Outers());
 	}
 
 	[TestMethod]
@@ -341,8 +341,8 @@ public sealed class QuerySelectorAllTests
 	{
 		var document = LazyHtmlDocument.Parse("<input disabled><input disabled=\"\"><input disabled=\"disabled\"><input>");
 
-		CollectionAssert.AreEqual(new[] { "<input disabled>", "<input disabled=\"\">" }, document.QuerySelectorAll(name: "input", attributes: Attributes(("disabled", ""))).Outers());
-		CollectionAssert.AreEqual(new[] { "<input disabled=\"disabled\">" }, document.QuerySelectorAll(name: "input", attributes: Attributes(("disabled", "disabled"))).Outers());
+		Assert.AreSequenceEqual(["<input disabled>", "<input disabled=\"\">"], document.QuerySelectorAll(name: "input", attributes: Attributes(("disabled", ""))).Outers());
+		Assert.AreSequenceEqual(["<input disabled=\"disabled\">"], document.QuerySelectorAll(name: "input", attributes: Attributes(("disabled", "disabled"))).Outers());
 	}
 
 	[TestMethod]
@@ -359,7 +359,7 @@ public sealed class QuerySelectorAllTests
 	{
 		var document = LazyHtmlDocument.Parse("<a title=\"a<b>c\">1</a><a title=\"x\">2</a>");
 
-		CollectionAssert.AreEqual(new[] { "<a title=\"a<b>c\">1</a>" }, document.QuerySelectorAll(name: "a", attributes: Attributes(("title", "a<b>c"))).Outers());
+		Assert.AreSequenceEqual(["<a title=\"a<b>c\">1</a>"], document.QuerySelectorAll(name: "a", attributes: Attributes(("title", "a<b>c"))).Outers());
 	}
 
 	[TestMethod]
@@ -368,7 +368,7 @@ public sealed class QuerySelectorAllTests
 		var document = LazyHtmlDocument.Parse("<div><p class=\"x\">1</p></div>");
 
 		Assert.IsFalse(document.QuerySelectorAll(name: "div", attributes: Attributes(("class", "x"))).MoveNext());
-		CollectionAssert.AreEqual(new[] { "p" }, document.QuerySelectorAll(attributes: Attributes(("class", "x"))).Names());
+		Assert.AreSequenceEqual(["p"], document.QuerySelectorAll(attributes: Attributes(("class", "x"))).Names());
 	}
 
 	[TestMethod]
@@ -378,7 +378,7 @@ public sealed class QuerySelectorAllTests
 
 		var ids = document.QuerySelectorAll(attributes: Attributes(("class", "c"))).ToList().ConvertAll(e => e.TryGetAttribute("id", out var id) ? id.Value : "");
 
-		CollectionAssert.AreEqual(new[] { "1", "2", "3" }, ids);
+		Assert.AreSequenceEqual(["1", "2", "3"], ids);
 	}
 
 	[TestMethod]
@@ -386,7 +386,7 @@ public sealed class QuerySelectorAllTests
 	{
 		var document = LazyHtmlDocument.Parse("<script><a class=\"x\">fake</a></script><a class=\"x\">real</a>");
 
-		CollectionAssert.AreEqual(new[] { "<a class=\"x\">real</a>" }, document.QuerySelectorAll(attributes: Attributes(("class", "x"))).Outers());
+		Assert.AreSequenceEqual(["<a class=\"x\">real</a>"], document.QuerySelectorAll(attributes: Attributes(("class", "x"))).Outers());
 	}
 
 	[TestMethod]
@@ -395,7 +395,7 @@ public sealed class QuerySelectorAllTests
 		var document = LazyHtmlDocument.Parse("<a class=\"x\">0</a><div><a class=\"x\">1</a><p><a class=\"y\">2</a></p></div><a class=\"x\">3</a>");
 		var div = document.Elements().ToList()[1];
 
-		CollectionAssert.AreEqual(new[] { "<a class=\"x\">1</a>" }, div.QuerySelectorAll(name: "a", attributes: Attributes(("class", "x"))).Outers());
+		Assert.AreSequenceEqual(["<a class=\"x\">1</a>"], div.QuerySelectorAll(name: "a", attributes: Attributes(("class", "x"))).Outers());
 	}
 
 	[TestMethod]
@@ -403,7 +403,7 @@ public sealed class QuerySelectorAllTests
 	{
 		var document = LazyHtmlDocument.Parse("<div id=\"a\"><p id=\"b\">1</p><span id=\"a\">2</span></div><a id=a>3</a>");
 
-		CollectionAssert.AreEqual(new[] { "div", "span", "a" }, document.QuerySelectorAll(id: "a").Names());
+		Assert.AreSequenceEqual(["div", "span", "a"], document.QuerySelectorAll(id: "a").Names());
 	}
 
 	[TestMethod]
@@ -411,7 +411,7 @@ public sealed class QuerySelectorAllTests
 	{
 		var document = LazyHtmlDocument.Parse("<div id=\"main\">1</div><section id=\"main\">2</section><div id=\"other\">3</div>");
 
-		CollectionAssert.AreEqual(new[] { "<div id=\"main\">1</div>" }, document.QuerySelectorAll(name: "div", id: "main").Outers());
+		Assert.AreSequenceEqual(["<div id=\"main\">1</div>"], document.QuerySelectorAll(name: "div", id: "main").Outers());
 	}
 
 	[TestMethod]
@@ -419,7 +419,7 @@ public sealed class QuerySelectorAllTests
 	{
 		var document = LazyHtmlDocument.Parse("<div id=\"Main\">1</div><div id=\"main-content\">2</div><div id=\"main\">3</div><div id=\" main\">4</div>");
 
-		CollectionAssert.AreEqual(new[] { "<div id=\"main\">3</div>" }, document.QuerySelectorAll(id: "main").Outers());
+		Assert.AreSequenceEqual(["<div id=\"main\">3</div>"], document.QuerySelectorAll(id: "main").Outers());
 	}
 
 	[TestMethod]
@@ -443,7 +443,7 @@ public sealed class QuerySelectorAllTests
 			"<a class=\"primary\">7</a>" +
 			"<a>8</a>");
 
-		CollectionAssert.AreEqual(new[] { "1", "2", "3", "4" }, document.QuerySelectorAll(className: "btn").ToList().ConvertAll(e => e.InnerSpan.ToString()));
+		Assert.AreSequenceEqual(["1", "2", "3", "4"], document.QuerySelectorAll(className: "btn").ToList().ConvertAll(e => e.InnerSpan.ToString()));
 	}
 
 	[TestMethod]
@@ -459,7 +459,7 @@ public sealed class QuerySelectorAllTests
 	{
 		var document = LazyHtmlDocument.Parse("<a class=\"Btn\">1</a><a class=\"btn\">2</a><a class=\"BTN\">3</a>");
 
-		CollectionAssert.AreEqual(new[] { "<a class=\"btn\">2</a>" }, document.QuerySelectorAll(className: "btn").Outers());
+		Assert.AreSequenceEqual(["<a class=\"btn\">2</a>"], document.QuerySelectorAll(className: "btn").Outers());
 	}
 
 	[TestMethod]
@@ -475,7 +475,7 @@ public sealed class QuerySelectorAllTests
 	{
 		var document = LazyHtmlDocument.Parse("<a class=\"btn\">1</a><button class=\"btn\">2</button><div><a class=\"big btn\">3</a></div>");
 
-		CollectionAssert.AreEqual(new[] { "<a class=\"btn\">1</a>", "<a class=\"big btn\">3</a>" }, document.QuerySelectorAll(name: "a", className: "btn").Outers());
+		Assert.AreSequenceEqual(["<a class=\"btn\">1</a>", "<a class=\"big btn\">3</a>"], document.QuerySelectorAll(name: "a", className: "btn").Outers());
 	}
 
 	[TestMethod]
@@ -491,7 +491,7 @@ public sealed class QuerySelectorAllTests
 
 		var matches = document.QuerySelectorAll(name: "a", id: "x", className: "btn", attributes: [new("href", "/")]).ToList().ConvertAll(e => e.InnerSpan.ToString());
 
-		CollectionAssert.AreEqual(new[] { "1", "6" }, matches);
+		Assert.AreSequenceEqual(["1", "6"], matches);
 	}
 
 	[TestMethod]
@@ -508,8 +508,8 @@ public sealed class QuerySelectorAllTests
 	{
 		var document = LazyHtmlDocument.Parse("<script><a id=\"x\" class=\"c\">fake</a></script><a id=\"x\" class=\"c\">real</a>");
 
-		CollectionAssert.AreEqual(new[] { "<a id=\"x\" class=\"c\">real</a>" }, document.QuerySelectorAll(id: "x").Outers());
-		CollectionAssert.AreEqual(new[] { "<a id=\"x\" class=\"c\">real</a>" }, document.QuerySelectorAll(className: "c").Outers());
+		Assert.AreSequenceEqual(["<a id=\"x\" class=\"c\">real</a>"], document.QuerySelectorAll(id: "x").Outers());
+		Assert.AreSequenceEqual(["<a id=\"x\" class=\"c\">real</a>"], document.QuerySelectorAll(className: "c").Outers());
 	}
 
 	[TestMethod]
@@ -560,7 +560,7 @@ public sealed class QuerySelectorAllTests
 			var visitor = new CollectingVisitor(name, attributes: attributes);
 			visitor.VisitDocument(document);
 
-			CollectionAssert.AreEqual(visitor.Outers, document.QuerySelectorAll(name: name, attributes: Attributes(attributes)).Outers(), $"Mismatch for <{name}> {string.Join(' ', attributes)}.");
+			Assert.AreSequenceEqual(visitor.Outers, document.QuerySelectorAll(name: name, attributes: Attributes(attributes)).Outers(), $"Mismatch for <{name}> {string.Join(' ', attributes)}.");
 		}
 	}
 
@@ -599,7 +599,7 @@ public sealed class QuerySelectorAllTests
 			var visitor = new CollectingVisitor(name, id, className, attributes);
 			visitor.VisitDocument(document);
 
-			CollectionAssert.AreEqual(visitor.Outers, document.QuerySelectorAll(name: name, id: id, className: className, attributes: Attributes(attributes)).Outers(), $"Mismatch for <{name}> #{id} .{className} {string.Join(' ', attributes)}.");
+			Assert.AreSequenceEqual(visitor.Outers, document.QuerySelectorAll(name: name, id: id, className: className, attributes: Attributes(attributes)).Outers(), $"Mismatch for <{name}> #{id} .{className} {string.Join(' ', attributes)}.");
 		}
 	}
 
@@ -618,7 +618,7 @@ public sealed class QuerySelectorAllTests
 			var visitor = new CollectingVisitor(name);
 			visitor.VisitDocument(document);
 
-			CollectionAssert.AreEqual(visitor.Outers, document.QuerySelectorAll(name: name).Outers(), $"Mismatch for <{name}>.");
+			Assert.AreSequenceEqual(visitor.Outers, document.QuerySelectorAll(name: name).Outers(), $"Mismatch for <{name}>.");
 		}
 	}
 

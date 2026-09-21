@@ -91,8 +91,8 @@ public sealed class QuerySelectorTests
 		var document = HtmlDocument.Parse("<div><p>1</p><span><p>2</p></span></div><p>3</p>");
 		var div = document.Elements().First();
 
-		CollectionAssert.AreEqual(new[] { "1", "2", "3" }, document.GetElementsByTagName("p").Inners());
-		CollectionAssert.AreEqual(new[] { "1", "2" }, div.GetElementsByTagName("P").Inners());
+		Assert.AreSequenceEqual(["1", "2", "3"], document.GetElementsByTagName("p").Inners());
+		Assert.AreSequenceEqual(["1", "2"], div.GetElementsByTagName("P").Inners());
 	}
 
 	[TestMethod]
@@ -101,8 +101,8 @@ public sealed class QuerySelectorTests
 		var document = HtmlDocument.Parse("<div class=\"c\"><p class=\"a c\">1</p><span class=\"cc\">2</span></div><p class=\"c\">3</p>");
 		var div = document.Elements().First();
 
-		CollectionAssert.AreEqual(new[] { "div", "p", "p" }, document.GetElementsByClassName("c").Names());
-		CollectionAssert.AreEqual(new[] { "p" }, div.GetElementsByClassName("c").Names());
+		Assert.AreSequenceEqual(["div", "p", "p"], document.GetElementsByClassName("c").Names());
+		Assert.AreSequenceEqual(["p"], div.GetElementsByClassName("c").Names());
 	}
 
 	[TestMethod]

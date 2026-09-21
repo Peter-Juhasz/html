@@ -10,7 +10,7 @@ public sealed class TreeTests
 	{
 		var element = TestHelpers.FirstElement("<ul><li><a>1</a></li><li><a>2</a></li></ul>");
 
-		CollectionAssert.AreEqual(new[] { "li", "li" }, element.Elements().Names());
+		Assert.AreSequenceEqual(["li", "li"], element.Elements().Names());
 	}
 
 	[TestMethod]
@@ -36,7 +36,7 @@ public sealed class TreeTests
 	{
 		var element = TestHelpers.FirstElement("<div><a></a>text<b></b><!-- c --><i></i></div>");
 
-		CollectionAssert.AreEqual(new[] { "a", "b", "i" }, element.Elements().Names());
+		Assert.AreSequenceEqual(["a", "b", "i"], element.Elements().Names());
 		foreach (var child in element.Elements())
 			Assert.AreSame(element, child.Parent);
 	}
@@ -57,7 +57,7 @@ public sealed class TreeTests
 
 		var paragraph = document.Elements().First();
 
-		CollectionAssert.AreEqual(new[] { "br", "img", "span", "span" }, paragraph.Elements().Names());
+		Assert.AreSequenceEqual(["br", "img", "span", "span"], paragraph.Elements().Names());
 		Assert.IsEmpty(paragraph.Elements().First().Elements());
 		Assert.IsEmpty(paragraph.Elements().ElementAt(1).Elements());
 		Assert.IsEmpty(paragraph.Elements().ElementAt(2).Elements());
@@ -69,7 +69,7 @@ public sealed class TreeTests
 	{
 		var document = HtmlDocument.Parse("<script>if (a<b) { x = '<i>'; }</script><style>a>b{}</style><textarea><p></textarea><title><em></title>");
 
-		CollectionAssert.AreEqual(new[] { "script", "style", "textarea", "title" }, document.Elements().Names());
+		Assert.AreSequenceEqual(["script", "style", "textarea", "title"], document.Elements().Names());
 		foreach (var element in document.Elements())
 			Assert.IsEmpty(element.Elements());
 	}
@@ -79,7 +79,7 @@ public sealed class TreeTests
 	{
 		var element = TestHelpers.FirstElement("<ul><li>one<li>two<li>three</ul>");
 
-		CollectionAssert.AreEqual(new[] { "<li>one", "<li>two", "<li>three" }, element.Elements().Outers());
+		Assert.AreSequenceEqual(["<li>one", "<li>two", "<li>three"], element.Elements().Outers());
 		Assert.AreEqual("<ul><li>one<li>two<li>three</ul>", element.OuterSpan.ToString());
 	}
 
@@ -91,8 +91,8 @@ public sealed class TreeTests
 		var rows = element.Elements().ToList();
 
 		Assert.HasCount(2, rows);
-		CollectionAssert.AreEqual(new[] { "1", "2" }, rows[0].Elements().Select(c => c.TextContent).ToList());
-		CollectionAssert.AreEqual(new[] { "3", "4" }, rows[1].Elements().Select(c => c.TextContent).ToList());
+		Assert.AreSequenceEqual(["1", "2"], rows[0].Elements().Select(c => c.TextContent).ToList());
+		Assert.AreSequenceEqual(["3", "4"], rows[1].Elements().Select(c => c.TextContent).ToList());
 	}
 
 	[TestMethod]
@@ -100,7 +100,7 @@ public sealed class TreeTests
 	{
 		var document = HtmlDocument.Parse("<p>a<div>b</div>");
 
-		CollectionAssert.AreEqual(new[] { "p", "div" }, document.Elements().Names());
+		Assert.AreSequenceEqual(["p", "div"], document.Elements().Names());
 		Assert.IsEmpty(document.Elements().First().Elements());
 	}
 
@@ -123,8 +123,8 @@ public sealed class TreeTests
 	{
 		var document = HtmlDocument.Parse("<div><a></a></div><b></b>");
 
-		CollectionAssert.AreEqual(new[] { "a" }, document.Elements().First().Elements().Names());
-		CollectionAssert.AreEqual(new[] { "div", "b" }, document.Elements().Names());
+		Assert.AreSequenceEqual(["a"], document.Elements().First().Elements().Names());
+		Assert.AreSequenceEqual(["div", "b"], document.Elements().Names());
 	}
 
 	[TestMethod]

@@ -13,8 +13,8 @@ public sealed class NodesTests
 
 		var nodes = document.Nodes().ToList();
 
-		CollectionAssert.AreEqual(new[] { LazyHtmlNodeKind.Text, LazyHtmlNodeKind.Element, LazyHtmlNodeKind.Comment, LazyHtmlNodeKind.Text }, nodes.ConvertAll(n => n.Kind));
-		CollectionAssert.AreEqual(new[] { "before", "<div>x</div>", "<!-- c -->", "after" }, nodes.ConvertAll(n => n.OuterSpan.ToString()));
+		Assert.AreSequenceEqual([LazyHtmlNodeKind.Text, LazyHtmlNodeKind.Element, LazyHtmlNodeKind.Comment, LazyHtmlNodeKind.Text], nodes.ConvertAll(n => n.Kind));
+		Assert.AreSequenceEqual(["before", "<div>x</div>", "<!-- c -->", "after"], nodes.ConvertAll(n => n.OuterSpan.ToString()));
 		Assert.AreEqual("before", nodes[0].Text.Text);
 		Assert.AreEqual("div", nodes[1].Element.Name);
 		Assert.AreEqual(" c ", nodes[2].Comment.Text);
@@ -28,8 +28,8 @@ public sealed class NodesTests
 
 		var nodes = element.Nodes().ToList();
 
-		CollectionAssert.AreEqual(new[] { LazyHtmlNodeKind.Text, LazyHtmlNodeKind.Element, LazyHtmlNodeKind.Text, LazyHtmlNodeKind.Comment, LazyHtmlNodeKind.Text }, nodes.ConvertAll(n => n.Kind));
-		CollectionAssert.AreEqual(new[] { "a", "<b>b<i>c</i></b>", "c", "<!--d-->", "e" }, nodes.ConvertAll(n => n.OuterSpan.ToString()));
+		Assert.AreSequenceEqual([LazyHtmlNodeKind.Text, LazyHtmlNodeKind.Element, LazyHtmlNodeKind.Text, LazyHtmlNodeKind.Comment, LazyHtmlNodeKind.Text], nodes.ConvertAll(n => n.Kind));
+		Assert.AreSequenceEqual(["a", "<b>b<i>c</i></b>", "c", "<!--d-->", "e"], nodes.ConvertAll(n => n.OuterSpan.ToString()));
 	}
 
 	[TestMethod]
@@ -54,7 +54,7 @@ public sealed class NodesTests
 	{
 		var document = LazyHtmlDocument.Parse("<a></a><b></b><!----><c></c>");
 
-		CollectionAssert.AreEqual(new[] { LazyHtmlNodeKind.Element, LazyHtmlNodeKind.Element, LazyHtmlNodeKind.Comment, LazyHtmlNodeKind.Element }, document.Nodes().Kinds());
+		Assert.AreSequenceEqual([LazyHtmlNodeKind.Element, LazyHtmlNodeKind.Element, LazyHtmlNodeKind.Comment, LazyHtmlNodeKind.Element], document.Nodes().Kinds());
 	}
 
 	[TestMethod]
@@ -64,7 +64,7 @@ public sealed class NodesTests
 
 		var nodes = document.Nodes().ToList();
 
-		CollectionAssert.AreEqual(new[] { LazyHtmlNodeKind.Element, LazyHtmlNodeKind.Text, LazyHtmlNodeKind.Element }, nodes.ConvertAll(n => n.Kind));
+		Assert.AreSequenceEqual([LazyHtmlNodeKind.Element, LazyHtmlNodeKind.Text, LazyHtmlNodeKind.Element], nodes.ConvertAll(n => n.Kind));
 		Assert.AreEqual("\r\n  ", nodes[1].Text.Text);
 	}
 
@@ -92,7 +92,7 @@ public sealed class NodesTests
 	{
 		var document = LazyHtmlDocument.Parse("<!DOCTYPE html><?xml version=\"1.0\"?><![CDATA[ x ]]></x><p>x</p>");
 
-		CollectionAssert.AreEqual(new[] { "<p>x</p>" }, document.Nodes().Outers());
+		Assert.AreSequenceEqual(["<p>x</p>"], document.Nodes().Outers());
 	}
 
 	[TestMethod]
@@ -101,7 +101,7 @@ public sealed class NodesTests
 		// the same as browsers do for CDATA in HTML content: the rest is text
 		var document = LazyHtmlDocument.Parse("<![CDATA[ <a> ]]><p></p>");
 
-		CollectionAssert.AreEqual(new[] { " ]]>", "<p></p>" }, document.Nodes().Outers());
+		Assert.AreSequenceEqual([" ]]>", "<p></p>"], document.Nodes().Outers());
 	}
 
 	[TestMethod]
@@ -110,8 +110,8 @@ public sealed class NodesTests
 		var element = TestHelpers.FirstElement("<div>a<![CDATA[x]]>b</x>c</div>");
 
 		// the stray end tag also implicitly closes the div, so "c" is outside it
-		CollectionAssert.AreEqual(new[] { "a", "b" }, element.Nodes().Outers());
-		CollectionAssert.AreEqual(new[] { "<div>a<![CDATA[x]]>b", "c" }, LazyHtmlDocument.Parse("<div>a<![CDATA[x]]>b</x>c</div>").Nodes().Outers());
+		Assert.AreSequenceEqual(["a", "b"], element.Nodes().Outers());
+		Assert.AreSequenceEqual(["<div>a<![CDATA[x]]>b", "c"], LazyHtmlDocument.Parse("<div>a<![CDATA[x]]>b</x>c</div>").Nodes().Outers());
 	}
 
 	[TestMethod]
@@ -121,7 +121,7 @@ public sealed class NodesTests
 
 		var nodes = document.Nodes().ToList();
 
-		CollectionAssert.AreEqual(new[] { LazyHtmlNodeKind.Comment, LazyHtmlNodeKind.Element }, nodes.ConvertAll(n => n.Kind));
+		Assert.AreSequenceEqual([LazyHtmlNodeKind.Comment, LazyHtmlNodeKind.Element], nodes.ConvertAll(n => n.Kind));
 		Assert.AreEqual("[if IE]><p>ie</p><![endif]", nodes[0].Comment.Text);
 	}
 
@@ -149,7 +149,7 @@ public sealed class NodesTests
 	{
 		var nodes = LazyHtmlDocument.Parse("<p>a</p><!-- b <i>c</i>").Nodes().ToList();
 
-		CollectionAssert.AreEqual(new[] { LazyHtmlNodeKind.Element, LazyHtmlNodeKind.Comment }, nodes.ConvertAll(n => n.Kind));
+		Assert.AreSequenceEqual([LazyHtmlNodeKind.Element, LazyHtmlNodeKind.Comment], nodes.ConvertAll(n => n.Kind));
 		Assert.AreEqual("<!-- b <i>c</i>", nodes[1].OuterSpan.ToString());
 		Assert.AreEqual(" b <i>c</i>", nodes[1].Comment.Text);
 	}
@@ -187,7 +187,7 @@ public sealed class NodesTests
 	{
 		var element = TestHelpers.FirstElement("<div>a<b></b></div>outside<!-- c -->");
 
-		CollectionAssert.AreEqual(new[] { "a", "<b></b>" }, element.Nodes().Outers());
+		Assert.AreSequenceEqual(["a", "<b></b>"], element.Nodes().Outers());
 	}
 
 	[TestMethod]
@@ -195,8 +195,8 @@ public sealed class NodesTests
 	{
 		var element = TestHelpers.FirstElement("<div>a<b>b");
 
-		CollectionAssert.AreEqual(new[] { "a", "<b>b" }, element.Nodes().Outers());
-		CollectionAssert.AreEqual(new[] { "b" }, element.Nodes().ToList()[1].Element.Nodes().Outers());
+		Assert.AreSequenceEqual(["a", "<b>b"], element.Nodes().Outers());
+		Assert.AreSequenceEqual(["b"], element.Nodes().ToList()[1].Element.Nodes().Outers());
 	}
 
 	[TestMethod]
@@ -204,8 +204,8 @@ public sealed class NodesTests
 	{
 		var element = TestHelpers.FirstElement("<ul><li>one<li>two</ul>");
 
-		CollectionAssert.AreEqual(new[] { "<li>one", "<li>two" }, element.Nodes().Outers());
-		CollectionAssert.AreEqual(new[] { "one" }, element.Nodes().ToList()[0].Element.Nodes().Outers());
+		Assert.AreSequenceEqual(["<li>one", "<li>two"], element.Nodes().Outers());
+		Assert.AreSequenceEqual(["one"], element.Nodes().ToList()[0].Element.Nodes().Outers());
 	}
 
 	[TestMethod]
@@ -223,8 +223,8 @@ public sealed class NodesTests
 			Assert.AreEqual(elements[i].OuterSpan.ToString(), nodes[i].OuterSpan.ToString());
 			Assert.AreEqual(elements[i].InnerSpan.ToString(), nodes[i].InnerSpan.ToString());
 			Assert.AreEqual(elements[i].TextContent, nodes[i].TextContent);
-			CollectionAssert.AreEqual(elements[i].Attributes().Names(), nodes[i].Attributes().Names());
-			CollectionAssert.AreEqual(elements[i].Elements().Names(), nodes[i].Elements().Names());
+			Assert.AreSequenceEqual(elements[i].Attributes().Names(), nodes[i].Attributes().Names());
+			Assert.AreSequenceEqual(elements[i].Elements().Names(), nodes[i].Elements().Names());
 		}
 	}
 
@@ -269,7 +269,7 @@ public sealed class NodesTests
 		var start = html.IndexOf("before", StringComparison.Ordinal);
 		var segment = new StringSegment(html, start, "before<div>inside</div>after".Length);
 
-		CollectionAssert.AreEqual(new[] { "before", "<div>inside</div>", "after" }, LazyHtmlDocument.Parse(segment).Nodes().Outers());
+		Assert.AreSequenceEqual(["before", "<div>inside</div>", "after"], LazyHtmlDocument.Parse(segment).Nodes().Outers());
 	}
 
 	[TestMethod]
@@ -277,7 +277,7 @@ public sealed class NodesTests
 	{
 		var element = TestHelpers.FirstElement("<p>a<b></b></p>");
 
-		CollectionAssert.AreEqual(new[] { "a", "<b></b>" }, element.Nodes().Outers());
-		CollectionAssert.AreEqual(new[] { "a", "<b></b>" }, element.Nodes().Outers());
+		Assert.AreSequenceEqual(["a", "<b></b>"], element.Nodes().Outers());
+		Assert.AreSequenceEqual(["a", "<b></b>"], element.Nodes().Outers());
 	}
 }

@@ -40,15 +40,16 @@ public sealed class AttributeLookupTests
 		Assert.AreEqual("href", name);
 		Assert.AreEqual(0, allocated);
 		Assert.AreSame(name, second.Name);
-		CollectionAssert.AreEqual(new[] { "href", "onclick", "aria-label" }, elements[0].Attributes().Names());
+		Assert.AreSequenceEqual(["href", "onclick", "aria-label"], elements[0].Attributes().Names());
 	}
 
 	[TestMethod]
+	[System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "MSTEST0025:Use 'Assert.Fail' instead of an always-failing assert", Justification = "<Pending>")]
 	public void NonLowercaseOrCustomNameIsCopied()
 	{
 		var element = TestHelpers.FirstElement("<a HREF=\"x\" Href=\"y\" data-x=\"z\"></a>");
 
-		CollectionAssert.AreEqual(new[] { "HREF", "Href", "data-x" }, element.Attributes().Names());
+		Assert.AreSequenceEqual(["HREF", "Href", "data-x"], element.Attributes().Names());
 		Assert.IsTrue(element.TryGetAttribute("data-x", out var attribute));
 		Assert.AreNotSame(attribute.Name, attribute.Name);
 	}
@@ -115,7 +116,7 @@ public sealed class AttributeLookupTests
 	{
 		var element = TestHelpers.FirstElement("<input type=\"text\" name='q' id=search required>");
 
-		CollectionAssert.AreEqual(new[] { "type", "name", "id", "required" }, element.Attributes().Names());
+		Assert.AreSequenceEqual(["type", "name", "id", "required"], element.Attributes().Names());
 	}
 
 	[TestMethod]
@@ -123,7 +124,7 @@ public sealed class AttributeLookupTests
 	{
 		var element = TestHelpers.FirstElement("<img src=\"a.png\" alt=\"\"/>");
 
-		CollectionAssert.AreEqual(new[] { "src", "alt" }, element.Attributes().Names());
+		Assert.AreSequenceEqual(["src", "alt"], element.Attributes().Names());
 	}
 
 	[TestMethod]
@@ -131,7 +132,7 @@ public sealed class AttributeLookupTests
 	{
 		var element = TestHelpers.FirstElement("<div\n\tid=\"a\"\r\n\tclass=\"b\"\n>x</div>");
 
-		CollectionAssert.AreEqual(new[] { "id", "class" }, element.Attributes().Names());
+		Assert.AreSequenceEqual(["id", "class"], element.Attributes().Names());
 	}
 
 	[TestMethod]

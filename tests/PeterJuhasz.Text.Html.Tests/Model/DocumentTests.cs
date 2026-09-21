@@ -29,7 +29,7 @@ public sealed class DocumentTests
 	{
 		var document = HtmlDocument.Parse("<html><body></body></html>");
 
-		CollectionAssert.AreEqual(new[] { "html" }, document.Elements().Names());
+		Assert.AreSequenceEqual(["html"], document.Elements().Names());
 	}
 
 	[TestMethod]
@@ -37,7 +37,7 @@ public sealed class DocumentTests
 	{
 		var document = HtmlDocument.Parse("<a></a><b></b><c></c>");
 
-		CollectionAssert.AreEqual(new[] { "a", "b", "c" }, document.Elements().Names());
+		Assert.AreSequenceEqual(["a", "b", "c"], document.Elements().Names());
 	}
 
 	[TestMethod]
@@ -45,7 +45,7 @@ public sealed class DocumentTests
 	{
 		var document = HtmlDocument.Parse("before <a>x</a> between <b>y</b> after");
 
-		CollectionAssert.AreEqual(new[] { "a", "b" }, document.Elements().Names());
+		Assert.AreSequenceEqual(["a", "b"], document.Elements().Names());
 	}
 
 	[TestMethod]
@@ -53,7 +53,7 @@ public sealed class DocumentTests
 	{
 		var document = HtmlDocument.Parse("<!DOCTYPE html><!-- <a></a> --><?xml version=\"1.0\"?>\r\n<html>\r\n</html>\r\n");
 
-		CollectionAssert.AreEqual(new[] { "html" }, document.Elements().Names());
+		Assert.AreSequenceEqual(["html"], document.Elements().Names());
 	}
 
 	[TestMethod]
@@ -75,8 +75,8 @@ public sealed class DocumentTests
 		var segment = new StringSegment(html, html.IndexOf("<div>", StringComparison.Ordinal), "<div><a>inside</a></div>".Length);
 		var document = HtmlDocument.Parse(segment);
 
-		CollectionAssert.AreEqual(new[] { "div" }, document.Elements().Names());
-		CollectionAssert.AreEqual(new[] { "<a>inside</a>" }, document.Descendants().Where(e => e.Name == "a").Outers());
+		Assert.AreSequenceEqual(["div"], document.Elements().Names());
+		Assert.AreSequenceEqual(["<a>inside</a>"], document.Descendants().Where(e => e.Name == "a").Outers());
 	}
 
 	[TestMethod]
@@ -87,7 +87,7 @@ public sealed class DocumentTests
 
 		Assert.HasCount(1, document.Elements());
 		Assert.AreEqual("ul", document.Elements().First().Name);
-		CollectionAssert.AreEqual(new[] { "1", "2" }, document.Elements().First().Elements().Inners());
+		Assert.AreSequenceEqual(["1", "2"], document.Elements().First().Elements().Inners());
 	}
 
 	[TestMethod]
@@ -103,7 +103,7 @@ public sealed class DocumentTests
 	{
 		var document = HtmlDocument.Parse("<x><i>1</i><y><i>2</i><z><i>3</i></z><i>4</i></y><i>5</i></x><w></w>");
 
-		CollectionAssert.AreEqual(new[] { "x", "i", "y", "i", "z", "i", "i", "i", "w" }, document.Descendants().Names());
+		Assert.AreSequenceEqual(["x", "i", "y", "i", "z", "i", "i", "i", "w"], document.Descendants().Names());
 	}
 
 	[TestMethod]

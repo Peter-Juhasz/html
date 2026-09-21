@@ -10,7 +10,7 @@ public sealed class CommentAndDeclarationTests
 	{
 		var document = LazyHtmlDocument.Parse("<!-- comment --><div></div>");
 
-		CollectionAssert.AreEqual(new[] { "div" }, document.Elements().Names());
+		Assert.AreSequenceEqual(["div"], document.Elements().Names());
 	}
 
 	[TestMethod]
@@ -18,7 +18,7 @@ public sealed class CommentAndDeclarationTests
 	{
 		var document = LazyHtmlDocument.Parse("<!-- <a></a> <b> --><div></div>");
 
-		CollectionAssert.AreEqual(new[] { "div" }, document.Elements().Names());
+		Assert.AreSequenceEqual(["div"], document.Elements().Names());
 	}
 
 	[TestMethod]
@@ -35,7 +35,7 @@ public sealed class CommentAndDeclarationTests
 	{
 		var document = LazyHtmlDocument.Parse("<!-- a > b --><div></div>");
 
-		CollectionAssert.AreEqual(new[] { "div" }, document.Elements().Names());
+		Assert.AreSequenceEqual(["div"], document.Elements().Names());
 	}
 
 	[TestMethod]
@@ -43,7 +43,7 @@ public sealed class CommentAndDeclarationTests
 	{
 		var document = LazyHtmlDocument.Parse("<!-- a -- b - c --><div></div>");
 
-		CollectionAssert.AreEqual(new[] { "div" }, document.Elements().Names());
+		Assert.AreSequenceEqual(["div"], document.Elements().Names());
 	}
 
 	[TestMethod]
@@ -51,7 +51,7 @@ public sealed class CommentAndDeclarationTests
 	{
 		var document = LazyHtmlDocument.Parse("<!--\r\n<a>\r\n-->\r\n<div></div>");
 
-		CollectionAssert.AreEqual(new[] { "div" }, document.Elements().Names());
+		Assert.AreSequenceEqual(["div"], document.Elements().Names());
 	}
 
 	[TestMethod]
@@ -59,7 +59,7 @@ public sealed class CommentAndDeclarationTests
 	{
 		var document = LazyHtmlDocument.Parse("<!DOCTYPE html><html></html>");
 
-		CollectionAssert.AreEqual(new[] { "html" }, document.Elements().Names());
+		Assert.AreSequenceEqual(["html"], document.Elements().Names());
 	}
 
 	[TestMethod]
@@ -67,7 +67,7 @@ public sealed class CommentAndDeclarationTests
 	{
 		var document = LazyHtmlDocument.Parse("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\"><html></html>");
 
-		CollectionAssert.AreEqual(new[] { "html" }, document.Elements().Names());
+		Assert.AreSequenceEqual(["html"], document.Elements().Names());
 	}
 
 	[TestMethod]
@@ -75,7 +75,7 @@ public sealed class CommentAndDeclarationTests
 	{
 		var document = LazyHtmlDocument.Parse("<?xml version=\"1.0\"?><root></root>");
 
-		CollectionAssert.AreEqual(new[] { "root" }, document.Elements().Names());
+		Assert.AreSequenceEqual(["root"], document.Elements().Names());
 	}
 
 	[TestMethod]
@@ -83,7 +83,7 @@ public sealed class CommentAndDeclarationTests
 	{
 		var element = TestHelpers.FirstElement("<div><![CDATA[ <a> ]]><b></b></div>");
 
-		CollectionAssert.AreEqual(new[] { "b" }, element.Elements().Names());
+		Assert.AreSequenceEqual(["b"], element.Elements().Names());
 	}
 
 	[TestMethod]
@@ -91,6 +91,6 @@ public sealed class CommentAndDeclarationTests
 	{
 		var document = LazyHtmlDocument.Parse("<!--[if IE]><p>ie</p><![endif]--><div></div>");
 
-		CollectionAssert.AreEqual(new[] { "div" }, document.Elements().Names());
+		Assert.AreSequenceEqual(["div"], document.Elements().Names());
 	}
 }

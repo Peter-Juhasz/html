@@ -37,7 +37,7 @@ public sealed class LazyEquivalenceTests
 			var lazyAttributes = new List<(string, string?)>();
 			foreach (var attribute in lazyElements[i].Attributes())
 				lazyAttributes.Add((attribute.Name, attribute.Value));
-			CollectionAssert.AreEqual(lazyAttributes, elements[i].Attributes.Select(a => (a.Name, a.Value)).ToList());
+			Assert.AreSequenceEqual(lazyAttributes, elements[i].Attributes.Select(a => (a.Name, a.Value)).ToList());
 		}
 	}
 
@@ -55,7 +55,7 @@ public sealed class LazyEquivalenceTests
 		Assert.IsGreaterThan(30, nodes.Count);
 		Assert.IsTrue(nodes.Any(n => n.StartsWith("text:", StringComparison.Ordinal)));
 		Assert.IsTrue(nodes.Any(n => n.StartsWith("comment:", StringComparison.Ordinal)));
-		CollectionAssert.AreEqual(lazyNodes, nodes);
+		Assert.AreSequenceEqual(lazyNodes, nodes);
 
 		static void CollectLazy(NodesEnumerator source, List<string> nodes)
 		{
@@ -141,7 +141,7 @@ public sealed class LazyEquivalenceTests
 
 			var actual = document.QuerySelectorAll(name: name, id: id, className: className, attributes: required).Outers();
 
-			CollectionAssert.AreEqual(expected, actual, $"Mismatch for name={name}, id={id}, class={className}, attributes={string.Join(",", attributes)}.");
+			Assert.AreSequenceEqual(expected, actual, $"Mismatch for name={name}, id={id}, class={className}, attributes={string.Join(",", attributes)}.");
 			Assert.AreEqual(lazy.TryQuerySelector(out _, name: name, id: id, className: className, attributes: required), document.TryQuerySelector(out _, name: name, id: id, className: className, attributes: required));
 		}
 	}
@@ -161,7 +161,7 @@ public sealed class LazyEquivalenceTests
 			foreach (var element in lazyBody.QuerySelectorAll(name: name))
 				expected.Add(element.OuterSpan.ToString());
 
-			CollectionAssert.AreEqual(expected, body.QuerySelectorAll(name: name).Outers(), $"Mismatch for <{name}>.");
+			Assert.AreSequenceEqual(expected, body.QuerySelectorAll(name: name).Outers(), $"Mismatch for <{name}>.");
 		}
 	}
 }

@@ -17,7 +17,7 @@ public sealed class NodesTests
 		Assert.IsInstanceOfType<HtmlElement>(nodes[1]);
 		Assert.IsInstanceOfType<HtmlComment>(nodes[2]);
 		Assert.IsInstanceOfType<HtmlText>(nodes[3]);
-		CollectionAssert.AreEqual(new[] { "before", "<div>x</div>", "<!-- c -->", "after" }, nodes.Select(n => n.ToString()).ToList());
+		Assert.AreSequenceEqual(["before", "<div>x</div>", "<!-- c -->", "after"], nodes.Select(n => n.ToString()).ToList());
 	}
 
 	[TestMethod]
@@ -39,7 +39,7 @@ public sealed class NodesTests
 
 		var nodes = element.Nodes;
 
-		CollectionAssert.AreEqual(new[] { "a", "<b>b</b>", "c", "<!--d-->", "e" }, nodes.Select(n => n.OuterSpan.ToString()).ToList());
+		Assert.AreSequenceEqual(["a", "<b>b</b>", "c", "<!--d-->", "e"], nodes.Select(n => n.OuterSpan.ToString()).ToList());
 		foreach (var node in nodes)
 		{
 			Assert.AreSame(element, node.Parent);
@@ -93,7 +93,7 @@ public sealed class NodesTests
 
 		Assert.HasCount(3, document.Nodes);
 		Assert.AreEqual("\r\n  ", ((HtmlText)document.Nodes[1]).Text);
-		CollectionAssert.AreEqual(new[] { "a", "b" }, document.Elements().Names());
+		Assert.AreSequenceEqual(["a", "b"], document.Elements().Names());
 	}
 
 	[TestMethod]
@@ -133,8 +133,8 @@ public sealed class NodesTests
 	{
 		var element = TestHelpers.FirstElement("<div>a<b></b><!--c--><i></i>d</div>");
 
-		CollectionAssert.AreEqual(new[] { "b", "i" }, element.Elements().Names());
-		CollectionAssert.AreEqual(element.Nodes.OfType<HtmlElement>().ToList(), element.Elements().ToList());
+		Assert.AreSequenceEqual(["b", "i"], element.Elements().Names());
+		Assert.AreSequenceEqual(element.Nodes.OfType<HtmlElement>().ToList(), element.Elements().ToList());
 	}
 
 	[TestMethod]
@@ -143,8 +143,8 @@ public sealed class NodesTests
 		var document = HtmlDocument.Parse("<a></a>x<b></b>");
 		var elements = document.Elements();
 
-		CollectionAssert.AreEqual(new[] { "a", "b" }, elements.Names());
-		CollectionAssert.AreEqual(new[] { "a", "b" }, elements.Names());
+		Assert.AreSequenceEqual(["a", "b"], elements.Names());
+		Assert.AreSequenceEqual(["a", "b"], elements.Names());
 	}
 
 	[TestMethod]
@@ -152,8 +152,8 @@ public sealed class NodesTests
 	{
 		var document = HtmlDocument.Parse("x<a>y<b>z</b><!--<c>--></a>w");
 
-		CollectionAssert.AreEqual(new[] { "a", "b" }, document.Descendants().Names());
-		CollectionAssert.AreEqual(new[] { "a", "b" }, document.QuerySelectorAll().Names());
+		Assert.AreSequenceEqual(["a", "b"], document.Descendants().Names());
+		Assert.AreSequenceEqual(["a", "b"], document.QuerySelectorAll().Names());
 		Assert.IsNull(document.QuerySelector(name: "c"));
 	}
 

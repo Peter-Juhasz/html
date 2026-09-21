@@ -34,7 +34,7 @@ public sealed class DocumentTests
 	{
 		var document = LazyHtmlDocument.Parse("<html><body></body></html>");
 
-		CollectionAssert.AreEqual(new[] { "html" }, document.Elements().Names());
+		Assert.AreSequenceEqual(["html"], document.Elements().Names());
 	}
 
 	[TestMethod]
@@ -42,7 +42,7 @@ public sealed class DocumentTests
 	{
 		var document = LazyHtmlDocument.Parse("<a></a><b></b><c></c>");
 
-		CollectionAssert.AreEqual(new[] { "a", "b", "c" }, document.Elements().Names());
+		Assert.AreSequenceEqual(["a", "b", "c"], document.Elements().Names());
 	}
 
 	[TestMethod]
@@ -50,7 +50,7 @@ public sealed class DocumentTests
 	{
 		var document = LazyHtmlDocument.Parse("before <a>x</a> between <b>y</b> after");
 
-		CollectionAssert.AreEqual(new[] { "a", "b" }, document.Elements().Names());
+		Assert.AreSequenceEqual(["a", "b"], document.Elements().Names());
 	}
 
 	[TestMethod]
@@ -58,7 +58,7 @@ public sealed class DocumentTests
 	{
 		var document = LazyHtmlDocument.Parse("<!DOCTYPE html>\r\n<html>\r\n</html>\r\n");
 
-		CollectionAssert.AreEqual(new[] { "html" }, document.Elements().Names());
+		Assert.AreSequenceEqual(["html"], document.Elements().Names());
 	}
 
 	[TestMethod]

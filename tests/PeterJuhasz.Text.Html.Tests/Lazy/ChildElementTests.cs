@@ -10,7 +10,7 @@ public sealed class ChildElementTests
 	{
 		var element = TestHelpers.FirstElement("<ul><li><a>1</a></li><li><a>2</a></li></ul>");
 
-		CollectionAssert.AreEqual(new[] { "li", "li" }, element.Elements().Names());
+		Assert.AreSequenceEqual(["li", "li"], element.Elements().Names());
 	}
 
 	[TestMethod]
@@ -18,7 +18,7 @@ public sealed class ChildElementTests
 	{
 		var element = TestHelpers.FirstElement("<div>a <b>b</b> c <i>d</i> e</div>");
 
-		CollectionAssert.AreEqual(new[] { "b", "i" }, element.Elements().Names());
+		Assert.AreSequenceEqual(["b", "i"], element.Elements().Names());
 	}
 
 	[TestMethod]
@@ -42,7 +42,7 @@ public sealed class ChildElementTests
 	{
 		var element = TestHelpers.FirstElement("<div><a></a></div><b></b>");
 
-		CollectionAssert.AreEqual(new[] { "a" }, element.Elements().Names());
+		Assert.AreSequenceEqual(["a"], element.Elements().Names());
 	}
 
 	[TestMethod]
@@ -77,7 +77,7 @@ public sealed class ChildElementTests
 	{
 		var element = TestHelpers.FirstElement("<p>a<br>b<br>c<img src=\"x\"><span>d</span></p>");
 
-		CollectionAssert.AreEqual(new[] { "br", "br", "img", "span" }, element.Elements().Names());
+		Assert.AreSequenceEqual(["br", "br", "img", "span"], element.Elements().Names());
 	}
 
 	[TestMethod]
@@ -85,7 +85,7 @@ public sealed class ChildElementTests
 	{
 		var element = TestHelpers.FirstElement("<div><!-- <a></a> --><b></b></div>");
 
-		CollectionAssert.AreEqual(new[] { "b" }, element.Elements().Names());
+		Assert.AreSequenceEqual(["b"], element.Elements().Names());
 	}
 
 	[TestMethod]

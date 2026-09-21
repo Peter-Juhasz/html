@@ -40,8 +40,8 @@ public sealed class ImplicitlyClosedElementTests
 		var rows = element.Elements().ToList();
 
 		Assert.HasCount(2, rows);
-		CollectionAssert.AreEqual(new[] { "1", "2" }, rows[0].Elements().ToList().ConvertAll(c => c.TextContent));
-		CollectionAssert.AreEqual(new[] { "3", "4" }, rows[1].Elements().ToList().ConvertAll(c => c.TextContent));
+		Assert.AreSequenceEqual(["1", "2"], rows[0].Elements().ToList().ConvertAll(c => c.TextContent));
+		Assert.AreSequenceEqual(["3", "4"], rows[1].Elements().ToList().ConvertAll(c => c.TextContent));
 	}
 
 	[TestMethod]
@@ -49,7 +49,7 @@ public sealed class ImplicitlyClosedElementTests
 	{
 		var element = TestHelpers.FirstElement("<select><option value=\"1\">One<option value=\"2\">Two</select>");
 
-		CollectionAssert.AreEqual(new[] { "One", "Two" }, element.Elements().ToList().ConvertAll(c => c.TextContent));
+		Assert.AreSequenceEqual(["One", "Two"], element.Elements().ToList().ConvertAll(c => c.TextContent));
 	}
 
 	[TestMethod]
@@ -57,7 +57,7 @@ public sealed class ImplicitlyClosedElementTests
 	{
 		var element = TestHelpers.FirstElement("<dl><dt>a<dt>b<dd>c<dd>d</dl>");
 
-		CollectionAssert.AreEqual(new[] { "dt", "dt", "dd", "dd" }, element.Elements().Names());
+		Assert.AreSequenceEqual(["dt", "dt", "dd", "dd"], element.Elements().Names());
 	}
 
 	[TestMethod]
@@ -67,7 +67,7 @@ public sealed class ImplicitlyClosedElementTests
 
 		var elements = document.Elements().ToList();
 
-		CollectionAssert.AreEqual(new[] { "p", "div", "p", "ul", "p", "hr", "p", "h1" }, elements.ConvertAll(e => e.Name));
+		Assert.AreSequenceEqual(["p", "div", "p", "ul", "p", "hr", "p", "h1"], elements.ConvertAll(e => e.Name));
 		Assert.AreEqual("a", elements[0].TextContent);
 		Assert.AreEqual("c", elements[2].TextContent);
 		Assert.AreEqual("e", elements[4].TextContent);
@@ -79,7 +79,7 @@ public sealed class ImplicitlyClosedElementTests
 		var element = TestHelpers.FirstElement("<p>a<span>b</span><b>c</b><img><a href=\"x\">d</a>");
 
 		Assert.AreEqual("abcd", element.TextContent);
-		CollectionAssert.AreEqual(new[] { "span", "b", "img", "a" }, element.Elements().Names());
+		Assert.AreSequenceEqual(["span", "b", "img", "a"], element.Elements().Names());
 	}
 
 	[TestMethod]
@@ -89,7 +89,7 @@ public sealed class ImplicitlyClosedElementTests
 
 		var sections = element.Elements().ToList();
 
-		CollectionAssert.AreEqual(new[] { "thead", "tbody", "tfoot" }, sections.ConvertAll(s => s.Name));
+		Assert.AreSequenceEqual(["thead", "tbody", "tfoot"], sections.ConvertAll(s => s.Name));
 		Assert.HasCount(1, sections[0].Elements().ToList());
 		Assert.HasCount(2, sections[1].Elements().ToList());
 		Assert.HasCount(1, sections[2].Elements().ToList());
@@ -102,9 +102,9 @@ public sealed class ImplicitlyClosedElementTests
 
 		var children = element.Elements().ToList();
 
-		CollectionAssert.AreEqual(new[] { "option", "optgroup", "optgroup" }, children.ConvertAll(c => c.Name));
-		CollectionAssert.AreEqual(new[] { "b", "c" }, children[1].Elements().ToList().ConvertAll(o => o.TextContent));
-		CollectionAssert.AreEqual(new[] { "d" }, children[2].Elements().ToList().ConvertAll(o => o.TextContent));
+		Assert.AreSequenceEqual(["option", "optgroup", "optgroup"], children.ConvertAll(c => c.Name));
+		Assert.AreSequenceEqual(["b", "c"], children[1].Elements().ToList().ConvertAll(o => o.TextContent));
+		Assert.AreSequenceEqual(["d"], children[2].Elements().ToList().ConvertAll(o => o.TextContent));
 	}
 
 	[TestMethod]

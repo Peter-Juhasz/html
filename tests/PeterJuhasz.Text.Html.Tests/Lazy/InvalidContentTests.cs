@@ -125,7 +125,7 @@ public sealed class InvalidContentTests
 	{
 		var document = LazyHtmlDocument.Parse("</p><div></div>");
 
-		CollectionAssert.AreEqual(new[] { "div" }, document.Elements().Names());
+		Assert.AreSequenceEqual(["div"], document.Elements().Names());
 	}
 
 	[TestMethod]
@@ -155,7 +155,7 @@ public sealed class InvalidContentTests
 	{
 		var element = TestHelpers.FirstElement("<div =x =\"y\" id=\"a\"></div>");
 
-		CollectionAssert.AreEqual(new[] { "id" }, element.Attributes().Names());
+		Assert.AreSequenceEqual(["id"], element.Attributes().Names());
 		Assert.IsTrue(element.TryGetAttribute("id", out var id));
 		Assert.AreEqual("a", id.Value);
 	}
@@ -316,6 +316,6 @@ public sealed class InvalidContentTests
 				elementNodes.Add(childElement.Name);
 		}
 
-		CollectionAssert.AreEqual(elements, elementNodes);
+		Assert.AreSequenceEqual(elements, elementNodes);
 	}
 }

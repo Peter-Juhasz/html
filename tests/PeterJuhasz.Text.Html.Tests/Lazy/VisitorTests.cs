@@ -13,7 +13,7 @@ public sealed class VisitorTests
 
 		visitor.VisitDocument(document);
 
-		CollectionAssert.AreEqual(new[] { "\"x\"", "<html>", "@lang", "<body>", "@class", "<!-- c -->", "<p>", "@id", "@hidden", "\"t\"", "<br>", "\"u\"", "<footer>", "\"y\"" }, visitor.Visited);
+		Assert.AreSequenceEqual(["\"x\"", "<html>", "@lang", "<body>", "@class", "<!-- c -->", "<p>", "@id", "@hidden", "\"t\"", "<br>", "\"u\"", "<footer>", "\"y\""], visitor.Visited);
 	}
 
 	[TestMethod]
@@ -33,7 +33,7 @@ public sealed class VisitorTests
 
 		visitor.VisitDocument(document);
 
-		CollectionAssert.AreEqual(new[] { "<a>", "\"x\"", "<d>" }, visitor.Visited);
+		Assert.AreSequenceEqual(["<a>", "\"x\"", "<d>"], visitor.Visited);
 	}
 
 	[TestMethod]
@@ -44,7 +44,7 @@ public sealed class VisitorTests
 
 		visitor.VisitDocument(document);
 
-		CollectionAssert.AreEqual(new[] { LazyHtmlNodeKind.Text, LazyHtmlNodeKind.Element, LazyHtmlNodeKind.Text, LazyHtmlNodeKind.Comment }, visitor.Kinds);
+		Assert.AreSequenceEqual([LazyHtmlNodeKind.Text, LazyHtmlNodeKind.Element, LazyHtmlNodeKind.Text, LazyHtmlNodeKind.Comment], visitor.Kinds);
 	}
 
 	[TestMethod]
@@ -55,7 +55,7 @@ public sealed class VisitorTests
 
 		visitor.VisitDocument(document);
 
-		CollectionAssert.AreEqual(new[] { "<script>", "\"if (a<b) {}\"" }, visitor.Visited);
+		Assert.AreSequenceEqual(["<script>", "\"if (a<b) {}\""], visitor.Visited);
 	}
 
 	private sealed class EmptyVisitor : LazyHtmlVisitor

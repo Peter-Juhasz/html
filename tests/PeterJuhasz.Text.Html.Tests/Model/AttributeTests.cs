@@ -10,7 +10,7 @@ public sealed class AttributeTests
 	{
 		var element = TestHelpers.FirstElement("<a href=\"/\" class=\"x\" id=y data-z></a>");
 
-		CollectionAssert.AreEqual(new[] { "href", "class", "id", "data-z" }, element.Attributes.Names());
+		Assert.AreSequenceEqual(["href", "class", "id", "data-z"], element.Attributes.Names());
 	}
 
 	[TestMethod]
@@ -125,7 +125,7 @@ public sealed class AttributeTests
 	{
 		var element = TestHelpers.FirstElement("<div =x =\"y\" id=\"a\"></div>");
 
-		CollectionAssert.AreEqual(new[] { "id" }, element.Attributes.Names());
+		Assert.AreSequenceEqual(["id"], element.Attributes.Names());
 	}
 
 	[TestMethod]

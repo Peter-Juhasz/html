@@ -78,17 +78,17 @@ public sealed class DocumentTests
 		Assert.AreEqual("html", root.Name);
 		Assert.IsTrue(root.TryGetAttribute("lang", out var lang));
 		Assert.AreEqual("en", lang.Value);
-		CollectionAssert.AreEqual(new[] { "head", "body" }, root.Elements().Names());
+		Assert.AreSequenceEqual(["head", "body"], root.Elements().Names());
 
 		var head = root.Elements().ToList()[0];
-		CollectionAssert.AreEqual(new[] { "meta", "title" }, head.Elements().Names());
+		Assert.AreSequenceEqual(["meta", "title"], head.Elements().Names());
 		Assert.AreEqual("Tom &amp; Jerry", head.Elements().ToList()[1].TextContent);
 
 		var body = root.Elements().ToList()[1];
-		CollectionAssert.AreEqual(new[] { "h1", "p", "ul", "input" }, body.Elements().Names());
+		Assert.AreSequenceEqual(["h1", "p", "ul", "input"], body.Elements().Names());
 
 		var paragraph = body.Elements().ToList()[1];
-		CollectionAssert.AreEqual(new[] { "a", "br" }, paragraph.Elements().Names());
+		Assert.AreSequenceEqual(["a", "br"], paragraph.Elements().Names());
 
 		var anchor = paragraph.Elements().ToList()[0];
 		Assert.IsTrue(anchor.TryGetAttribute("href", out var href));
@@ -130,7 +130,7 @@ public sealed class DocumentTests
 
 		var element = Lazy.TestHelpers.FirstElement(html);
 
-		CollectionAssert.AreEqual(new[] { "title" }, element.Attributes().Names());
+		Assert.AreSequenceEqual(["title"], element.Attributes().Names());
 		Assert.AreEqual("x", element.TextContent);
 	}
 }

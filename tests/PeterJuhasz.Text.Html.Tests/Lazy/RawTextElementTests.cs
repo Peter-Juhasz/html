@@ -76,7 +76,7 @@ public sealed class RawTextElementTests
 	{
 		var document = LazyHtmlDocument.Parse("<script>'<a>'</script><div></div>");
 
-		CollectionAssert.AreEqual(new[] { "script", "div" }, document.Elements().Names());
+		Assert.AreSequenceEqual(["script", "div"], document.Elements().Names());
 	}
 
 	[TestMethod]
@@ -85,7 +85,7 @@ public sealed class RawTextElementTests
 		var element = TestHelpers.FirstElement("<head><title>a </head> b</title><meta></head>tail");
 
 		Assert.AreEqual("<head><title>a </head> b</title><meta></head>", element.OuterSpan.ToString());
-		CollectionAssert.AreEqual(new[] { "title", "meta" }, element.Elements().Names());
+		Assert.AreSequenceEqual(["title", "meta"], element.Elements().Names());
 	}
 
 	[TestMethod]

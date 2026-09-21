@@ -51,7 +51,7 @@ public sealed class VoidElementTests
 	{
 		var document = LazyHtmlDocument.Parse("<meta charset=\"utf-8\"><link rel=\"stylesheet\"><br><hr>");
 
-		CollectionAssert.AreEqual(new[] { "meta", "link", "br", "hr" }, document.Elements().Names());
+		Assert.AreSequenceEqual(["meta", "link", "br", "hr"], document.Elements().Names());
 	}
 
 	[TestMethod]
