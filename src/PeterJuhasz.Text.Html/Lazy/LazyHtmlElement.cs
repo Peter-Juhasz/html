@@ -110,3 +110,37 @@ public readonly struct LazyHtmlElement
 		}
 	}
 }
+
+public static partial class Extensions
+{
+	extension(LazyHtmlElement element)
+	{
+		public LazyHtmlElement? QuerySelector(string? name = null, string? id = null, string? className = null, ReadOnlySpan<KeyValuePair<string, string>> attributes = default)
+		{
+			if (element.TryQuerySelector(out var child, name: name, id: id, className: className, attributes: attributes))
+			{
+				return child;
+			}
+
+			return null;
+		}
+
+		public LazyHtmlElement? GetElementById(string id)
+		{
+			ArgumentException.ThrowIfNullOrEmpty(id);
+			return QuerySelector(element, id: id);
+		}
+
+		public ElementsQueryEnumerator GetElementsByTagName(string tagName)
+		{
+			ArgumentException.ThrowIfNullOrEmpty(tagName);
+			return element.QuerySelectorAll(name: tagName);
+		}
+
+		public ElementsQueryEnumerator GetElementsByClassName(string className)
+		{
+			ArgumentException.ThrowIfNullOrEmpty(className);
+			return element.QuerySelectorAll(className: className);
+		}
+	}
+}

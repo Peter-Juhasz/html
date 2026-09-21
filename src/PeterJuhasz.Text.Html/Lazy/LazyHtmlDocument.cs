@@ -23,3 +23,37 @@ public readonly struct LazyHtmlDocument(StringSegment document)
 		return found;
 	}
 }
+
+public static partial class Extensions
+{
+	extension(LazyHtmlDocument document)
+	{
+		public LazyHtmlElement? QuerySelector(string? name = null, string? id = null, string? className = null, ReadOnlySpan<KeyValuePair<string, string>> attributes = default)
+		{
+			if (document.TryQuerySelector(out var element, name: name, id: id, className: className, attributes: attributes))
+			{
+				return element;
+			}
+
+			return null;
+		}
+
+		public LazyHtmlElement? GetElementById(string id)
+		{
+			ArgumentException.ThrowIfNullOrEmpty(id);
+			return QuerySelector(document, id: id);
+		}
+
+		public ElementsQueryEnumerator GetElementsByTagName(string tagName)
+		{
+			ArgumentException.ThrowIfNullOrEmpty(tagName);
+			return document.QuerySelectorAll(name: tagName);
+		}
+
+		public ElementsQueryEnumerator GetElementsByClassName(string className)
+		{
+			ArgumentException.ThrowIfNullOrEmpty(className);
+			return document.QuerySelectorAll(className: className);
+		}
+	}
+}
