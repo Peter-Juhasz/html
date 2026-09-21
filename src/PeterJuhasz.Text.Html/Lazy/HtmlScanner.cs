@@ -16,7 +16,7 @@ internal enum MarkupKind
 internal static class HtmlScanner
 {
 	// Nesting deeper than this is not descended into, to keep pathological input from exhausting the stack.
-	private const int MaxDepth = 512;
+	internal const int MaxDepth = 512;
 
 	// Finds the next markup at or after `position`; a '<' that does not start markup is treated as text.
 	public static MarkupKind FindMarkup(ReadOnlySpan<char> text, int position, out int index)

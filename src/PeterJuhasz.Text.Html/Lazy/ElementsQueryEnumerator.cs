@@ -20,17 +20,7 @@ public ref struct ElementsQueryEnumerator
 
 	internal ElementsQueryEnumerator(StringSegment document, string? name, string? id, string? className, ReadOnlySpan<KeyValuePair<string, string>> attributes, int start, int end)
 	{
-		if (name is { Length: 0 })
-			throw new ArgumentException("The element name must not be empty.", nameof(name));
-
-		if (id is { Length: 0 })
-			throw new ArgumentException("The id must not be empty.", nameof(id));
-
-		if (className is { Length: 0 } || (className is not null && className.AsSpan().ContainsAny(SyntaxFacts.Whitespace)))
-			throw new ArgumentException("The class name must be a single, non-empty class name.", nameof(className));
-
-		foreach (var attribute in attributes)
-			ArgumentException.ThrowIfNullOrEmpty(attribute.Key, nameof(attributes));
+		ElementQuery.ValidateArguments(name, id, className, attributes);
 
 		_document = document;
 		_name = name;
@@ -91,7 +81,7 @@ public ref struct ElementsQueryEnumerator
 		if (_id is not null && !(TryFindAttribute(elementStart, start, end, "id", out var id) && id.ValueSpan.SequenceEqual(_id)))
 			return false;
 
-		if (_className is not null && !(TryFindAttribute(elementStart, start, end, "class", out var @class) && HasClass(@class.ValueSpan, _className)))
+		if (_className is not null && !(TryFindAttribute(elementStart, start, end, "class", out var @class) && ElementQuery.HasClass(@class.ValueSpan, _className)))
 			return false;
 
 		foreach (var (name, value) in _attributes)
@@ -105,16 +95,4 @@ public ref struct ElementsQueryEnumerator
 
 	private readonly bool TryFindAttribute(int elementStart, int start, int end, ReadOnlySpan<char> name, out LazyHtmlAttribute attribute)
 		=> new AttributesEnumerator(_document, elementStart, start, end).TryFind(name, out attribute);
-
-	// Checks whether the whitespace-separated class list contains the class name.
-	private static bool HasClass(ReadOnlySpan<char> classes, ReadOnlySpan<char> className)
-	{
-		foreach (var range in classes.SplitAny(SyntaxFacts.Whitespace))
-		{
-			if (classes[range].SequenceEqual(className))
-				return true;
-		}
-
-		return false;
-	}
 }
