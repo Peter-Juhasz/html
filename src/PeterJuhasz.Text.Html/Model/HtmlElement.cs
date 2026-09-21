@@ -4,31 +4,30 @@ using System.Text.Html.Lazy;
 
 namespace System.Text.Html.Model;
 
-public sealed class HtmlElement
+public sealed class HtmlElement : HtmlNode
 {
 	// The element in the source text; spans and text are read from it, so the tree keeps the source alive.
 	private readonly LazyHtmlElement _source;
 
-	// Attributes and children reference the element, so they are set by the parser after construction.
+	// Attributes and nodes reference the element, so they are set by the parser after construction.
 	internal HtmlElement(HtmlDocument document, HtmlElement? parent, LazyHtmlElement source)
+		: base(document, parent)
 	{
-		Document = document;
-		Parent = parent;
 		Name = source.Name;
 		_source = source;
 	}
-
-	public HtmlDocument Document { get; }
-
-	public HtmlElement? Parent { get; }
 
 	public string Name { get; }
 
 	public ImmutableArray<HtmlAttribute> Attributes { get; internal set; }
 
-	public ImmutableArray<HtmlElement> Children { get; internal set; }
+	// The elements, text and comments directly inside this element, in document order.
+	public ImmutableArray<HtmlNode> Nodes { get; internal set; }
 
-	public ReadOnlySpan<char> OuterSpan => _source.OuterSpan;
+	// The elements directly inside this element, in document order.
+	public IEnumerable<HtmlElement> Elements() => Elements(Nodes);
+
+	public override ReadOnlySpan<char> OuterSpan => _source.OuterSpan;
 
 	public ReadOnlySpan<char> InnerSpan => _source.InnerSpan;
 
@@ -54,12 +53,12 @@ public sealed class HtmlElement
 	public bool HasAttribute(ReadOnlySpan<char> name) => TryGetAttribute(name, out _);
 
 	// Enumerates the elements at any depth inside this element, in document order.
-	public IEnumerable<HtmlElement> Descendants() => Descendants(Children);
+	public IEnumerable<HtmlElement> Descendants() => Descendants(Nodes);
 
 	// Finds the elements at any depth inside this element that have the given name (any name if null), id, class
 	// and all of the given attributes with the given values, in document order.
 	public IEnumerable<HtmlElement> QuerySelectorAll(string? name = null, string? id = null, string? className = null, ReadOnlySpan<KeyValuePair<string, string>> attributes = default)
-		=> Query(Children, name, id, className, attributes);
+		=> Query(Nodes, name, id, className, attributes);
 
 	// Finds the first element at any depth inside this element that has the given name (any name if null), id, class
 	// and all of the given attributes with the given values.
@@ -69,32 +68,43 @@ public sealed class HtmlElement
 		return element is not null;
 	}
 
-	public override string ToString() => OuterSpan.ToString();
+	// Enumerates the elements among the nodes, in order.
+	internal static IEnumerable<HtmlElement> Elements(ImmutableArray<HtmlNode> nodes)
+	{
+		foreach (var node in nodes)
+		{
+			if (node is HtmlElement element)
+				yield return element;
+		}
+	}
 
-	// Enumerates the elements and all of their descendants in document order; iterative, so the depth of the tree does not matter.
-	internal static IEnumerable<HtmlElement> Descendants(ImmutableArray<HtmlElement> elements)
+	// Enumerates the elements among the nodes and all of their descendants in document order; iterative, so the depth of the tree does not matter.
+	internal static IEnumerable<HtmlElement> Descendants(ImmutableArray<HtmlNode> nodes)
 	{
 		var pending = new Stack<HtmlElement>();
-		PushReversed(pending, elements);
+		PushReversed(pending, nodes);
 		while (pending.TryPop(out var element))
 		{
 			yield return element;
-			PushReversed(pending, element.Children);
+			PushReversed(pending, element.Nodes);
 		}
 
-		static void PushReversed(Stack<HtmlElement> pending, ImmutableArray<HtmlElement> elements)
+		static void PushReversed(Stack<HtmlElement> pending, ImmutableArray<HtmlNode> nodes)
 		{
-			for (var i = elements.Length - 1; i >= 0; i--)
-				pending.Push(elements[i]);
+			for (var i = nodes.Length - 1; i >= 0; i--)
+			{
+				if (nodes[i] is HtmlElement element)
+					pending.Push(element);
+			}
 		}
 	}
 
 	// The arguments are validated eagerly and the attributes are copied, because the enumeration is deferred.
-	internal static IEnumerable<HtmlElement> Query(ImmutableArray<HtmlElement> elements, string? name, string? id, string? className, ReadOnlySpan<KeyValuePair<string, string>> attributes)
+	internal static IEnumerable<HtmlElement> Query(ImmutableArray<HtmlNode> nodes, string? name, string? id, string? className, ReadOnlySpan<KeyValuePair<string, string>> attributes)
 	{
 		ElementQuery.ValidateArguments(name, id, className, attributes);
 		var required = attributes.ToArray();
-		return Descendants(elements).Where(element => element.Matches(name, id, className, required));
+		return Descendants(nodes).Where(element => element.Matches(name, id, className, required));
 	}
 
 	// Same rules as the lazy layer: names are case-insensitive, values are case-sensitive and an attribute without a value matches "".

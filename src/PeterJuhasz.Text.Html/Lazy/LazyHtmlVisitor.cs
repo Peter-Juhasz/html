@@ -4,9 +4,28 @@ public abstract class LazyHtmlVisitor
 {
 	public virtual void VisitDocument(LazyHtmlDocument document)
 	{
-		foreach (var element in document.Elements())
+		foreach (var node in document.Nodes())
 		{
-			VisitElement(element);
+			VisitNode(node);
+		}
+	}
+
+	// Dispatches to the visit method of the node's kind.
+	public virtual void VisitNode(LazyHtmlNode node)
+	{
+		switch (node.Kind)
+		{
+			case LazyHtmlNodeKind.Element:
+				VisitElement(node.Element);
+				break;
+
+			case LazyHtmlNodeKind.Text:
+				VisitText(node.Text);
+				break;
+
+			case LazyHtmlNodeKind.Comment:
+				VisitComment(node.Comment);
+				break;
 		}
 	}
 
@@ -17,13 +36,21 @@ public abstract class LazyHtmlVisitor
 			VisitAttribute(element, attribute);
 		}
 
-		foreach (var child in element.Elements())
+		foreach (var child in element.Nodes())
 		{
-			VisitElement(child);
+			VisitNode(child);
 		}
 	}
 
 	public virtual void VisitAttribute(LazyHtmlElement element, LazyHtmlAttribute attribute)
+	{
+	}
+
+	public virtual void VisitText(LazyHtmlText text)
+	{
+	}
+
+	public virtual void VisitComment(LazyHtmlComment comment)
 	{
 	}
 }

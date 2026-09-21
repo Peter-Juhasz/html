@@ -7,7 +7,7 @@ namespace System.Text.Html.Model;
 
 public sealed class HtmlDocument
 {
-	// Elements reference the document, so they are set by the parser after construction.
+	// Nodes reference the document, so they are set by the parser after construction.
 	internal HtmlDocument()
 	{
 	}
@@ -19,15 +19,19 @@ public sealed class HtmlDocument
 	// Materializes the whole tree of a lazily parsed document.
 	public static HtmlDocument Parse(LazyHtmlDocument html) => HtmlParser.Parse(html);
 
-	public ImmutableArray<HtmlElement> Elements { get; internal set; }
+	// The elements, text and comments at the top level of the document, in document order.
+	public ImmutableArray<HtmlNode> Nodes { get; internal set; }
+
+	// The elements at the top level of the document, in document order.
+	public IEnumerable<HtmlElement> Elements() => HtmlElement.Elements(Nodes);
 
 	// Enumerates the elements at any depth in the document, in document order.
-	public IEnumerable<HtmlElement> Descendants() => HtmlElement.Descendants(Elements);
+	public IEnumerable<HtmlElement> Descendants() => HtmlElement.Descendants(Nodes);
 
 	// Finds the elements at any depth in the document that have the given name (any name if null), id, class
 	// and all of the given attributes with the given values, in document order.
 	public IEnumerable<HtmlElement> QuerySelectorAll(string? name = null, string? id = null, string? className = null, ReadOnlySpan<KeyValuePair<string, string>> attributes = default)
-		=> HtmlElement.Query(Elements, name, id, className, attributes);
+		=> HtmlElement.Query(Nodes, name, id, className, attributes);
 
 	// Finds the first element at any depth in the document that has the given name (any name if null), id, class
 	// and all of the given attributes with the given values.

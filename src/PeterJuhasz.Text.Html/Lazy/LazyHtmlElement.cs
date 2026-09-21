@@ -25,11 +25,31 @@ public readonly struct LazyHtmlElement
 		_end = HtmlScanner.ScanElement(text, startIndex, out _nameLength, out _contentStart, out _contentEnd);
 	}
 
+	// Rebuilds an element from an earlier scan, so a node does not have to scan it again.
+	internal LazyHtmlElement(StringSegment document, int start, int nameLength, int contentStart, int contentEnd, int end)
+	{
+		_document = document;
+		_start = start;
+		_nameLength = nameLength;
+		_contentStart = contentStart;
+		_contentEnd = contentEnd;
+		_end = end;
+	}
+
+	internal StringSegment Document => _document;
+
+	internal int Start => _start;
+
+	internal int NameLength => _nameLength;
+
 	// Index right after the element, used to continue enumeration.
 	internal int End => _end;
 
 	// Index right after the start tag, used to continue enumeration inside the element.
 	internal int ContentStart => _contentStart;
+
+	// Index right after the content, at the end tag or at whatever implicitly closed the element.
+	internal int ContentEnd => _contentEnd;
 
 	public ReadOnlySpan<char> NameSpan => _nameLength == 0 ? default : _document.AsSpan().Slice(_start + 1, _nameLength);
 
@@ -48,6 +68,9 @@ public readonly struct LazyHtmlElement
 	public ElementsEnumerator Elements() => SyntaxFacts.IsRawTextElement(NameSpan)
 		? new(_document, _contentEnd, _contentEnd)
 		: new(_document, _contentStart, _contentEnd);
+
+	// Enumerates the elements, text and comments directly inside this element; raw text content is a single text node.
+	public NodesEnumerator Nodes() => new(_document, _contentStart, _contentEnd, isRawText: SyntaxFacts.IsRawTextElement(NameSpan));
 
 	// Finds the elements at any depth inside this element that have the given name (any name if null), id, class
 	// and all of the given attributes with the given values, in document order.

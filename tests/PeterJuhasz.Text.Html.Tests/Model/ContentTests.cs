@@ -10,8 +10,8 @@ public sealed class ContentTests
 	{
 		var document = HtmlDocument.Parse("before<div class=\"a\">text<b>bold</b></div>after");
 
-		Assert.AreEqual("<div class=\"a\">text<b>bold</b></div>", document.Elements[0].OuterSpan.ToString());
-		Assert.AreEqual("<b>bold</b>", document.Elements[0].Children[0].OuterSpan.ToString());
+		Assert.AreEqual("<div class=\"a\">text<b>bold</b></div>", document.Elements().First().OuterSpan.ToString());
+		Assert.AreEqual("<b>bold</b>", document.Elements().First().Elements().First().OuterSpan.ToString());
 	}
 
 	[TestMethod]
@@ -20,7 +20,7 @@ public sealed class ContentTests
 		var element = TestHelpers.FirstElement("<div class=\"a\">text<b>bold</b></div>");
 
 		Assert.AreEqual("text<b>bold</b>", element.InnerSpan.ToString());
-		Assert.AreEqual("bold", element.Children[0].InnerSpan.ToString());
+		Assert.AreEqual("bold", element.Elements().First().InnerSpan.ToString());
 	}
 
 	[TestMethod]
@@ -47,7 +47,7 @@ public sealed class ContentTests
 		var element = TestHelpers.FirstElement("<div>a<script>if (x < y) { b(); }</script>c</div>");
 
 		Assert.AreEqual("aif (x < y) { b(); }c", element.TextContent);
-		Assert.AreEqual("if (x < y) { b(); }", element.Children[0].TextContent);
+		Assert.AreEqual("if (x < y) { b(); }", element.Elements().First().TextContent);
 	}
 
 	[TestMethod]

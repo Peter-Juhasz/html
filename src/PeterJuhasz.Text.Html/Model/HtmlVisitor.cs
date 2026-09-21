@@ -4,9 +4,28 @@ public abstract class HtmlVisitor
 {
 	public virtual void VisitDocument(HtmlDocument document)
 	{
-		foreach (var element in document.Elements)
+		foreach (var node in document.Nodes)
 		{
-			VisitElement(element);
+			VisitNode(node);
+		}
+	}
+
+	// Dispatches to the visit method of the node's type.
+	public virtual void VisitNode(HtmlNode node)
+	{
+		switch (node)
+		{
+			case HtmlElement element:
+				VisitElement(element);
+				break;
+
+			case HtmlText text:
+				VisitText(text);
+				break;
+
+			case HtmlComment comment:
+				VisitComment(comment);
+				break;
 		}
 	}
 
@@ -17,13 +36,21 @@ public abstract class HtmlVisitor
 			VisitAttribute(attribute);
 		}
 
-		foreach (var child in element.Children)
+		foreach (var child in element.Nodes)
 		{
-			VisitElement(child);
+			VisitNode(child);
 		}
 	}
 
 	public virtual void VisitAttribute(HtmlAttribute attribute)
+	{
+	}
+
+	public virtual void VisitText(HtmlText text)
+	{
+	}
+
+	public virtual void VisitComment(HtmlComment comment)
 	{
 	}
 }

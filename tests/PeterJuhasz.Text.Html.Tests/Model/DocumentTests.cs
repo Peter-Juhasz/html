@@ -12,7 +12,7 @@ public sealed class DocumentTests
 	{
 		var document = HtmlDocument.Parse("");
 
-		Assert.IsEmpty(document.Elements);
+		Assert.IsEmpty(document.Elements());
 		Assert.IsEmpty(document.Descendants());
 	}
 
@@ -21,7 +21,7 @@ public sealed class DocumentTests
 	{
 		var document = HtmlDocument.Parse("just some text");
 
-		Assert.IsEmpty(document.Elements);
+		Assert.IsEmpty(document.Elements());
 	}
 
 	[TestMethod]
@@ -29,7 +29,7 @@ public sealed class DocumentTests
 	{
 		var document = HtmlDocument.Parse("<html><body></body></html>");
 
-		CollectionAssert.AreEqual(new[] { "html" }, document.Elements.Names());
+		CollectionAssert.AreEqual(new[] { "html" }, document.Elements().Names());
 	}
 
 	[TestMethod]
@@ -37,7 +37,7 @@ public sealed class DocumentTests
 	{
 		var document = HtmlDocument.Parse("<a></a><b></b><c></c>");
 
-		CollectionAssert.AreEqual(new[] { "a", "b", "c" }, document.Elements.Names());
+		CollectionAssert.AreEqual(new[] { "a", "b", "c" }, document.Elements().Names());
 	}
 
 	[TestMethod]
@@ -45,7 +45,7 @@ public sealed class DocumentTests
 	{
 		var document = HtmlDocument.Parse("before <a>x</a> between <b>y</b> after");
 
-		CollectionAssert.AreEqual(new[] { "a", "b" }, document.Elements.Names());
+		CollectionAssert.AreEqual(new[] { "a", "b" }, document.Elements().Names());
 	}
 
 	[TestMethod]
@@ -53,7 +53,7 @@ public sealed class DocumentTests
 	{
 		var document = HtmlDocument.Parse("<!DOCTYPE html><!-- <a></a> --><?xml version=\"1.0\"?>\r\n<html>\r\n</html>\r\n");
 
-		CollectionAssert.AreEqual(new[] { "html" }, document.Elements.Names());
+		CollectionAssert.AreEqual(new[] { "html" }, document.Elements().Names());
 	}
 
 	[TestMethod]
@@ -61,7 +61,7 @@ public sealed class DocumentTests
 	{
 		var document = HtmlDocument.Parse("<a></a><b></b>");
 
-		foreach (var element in document.Elements)
+		foreach (var element in document.Elements())
 		{
 			Assert.IsNull(element.Parent);
 			Assert.AreSame(document, element.Document);
@@ -75,7 +75,7 @@ public sealed class DocumentTests
 		var segment = new StringSegment(html, html.IndexOf("<div>", StringComparison.Ordinal), "<div><a>inside</a></div>".Length);
 		var document = HtmlDocument.Parse(segment);
 
-		CollectionAssert.AreEqual(new[] { "div" }, document.Elements.Names());
+		CollectionAssert.AreEqual(new[] { "div" }, document.Elements().Names());
 		CollectionAssert.AreEqual(new[] { "<a>inside</a>" }, document.Descendants().Where(e => e.Name == "a").Outers());
 	}
 
@@ -85,9 +85,9 @@ public sealed class DocumentTests
 		var lazy = LazyHtmlDocument.Parse("<ul><li>1</li><li>2</li></ul>");
 		var document = HtmlDocument.Parse(lazy);
 
-		Assert.HasCount(1, document.Elements);
-		Assert.AreEqual("ul", document.Elements[0].Name);
-		CollectionAssert.AreEqual(new[] { "1", "2" }, document.Elements[0].Children.Inners());
+		Assert.HasCount(1, document.Elements());
+		Assert.AreEqual("ul", document.Elements().First().Name);
+		CollectionAssert.AreEqual(new[] { "1", "2" }, document.Elements().First().Elements().Inners());
 	}
 
 	[TestMethod]
@@ -95,7 +95,7 @@ public sealed class DocumentTests
 	{
 		var document = HtmlDocument.Parse(default(LazyHtmlDocument));
 
-		Assert.IsEmpty(document.Elements);
+		Assert.IsEmpty(document.Elements());
 	}
 
 	[TestMethod]

@@ -11,6 +11,9 @@ public readonly struct LazyHtmlDocument(StringSegment document)
 
 	public ElementsEnumerator Elements() => new(document, 0, document.Length);
 
+	// Enumerates the elements, text and comments at the top level of the document.
+	public NodesEnumerator Nodes() => new(document, 0, document.Length);
+
 	// Finds the elements at any depth in the document that have the given name (any name if null), id, class
 	// and all of the given attributes with the given values, in document order.
 	public ElementsQueryEnumerator QuerySelectorAll(string? name = null, string? id = null, string? className = null, ReadOnlySpan<KeyValuePair<string, string>> attributes = default)

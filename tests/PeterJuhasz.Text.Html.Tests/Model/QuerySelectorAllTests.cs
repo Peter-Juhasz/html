@@ -34,7 +34,7 @@ public sealed class QuerySelectorAllTests
 	public void ElementSearchesOnlyItsOwnContentAndNotItself()
 	{
 		var document = HtmlDocument.Parse("<a>0</a><div><a>1</a><p><a>2</a></p></div><a>3</a>");
-		var div = document.Elements[1];
+		var div = document.Elements().ElementAt(1);
 
 		CollectionAssert.AreEqual(new[] { "<a>1</a>", "<a>2</a>" }, div.QuerySelectorAll(name: "a").Outers());
 		Assert.IsEmpty(div.QuerySelectorAll(name: "div"));
@@ -80,7 +80,7 @@ public sealed class QuerySelectorAllTests
 	public void NoFiltersMatchEveryDescendant()
 	{
 		var document = HtmlDocument.Parse("<html><head><title>T</title></head><body><p>a<br>b</p><script>x</script></body></html>");
-		var body = document.Elements[0].Children[1];
+		var body = document.Elements().First().Elements().ElementAt(1);
 
 		CollectionAssert.AreEqual(new[] { "html", "head", "title", "body", "p", "br", "script" }, document.QuerySelectorAll().Names());
 		CollectionAssert.AreEqual(new[] { "p", "br", "script" }, body.QuerySelectorAll().Names());
@@ -236,7 +236,7 @@ public sealed class QuerySelectorAllTests
 	public void ElementQueriesSearchOnlyItsContent()
 	{
 		var document = HtmlDocument.Parse("<a id=\"x\" class=\"c\">0</a><div><a id=\"x\" class=\"c\">1</a><p><a class=\"y\">2</a></p></div><a id=\"x\" class=\"c\">3</a>");
-		var div = document.Elements[1];
+		var div = document.Elements().ElementAt(1);
 
 		CollectionAssert.AreEqual(new[] { "1" }, div.QuerySelectorAll(id: "x").Inners());
 		CollectionAssert.AreEqual(new[] { "1" }, div.QuerySelectorAll(className: "c").Inners());
@@ -247,7 +247,7 @@ public sealed class QuerySelectorAllTests
 	public void InvalidArgumentsThrowEagerly()
 	{
 		var document = HtmlDocument.Parse("<a></a>");
-		var element = document.Elements[0];
+		var element = document.Elements().First();
 
 		Assert.ThrowsExactly<ArgumentException>(() => document.QuerySelectorAll(name: ""));
 		Assert.ThrowsExactly<ArgumentException>(() => element.QuerySelectorAll(name: ""));

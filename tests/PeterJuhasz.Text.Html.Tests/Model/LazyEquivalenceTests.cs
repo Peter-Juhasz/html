@@ -42,6 +42,67 @@ public sealed class LazyEquivalenceTests
 	}
 
 	[TestMethod]
+	public void NodesAreTheSame()
+	{
+		var lazy = LazyHtmlDocument.Parse(Html);
+		var document = HtmlDocument.Parse(Html);
+
+		var lazyNodes = new List<string>();
+		CollectLazy(lazy.Nodes(), lazyNodes);
+		var nodes = new List<string>();
+		CollectModel(document.Nodes, nodes);
+
+		Assert.IsGreaterThan(30, nodes.Count);
+		Assert.IsTrue(nodes.Any(n => n.StartsWith("text:", StringComparison.Ordinal)));
+		Assert.IsTrue(nodes.Any(n => n.StartsWith("comment:", StringComparison.Ordinal)));
+		CollectionAssert.AreEqual(lazyNodes, nodes);
+
+		static void CollectLazy(NodesEnumerator source, List<string> nodes)
+		{
+			foreach (var node in source)
+			{
+				switch (node.Kind)
+				{
+					case LazyHtmlNodeKind.Element:
+						nodes.Add($"element:{node.Element.Name}:{node.OuterSpan}");
+						CollectLazy(node.Element.Nodes(), nodes);
+						break;
+
+					case LazyHtmlNodeKind.Text:
+						nodes.Add($"text:{node.Text.Text}:{node.OuterSpan}");
+						break;
+
+					case LazyHtmlNodeKind.Comment:
+						nodes.Add($"comment:{node.Comment.Text}:{node.OuterSpan}");
+						break;
+				}
+			}
+		}
+
+		static void CollectModel(IEnumerable<HtmlNode> source, List<string> nodes)
+		{
+			foreach (var node in source)
+			{
+				switch (node)
+				{
+					case HtmlElement element:
+						nodes.Add($"element:{element.Name}:{element.OuterSpan}");
+						CollectModel(element.Nodes, nodes);
+						break;
+
+					case HtmlText text:
+						nodes.Add($"text:{text.Text}:{text.OuterSpan}");
+						break;
+
+					case HtmlComment comment:
+						nodes.Add($"comment:{comment.Text}:{comment.OuterSpan}");
+						break;
+				}
+			}
+		}
+	}
+
+	[TestMethod]
 	public void QueriesGiveTheSameResults()
 	{
 		var lazy = LazyHtmlDocument.Parse(Html);

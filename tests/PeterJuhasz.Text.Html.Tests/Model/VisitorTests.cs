@@ -13,13 +13,24 @@ public sealed class VisitorTests
 
 		visitor.VisitDocument(document);
 
-		CollectionAssert.AreEqual(new[] { "html", "lang", "body", "class", "p", "id", "hidden", "br", "footer" }, visitor.Visited);
+		CollectionAssert.AreEqual(new[] { "html", "lang", "body", "class", "p", "id", "hidden", "\"t\"", "br", "\"u\"", "footer" }, visitor.Visited);
+	}
+
+	[TestMethod]
+	public void VisitsTextAndCommentsWhereTheyAre()
+	{
+		var document = HtmlDocument.Parse("<!DOCTYPE html>x<div><!-- c -->y<script>a<b</script></div>z");
+		var visitor = new RecordingVisitor();
+
+		visitor.VisitDocument(document);
+
+		CollectionAssert.AreEqual(new[] { "\"x\"", "div", "<!-- c -->", "\"y\"", "script", "\"a<b\"", "\"z\"" }, visitor.Visited);
 	}
 
 	[TestMethod]
 	public void DefaultVisitorVisitsEverything()
 	{
-		var document = HtmlDocument.Parse("<a><b><c></c></b></a>");
+		var document = HtmlDocument.Parse("a<b><!--c--><d>e</d></b>");
 		var visitor = new EmptyVisitor();
 
 		visitor.VisitDocument(document);
@@ -28,12 +39,23 @@ public sealed class VisitorTests
 	[TestMethod]
 	public void OverridingVisitElementWithoutCallingBaseStopsDescending()
 	{
-		var document = HtmlDocument.Parse("<a><b><c></c></b></a><d></d>");
+		var document = HtmlDocument.Parse("<a><b><c></c></b></a>x<d></d>");
 		var visitor = new ShallowVisitor();
 
 		visitor.VisitDocument(document);
 
-		CollectionAssert.AreEqual(new[] { "a", "d" }, visitor.Visited);
+		CollectionAssert.AreEqual(new[] { "a", "\"x\"", "d" }, visitor.Visited);
+	}
+
+	[TestMethod]
+	public void OverridingVisitNodeInterceptsEveryNode()
+	{
+		var document = HtmlDocument.Parse("a<b>c<!--d--></b>");
+		var visitor = new TypeRecordingVisitor();
+
+		visitor.VisitDocument(document);
+
+		CollectionAssert.AreEqual(new[] { typeof(HtmlText), typeof(HtmlElement), typeof(HtmlText), typeof(HtmlComment) }, visitor.Types);
 	}
 
 	private sealed class EmptyVisitor : HtmlVisitor
@@ -54,6 +76,10 @@ public sealed class VisitorTests
 		{
 			Visited.Add(attribute.Name);
 		}
+
+		public override void VisitText(HtmlText text) => Visited.Add($"\"{text.Text}\"");
+
+		public override void VisitComment(HtmlComment comment) => Visited.Add(comment.ToString());
 	}
 
 	private sealed class ShallowVisitor : HtmlVisitor
@@ -61,5 +87,18 @@ public sealed class VisitorTests
 		public List<string> Visited { get; } = [];
 
 		public override void VisitElement(HtmlElement element) => Visited.Add(element.Name);
+
+		public override void VisitText(HtmlText text) => Visited.Add($"\"{text.Text}\"");
+	}
+
+	private sealed class TypeRecordingVisitor : HtmlVisitor
+	{
+		public List<Type> Types { get; } = [];
+
+		public override void VisitNode(HtmlNode node)
+		{
+			Types.Add(node.GetType());
+			base.VisitNode(node);
+		}
 	}
 }

@@ -62,6 +62,21 @@ public sealed class AllocationTests
 	}
 
 	[TestMethod]
+	public void NodesEnumerationDoesNotAllocate()
+	{
+		var document = LazyHtmlDocument.Parse(Html);
+		var expected = CountNodes(document.Nodes());
+
+		var before = GC.GetAllocatedBytesForCurrentThread();
+		var count = CountNodes(document.Nodes());
+		var allocated = GC.GetAllocatedBytesForCurrentThread() - before;
+
+		Assert.AreEqual(expected, count);
+		Assert.IsGreaterThan(0, count);
+		Assert.AreEqual(0, allocated);
+	}
+
+	[TestMethod]
 	public void TextContentWithoutMarkupAllocatesOnlyTheResult()
 	{
 		var element = TestHelpers.FirstElement("<p>hello world</p>");
@@ -77,6 +92,32 @@ public sealed class AllocationTests
 
 	private sealed class EmptyVisitor : LazyHtmlVisitor
 	{
+	}
+
+	// Touches every span-based member of every kind of node, descending through the typed views.
+	private static int CountNodes(NodesEnumerator nodes)
+	{
+		var count = 0;
+		foreach (var node in nodes)
+		{
+			count += node.OuterSpan.Length;
+			switch (node.Kind)
+			{
+				case LazyHtmlNodeKind.Element when node.TryGetElement(out var element):
+					count += element.NameSpan.Length + element.InnerSpan.Length + CountNodes(element.Nodes());
+					break;
+
+				case LazyHtmlNodeKind.Text when node.TryGetText(out var text):
+					count += text.TextSpan.Length;
+					break;
+
+				case LazyHtmlNodeKind.Comment when node.TryGetComment(out var comment):
+					count += comment.TextSpan.Length + comment.OuterSpan.Length;
+					break;
+			}
+		}
+
+		return count;
 	}
 
 	// Touches the found elements and searches inside them too, so nested enumerators are measured as well.
@@ -163,6 +204,16 @@ public sealed class AllocationTests
 		public override void VisitAttribute(LazyHtmlElement element, LazyHtmlAttribute attribute)
 		{
 			Count += attribute.NameSpan.Length + attribute.ValueSpan.Length + (attribute.HasValue ? 1 : 0) + attribute.Element.NameSpan.Length;
+		}
+
+		public override void VisitText(LazyHtmlText text)
+		{
+			Count += 1 + text.TextSpan.Length;
+		}
+
+		public override void VisitComment(LazyHtmlComment comment)
+		{
+			Count += 1 + comment.TextSpan.Length + comment.OuterSpan.Length;
 		}
 	}
 }

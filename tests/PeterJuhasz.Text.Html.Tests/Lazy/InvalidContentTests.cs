@@ -264,6 +264,31 @@ public sealed class InvalidContentTests
 			var html = new string(buffer);
 			foreach (var element in LazyHtmlDocument.Parse(html).Elements())
 				Visit(element);
+
+			foreach (var node in LazyHtmlDocument.Parse(html).Nodes())
+				Visit(node);
+		}
+	}
+
+	// The nodes must cover the same elements as Elements(), with text and comments in between.
+	private static void Visit(LazyHtmlNode node)
+	{
+		_ = node.OuterSpan;
+		switch (node.Kind)
+		{
+			case LazyHtmlNodeKind.Element:
+				Visit(node.Element);
+				break;
+
+			case LazyHtmlNodeKind.Text:
+				Assert.IsFalse(node.Text.TextSpan.IsEmpty);
+				Assert.IsTrue(node.OuterSpan.SequenceEqual(node.Text.TextSpan));
+				break;
+
+			case LazyHtmlNodeKind.Comment:
+				Assert.IsTrue(node.OuterSpan.StartsWith("<!--"));
+				Assert.IsLessThanOrEqualTo(node.OuterSpan.Length - 4, node.Comment.TextSpan.Length);
+				break;
 		}
 	}
 
@@ -282,7 +307,15 @@ public sealed class InvalidContentTests
 			_ = attribute.Element;
 		}
 
-		foreach (var child in element.Elements())
+		var elements = element.Elements().Names();
+		var elementNodes = new List<string>();
+		foreach (var child in element.Nodes())
+		{
 			Visit(child);
+			if (child.TryGetElement(out var childElement))
+				elementNodes.Add(childElement.Name);
+		}
+
+		CollectionAssert.AreEqual(elements, elementNodes);
 	}
 }

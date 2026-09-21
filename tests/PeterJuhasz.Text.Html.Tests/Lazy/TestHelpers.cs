@@ -35,6 +35,20 @@ internal static class TestHelpers
 		return list;
 	}
 
+	public static List<LazyHtmlNode> ToList(this NodesEnumerator nodes)
+	{
+		var list = new List<LazyHtmlNode>();
+		foreach (var node in nodes)
+			list.Add(node);
+		return list;
+	}
+
+	public static List<LazyHtmlNodeKind> Kinds(this NodesEnumerator nodes)
+		=> nodes.ToList().ConvertAll(n => n.Kind);
+
+	public static List<string> Outers(this NodesEnumerator nodes)
+		=> nodes.ToList().ConvertAll(n => n.OuterSpan.ToString());
+
 	public static List<string> Names(this ElementsEnumerator elements)
 		=> elements.ToList().ConvertAll(e => e.Name);
 

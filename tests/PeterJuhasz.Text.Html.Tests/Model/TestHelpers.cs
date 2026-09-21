@@ -7,8 +7,8 @@ internal static class TestHelpers
 	public static HtmlElement FirstElement(string html)
 	{
 		var document = HtmlDocument.Parse(html);
-		Assert.IsNotEmpty(document.Elements, "Expected at least one element.");
-		return document.Elements[0];
+		Assert.IsNotEmpty(document.Elements(), "Expected at least one element.");
+		return document.Elements().First();
 	}
 
 	public static List<string> Names(this IEnumerable<HtmlElement> elements)

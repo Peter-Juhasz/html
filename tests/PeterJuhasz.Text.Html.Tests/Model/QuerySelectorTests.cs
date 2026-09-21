@@ -21,7 +21,7 @@ public sealed class QuerySelectorTests
 
 		Assert.IsFalse(document.TryQuerySelector(out var element, name: "a"));
 		Assert.IsNull(element);
-		Assert.IsFalse(document.Elements[0].TryQuerySelector(out var child, name: "div"));
+		Assert.IsFalse(document.Elements().First().TryQuerySelector(out var child, name: "div"));
 		Assert.IsNull(child);
 	}
 
@@ -65,7 +65,7 @@ public sealed class QuerySelectorTests
 	public void QuerySelectorReturnsFirstMatchOrNull()
 	{
 		var document = HtmlDocument.Parse("<div><a class=\"link\">1</a><a class=\"btn\">2</a></div><a class=\"btn\">3</a>");
-		var div = document.Elements[0];
+		var div = document.Elements().First();
 
 		Assert.AreEqual("2", document.QuerySelector(className: "btn")?.InnerSpan.ToString());
 		Assert.AreEqual("2", div.QuerySelector(name: "a", attributes: [new("class", "btn")])?.InnerSpan.ToString());
@@ -77,7 +77,7 @@ public sealed class QuerySelectorTests
 	public void GetElementByIdFindsTheFirstElementWithTheId()
 	{
 		var document = HtmlDocument.Parse("<div id=\"x\"><p id=\"main\">1</p></div><span id=\"main\">2</span>");
-		var div = document.Elements[0];
+		var div = document.Elements().First();
 
 		Assert.AreEqual("<p id=\"main\">1</p>", document.GetElementById("main")?.ToString());
 		Assert.AreEqual("<p id=\"main\">1</p>", div.GetElementById("main")?.ToString());
@@ -89,7 +89,7 @@ public sealed class QuerySelectorTests
 	public void GetElementsByTagNameFindsAllDescendantsWithTheName()
 	{
 		var document = HtmlDocument.Parse("<div><p>1</p><span><p>2</p></span></div><p>3</p>");
-		var div = document.Elements[0];
+		var div = document.Elements().First();
 
 		CollectionAssert.AreEqual(new[] { "1", "2", "3" }, document.GetElementsByTagName("p").Inners());
 		CollectionAssert.AreEqual(new[] { "1", "2" }, div.GetElementsByTagName("P").Inners());
@@ -99,7 +99,7 @@ public sealed class QuerySelectorTests
 	public void GetElementsByClassNameFindsAllDescendantsWithTheClass()
 	{
 		var document = HtmlDocument.Parse("<div class=\"c\"><p class=\"a c\">1</p><span class=\"cc\">2</span></div><p class=\"c\">3</p>");
-		var div = document.Elements[0];
+		var div = document.Elements().First();
 
 		CollectionAssert.AreEqual(new[] { "div", "p", "p" }, document.GetElementsByClassName("c").Names());
 		CollectionAssert.AreEqual(new[] { "p" }, div.GetElementsByClassName("c").Names());
@@ -109,7 +109,7 @@ public sealed class QuerySelectorTests
 	public void ShortcutsRejectNullOrEmptyArguments()
 	{
 		var document = HtmlDocument.Parse("<a></a>");
-		var element = document.Elements[0];
+		var element = document.Elements().First();
 
 		Assert.ThrowsExactly<ArgumentNullException>(() => document.GetElementById(null!));
 		Assert.ThrowsExactly<ArgumentException>(() => document.GetElementById(""));
