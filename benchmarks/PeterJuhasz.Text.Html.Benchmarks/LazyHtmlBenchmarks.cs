@@ -35,10 +35,32 @@ public class LazyHtmlBenchmarks
 	public int QuerySelectorAll()
 	{
 		var count = 0;
-		foreach (var element in document.QuerySelectorAll("a"))
+		foreach (var element in document.QuerySelectorAll(name: "a"))
 			count += element.NameSpan.Length;
 		return count;
 	}
+
+	[Benchmark]
+	public int QuerySelectorAllByNameAndAttribute()
+	{
+		var count = 0;
+		foreach (var element in document.QuerySelectorAll(name: "a", attributes: [new("class", "btn")]))
+			count += element.NameSpan.Length;
+		return count;
+	}
+
+	[Benchmark]
+	public int QuerySelectorAllByAttribute()
+	{
+		var count = 0;
+		foreach (var element in document.QuerySelectorAll(attributes: [new("rel", "author")]))
+			count += element.NameSpan.Length;
+		return count;
+	}
+
+	[Benchmark]
+	public int TryQuerySelectorByNameAndAttribute()
+		=> document.TryQuerySelector(out var element, name: "a", attributes: [new("class", "btn"), new("rel", "author")]) ? element.OuterSpan.Length : 0;
 
 	// The same search done by descending through Elements() recursively, for comparison.
 	[Benchmark]

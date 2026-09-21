@@ -23,6 +23,22 @@ public struct AttributesEnumerator
 
 	public readonly AttributesEnumerator GetEnumerator() => this;
 
+	// Finds the first attribute with the given name, starting from the current position.
+	internal bool TryFind(ReadOnlySpan<char> name, out LazyHtmlAttribute attribute)
+	{
+		while (MoveNext())
+		{
+			if (_current.NameSpan.Equals(name, StringComparison.OrdinalIgnoreCase))
+			{
+				attribute = _current;
+				return true;
+			}
+		}
+
+		attribute = default;
+		return false;
+	}
+
 	public bool MoveNext()
 	{
 		var text = _document.AsSpan().Slice(0, _end);

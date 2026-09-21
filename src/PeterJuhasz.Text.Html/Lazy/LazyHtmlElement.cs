@@ -43,20 +43,7 @@ public readonly struct LazyHtmlElement
 
 	public AttributesEnumerator Attributes() => new(_document, _start + 1 + _nameLength, _contentStart);
 
-	public bool TryGetAttribute(ReadOnlySpan<char> name, out LazyHtmlAttribute attribute)
-	{
-		foreach (var candidate in Attributes())
-		{
-			if (candidate.NameSpan.Equals(name, StringComparison.OrdinalIgnoreCase))
-			{
-				attribute = candidate;
-				return true;
-			}
-		}
-
-		attribute = default;
-		return false;
-	}
+	public bool TryGetAttribute(ReadOnlySpan<char> name, out LazyHtmlAttribute attribute) => Attributes().TryFind(name, out attribute);
 
 	public bool HasAttribute(ReadOnlySpan<char> name) => TryGetAttribute(name, out _);
 
@@ -64,15 +51,18 @@ public readonly struct LazyHtmlElement
 		? new(_document, _contentEnd, _contentEnd)
 		: new(_document, _contentStart, _contentEnd);
 
-	// Finds the elements with the given name at any depth inside this element, in document order.
-	public ElementsByNameEnumerator QuerySelectorAll(string name) => SyntaxFacts.IsRawTextElement(NameSpan)
-		? new(_document, name, _contentEnd, _contentEnd)
-		: new(_document, name, _contentStart, _contentEnd);
+	// Finds the elements at any depth inside this element that have the given name (any name if null)
+	// and all of the given attributes with the given values, in document order.
+	public ElementsQueryEnumerator QuerySelectorAll(string? name = null, ReadOnlySpan<KeyValuePair<string, string>> attributes = default)
+		=> SyntaxFacts.IsRawTextElement(NameSpan)
+			? new(_document, name, attributes, _contentEnd, _contentEnd)
+			: new(_document, name, attributes, _contentStart, _contentEnd);
 
-	// Finds the first element with the given name at any depth inside this element.
-	public bool TryQuerySelector(string name, out LazyHtmlElement element)
+	// Finds the first element at any depth inside this element that has the given name (any name if null)
+	// and all of the given attributes with the given values.
+	public bool TryQuerySelector(out LazyHtmlElement element, string? name = null, ReadOnlySpan<KeyValuePair<string, string>> attributes = default)
 	{
-		var elements = QuerySelectorAll(name);
+		var elements = QuerySelectorAll(name: name, attributes: attributes);
 		var found = elements.MoveNext();
 		element = found ? elements.Current : default;
 		return found;

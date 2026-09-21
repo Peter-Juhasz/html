@@ -11,6 +11,9 @@ public sealed class AllocationTests
 		"<a href=\"/link?a=1&amp;b=2\" target=_blank>link</a><!-- c --><ul><li>1<li>2</ul>" +
 		"<script>if (a<b) {}</script></div></body></html>";
 
+	private static readonly KeyValuePair<string, string>[] LinkQuery = [KeyValuePair.Create("href", "/link?a=1&amp;b=2"), KeyValuePair.Create("target", "_blank")];
+	private static readonly KeyValuePair<string, string>[] ClassQuery = [KeyValuePair.Create("class", "a")];
+
 	[TestMethod]
 	public void VisitorTraversalDoesNotAllocate()
 	{
@@ -80,26 +83,49 @@ public sealed class AllocationTests
 	private static int CountQuerySelector(LazyHtmlDocument document)
 	{
 		var count = 0;
-		foreach (var element in document.QuerySelectorAll("div"))
+		foreach (var element in document.QuerySelectorAll(name: "div"))
 		{
 			count += element.OuterSpan.Length;
-			foreach (var link in element.QuerySelectorAll("a"))
+			foreach (var link in element.QuerySelectorAll(name: "a"))
 			{
 				if (link.TryGetAttribute("href", out var href))
 					count += href.ValueSpan.Length;
 			}
 
-			foreach (var script in element.QuerySelectorAll("script"))
+			foreach (var script in element.QuerySelectorAll(name: "script"))
 				count += script.InnerSpan.Length;
 
-			if (element.TryQuerySelector("b", out var bold))
+			if (element.TryQuerySelector(out var bold, name: "b"))
 				count += bold.InnerSpan.Length;
 		}
 
-		if (document.TryQuerySelector("title", out var title))
+		if (document.TryQuerySelector(out var title, name: "title"))
 			count += title.InnerSpan.Length;
 
-		count += document.TryQuerySelector("missing", out _) ? 0 : 1;
+		count += document.TryQuerySelector(out _, name: "missing") ? 0 : 1;
+
+		foreach (var element in document.QuerySelectorAll(attributes: ClassQuery))
+			count += element.NameSpan.Length;
+
+		foreach (var element in document.QuerySelectorAll())
+			count++;
+
+		if (document.TryQuerySelector(out var anchor, name: "a", attributes: LinkQuery))
+			count += anchor.InnerSpan.Length;
+
+		count += document.TryQuerySelector(out _, attributes: LinkQuery) ? 1 : 0;
+
+		// inline attributes are stack-allocated by the compiler, so these must not allocate either
+		foreach (var element in document.QuerySelectorAll(name: "a", attributes: [new("target", "_blank")]))
+			count += element.NameSpan.Length;
+
+		foreach (var element in document.QuerySelectorAll(attributes: [new("class", "a"), new("id", "x")]))
+			count += element.NameSpan.Length;
+
+		if (document.TryQuerySelector(out var blank, name: "a", attributes: [new("href", "/link?a=1&amp;b=2"), new("target", "_blank")]))
+			count += blank.InnerSpan.Length;
+
+		count += document.TryQuerySelector(out _, name: "meta", attributes: [new("charset", "utf-8")]) ? 1 : 0;
 
 		return count;
 	}
