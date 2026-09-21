@@ -1,0 +1,1 @@
+﻿The source code for extensions (e.g. `PooledArrayBuilder`, `StringBuilderPool`, ...): https://github.com/Peter-Juhasz/extensions
