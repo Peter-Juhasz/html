@@ -1,4 +1,5 @@
 ﻿using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
 
 namespace System.Text.Html.Lazy;
 
@@ -11,6 +12,7 @@ internal enum MarkupKind
 	Other,
 }
 
+[PerformanceCritical]
 internal static class HtmlScanner
 {
 	// Nesting deeper than this is not descended into, to keep pathological input from exhausting the stack.

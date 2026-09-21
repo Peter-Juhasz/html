@@ -1,8 +1,10 @@
 ﻿using Microsoft.Extensions.Primitives;
+using System.Diagnostics.CodeAnalysis;
 
 namespace System.Text.Html.Lazy;
 
 // Enumerates the attributes of a start tag.
+[PerformanceCritical]
 public struct AttributesEnumerator
 {
 	private readonly StringSegment _document;

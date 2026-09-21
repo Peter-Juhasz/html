@@ -1,8 +1,10 @@
 ﻿using Microsoft.Extensions.Primitives;
+using System.Diagnostics.CodeAnalysis;
 
 namespace System.Text.Html.Lazy;
 
 // Enumerates the elements directly inside a range of the document, skipping text and other markup.
+[PerformanceCritical]
 public struct ElementsEnumerator
 {
 	private readonly StringSegment _document;

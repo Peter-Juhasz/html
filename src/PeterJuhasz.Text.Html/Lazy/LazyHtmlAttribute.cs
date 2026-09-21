@@ -1,7 +1,9 @@
 ﻿using Microsoft.Extensions.Primitives;
+using System.Diagnostics.CodeAnalysis;
 
 namespace System.Text.Html.Lazy;
 
+[PerformanceCritical]
 public readonly struct LazyHtmlAttribute
 {
 	private readonly StringSegment _document;

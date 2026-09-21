@@ -1,0 +1,104 @@
+﻿using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.Encodings.Web;
+
+namespace System.Text.Html.Writer;
+
+[PerformanceCritical]
+public class HtmlWriter<TWriter>(TWriter writer, HtmlEncoder htmlEncoder) where TWriter : IBufferWriter<char>
+{
+	private readonly Stack<string> openElements = new();
+	private bool inTag = false;
+
+	public void OpenElement(string name)
+	{
+		writer.Write("<");
+		writer.Write(name);
+		openElements.Push(name);
+		inTag = true;
+	}
+
+	public void WriteAttribute(ReadOnlySpan<char> name, ReadOnlySpan<char> value)
+	{
+		if (!inTag)
+		{
+			throw new InvalidOperationException("Cannot write an attribute outside of an open tag.");
+		}
+
+		writer.Write(" ");
+		writer.Write(name);
+		writer.Write("=\"");
+		WriteEncoded(value);
+		writer.Write("\"");
+	}
+
+	public void WriteAttribute(ReadOnlySpan<char> name)
+	{
+		if (!inTag)
+		{
+			throw new InvalidOperationException("Cannot write an attribute outside of an open tag.");
+		}
+
+		writer.Write(" ");
+		writer.Write(name);
+	}
+
+	public void WriteComment(ReadOnlySpan<char> comment)
+	{
+		if (inTag)
+		{
+			throw new InvalidOperationException("Cannot write a comment inside of an open tag.");
+		}
+
+		writer.Write("<!--");
+		WriteEncoded(comment);
+		writer.Write("-->");
+	}
+
+	public void CloseElement()
+	{
+		if (openElements.Count == 0)
+		{
+			throw new InvalidOperationException("No open elements to close.");
+		}
+
+		var name = openElements.Pop();
+
+		if (SyntaxFacts.IsVoidElement(name.AsSpan()))
+		{
+			writer.Write(" />");
+		}
+		else
+		{
+			writer.Write("</");
+			writer.Write(name);
+			writer.Write(">");
+		}
+
+		inTag = false;
+	}
+
+	public void WriteText(ReadOnlySpan<char> text)
+	{
+		if (inTag)
+		{
+			writer.Write(">");
+			inTag = false;
+		}
+
+		WriteEncoded(text);
+	}
+
+	private void WriteEncoded(ReadOnlySpan<char> text)
+	{
+		var maxEncodedLength = htmlEncoder.MaxOutputCharactersPerInputCharacter * text.Length;
+		var output = writer.GetSpan(maxEncodedLength);
+		htmlEncoder.Encode(text, output, out _, out int written);
+		writer.Advance(written);
+	}
+
+	public void WriteHtml(ReadOnlySpan<char> html)
+	{
+		writer.Write(html);
+	}
+}
