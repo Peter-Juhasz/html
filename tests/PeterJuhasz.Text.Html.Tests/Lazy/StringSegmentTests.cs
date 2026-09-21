@@ -1,7 +1,7 @@
 ﻿using System.Text.Html.Lazy;
 using Microsoft.Extensions.Primitives;
 
-namespace PeterJuhasz.Text.Html.Tests;
+namespace PeterJuhasz.Text.Html.Tests.Lazy;
 
 [TestClass]
 public sealed class StringSegmentTests

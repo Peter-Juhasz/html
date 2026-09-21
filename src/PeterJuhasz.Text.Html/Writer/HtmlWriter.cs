@@ -12,6 +12,7 @@ public class HtmlWriter<TWriter>(TWriter writer, HtmlEncoder htmlEncoder) where 
 
 	public void OpenElement(string name)
 	{
+		CloseStartTag();
 		writer.Write("<");
 		writer.Write(name);
 		openElements.Push(name);
@@ -70,6 +71,7 @@ public class HtmlWriter<TWriter>(TWriter writer, HtmlEncoder htmlEncoder) where 
 		}
 		else
 		{
+			CloseStartTag();
 			writer.Write("</");
 			writer.Write(name);
 			writer.Write(">");
@@ -80,13 +82,17 @@ public class HtmlWriter<TWriter>(TWriter writer, HtmlEncoder htmlEncoder) where 
 
 	public void WriteText(ReadOnlySpan<char> text)
 	{
+		CloseStartTag();
+		WriteEncoded(text);
+	}
+
+	private void CloseStartTag()
+	{
 		if (inTag)
 		{
 			writer.Write(">");
 			inTag = false;
 		}
-
-		WriteEncoded(text);
 	}
 
 	private void WriteEncoded(ReadOnlySpan<char> text)
