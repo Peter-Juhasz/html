@@ -3,29 +3,41 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace System.Text.Html.Lazy;
 
-// Enumerates the elements matching a name and/or attributes at any depth inside a range of the document, in document order.
+// Enumerates the elements matching a name, id, class and/or attributes at any depth inside a range of the document, in document order.
 // A ref struct so the attributes can be kept as a span, letting callers pass them without allocating.
 [PerformanceCritical]
 public ref struct ElementsQueryEnumerator
 {
 	private readonly StringSegment _document;
 	private readonly string? _name;
+	private readonly string? _id;
+	private readonly string? _className;
 	private readonly ReadOnlySpan<KeyValuePair<string, string>> _attributes;
+	private readonly bool _filtersAttributes;
 	private readonly int _end;
 	private int _position;
 	private LazyHtmlElement _current;
 
-	internal ElementsQueryEnumerator(StringSegment document, string? name, ReadOnlySpan<KeyValuePair<string, string>> attributes, int start, int end)
+	internal ElementsQueryEnumerator(StringSegment document, string? name, string? id, string? className, ReadOnlySpan<KeyValuePair<string, string>> attributes, int start, int end)
 	{
 		if (name is { Length: 0 })
 			throw new ArgumentException("The element name must not be empty.", nameof(name));
+
+		if (id is { Length: 0 })
+			throw new ArgumentException("The id must not be empty.", nameof(id));
+
+		if (className is { Length: 0 } || (className is not null && className.AsSpan().ContainsAny(SyntaxFacts.Whitespace)))
+			throw new ArgumentException("The class name must be a single, non-empty class name.", nameof(className));
 
 		foreach (var attribute in attributes)
 			ArgumentException.ThrowIfNullOrEmpty(attribute.Key, nameof(attributes));
 
 		_document = document;
 		_name = name;
+		_id = id;
+		_className = className;
 		_attributes = attributes;
+		_filtersAttributes = id is not null || className is not null || !attributes.IsEmpty;
 		_position = start;
 		_end = end;
 	}
@@ -56,7 +68,7 @@ public ref struct ElementsQueryEnumerator
 
 			// the attributes are only looked at when the name matches, and the element is only scanned when everything matches
 			if ((_name is null || name.Equals(_name, StringComparison.OrdinalIgnoreCase))
-				&& (_attributes.IsEmpty || HasAttributes(index + 1 + nameLength, _position)))
+				&& (!_filtersAttributes || HasAttributes(index + 1 + nameLength, _position)))
 			{
 				_current = new LazyHtmlElement(_document, index);
 
@@ -72,15 +84,36 @@ public ref struct ElementsQueryEnumerator
 		return false;
 	}
 
-	// Checks that the start tag in the given range has every required attribute with the required value.
+	// Checks that the start tag in the given range has the required id, class and every required attribute with the required value.
 	private readonly bool HasAttributes(int start, int end)
 	{
+		if (_id is not null && !(TryFindAttribute(start, end, "id", out var id) && id.ValueSpan.SequenceEqual(_id)))
+			return false;
+
+		if (_className is not null && !(TryFindAttribute(start, end, "class", out var @class) && HasClass(@class.ValueSpan, _className)))
+			return false;
+
 		foreach (var (name, value) in _attributes)
 		{
-			if (!new AttributesEnumerator(_document, start, end).TryFind(name, out var attribute) || !attribute.ValueSpan.SequenceEqual(value))
+			if (!TryFindAttribute(start, end, name, out var attribute) || !attribute.ValueSpan.SequenceEqual(value))
 				return false;
 		}
 
 		return true;
+	}
+
+	private readonly bool TryFindAttribute(int start, int end, ReadOnlySpan<char> name, out LazyHtmlAttribute attribute)
+		=> new AttributesEnumerator(_document, start, end).TryFind(name, out attribute);
+
+	// Checks whether the whitespace-separated class list contains the class name.
+	private static bool HasClass(ReadOnlySpan<char> classes, ReadOnlySpan<char> className)
+	{
+		foreach (var range in classes.SplitAny(SyntaxFacts.Whitespace))
+		{
+			if (classes[range].SequenceEqual(className))
+				return true;
+		}
+
+		return false;
 	}
 }

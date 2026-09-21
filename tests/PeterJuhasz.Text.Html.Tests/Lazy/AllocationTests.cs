@@ -127,6 +127,18 @@ public sealed class AllocationTests
 
 		count += document.TryQuerySelector(out _, name: "meta", attributes: [new("charset", "utf-8")]) ? 1 : 0;
 
+		// id and class matching, including the class list split, must not allocate either
+		foreach (var element in document.QuerySelectorAll(id: "x"))
+			count += element.NameSpan.Length;
+
+		foreach (var element in document.QuerySelectorAll(className: "a"))
+			count += element.NameSpan.Length;
+
+		if (document.TryQuerySelector(out var box, name: "div", id: "x", className: "a"))
+			count += box.OuterSpan.Length;
+
+		count += document.TryQuerySelector(out _, className: "missing") ? 1 : 0;
+
 		return count;
 	}
 

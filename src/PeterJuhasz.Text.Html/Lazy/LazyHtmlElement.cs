@@ -51,18 +51,18 @@ public readonly struct LazyHtmlElement
 		? new(_document, _contentEnd, _contentEnd)
 		: new(_document, _contentStart, _contentEnd);
 
-	// Finds the elements at any depth inside this element that have the given name (any name if null)
+	// Finds the elements at any depth inside this element that have the given name (any name if null), id, class
 	// and all of the given attributes with the given values, in document order.
-	public ElementsQueryEnumerator QuerySelectorAll(string? name = null, ReadOnlySpan<KeyValuePair<string, string>> attributes = default)
+	public ElementsQueryEnumerator QuerySelectorAll(string? name = null, string? id = null, string? className = null, ReadOnlySpan<KeyValuePair<string, string>> attributes = default)
 		=> SyntaxFacts.IsRawTextElement(NameSpan)
-			? new(_document, name, attributes, _contentEnd, _contentEnd)
-			: new(_document, name, attributes, _contentStart, _contentEnd);
+			? new(_document, name, id, className, attributes, _contentEnd, _contentEnd)
+			: new(_document, name, id, className, attributes, _contentStart, _contentEnd);
 
-	// Finds the first element at any depth inside this element that has the given name (any name if null)
+	// Finds the first element at any depth inside this element that has the given name (any name if null), id, class
 	// and all of the given attributes with the given values.
-	public bool TryQuerySelector(out LazyHtmlElement element, string? name = null, ReadOnlySpan<KeyValuePair<string, string>> attributes = default)
+	public bool TryQuerySelector(out LazyHtmlElement element, string? name = null, string? id = null, string? className = null, ReadOnlySpan<KeyValuePair<string, string>> attributes = default)
 	{
-		var elements = QuerySelectorAll(name: name, attributes: attributes);
+		var elements = QuerySelectorAll(name: name, id: id, className: className, attributes: attributes);
 		var found = elements.MoveNext();
 		element = found ? elements.Current : default;
 		return found;

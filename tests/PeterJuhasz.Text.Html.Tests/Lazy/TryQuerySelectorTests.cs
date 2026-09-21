@@ -163,6 +163,49 @@ public sealed class TryQuerySelectorTests
 	}
 
 	[TestMethod]
+	public void MatchesById()
+	{
+		var document = new LazyHtmlDocument("<div id=\"x\"><p id=\"main\">1</p></div><span id=\"main\">2</span>");
+
+		Assert.IsTrue(document.TryQuerySelector(out var element, id: "main"));
+		Assert.AreEqual("<p id=\"main\">1</p>", element.OuterSpan.ToString());
+		Assert.IsFalse(document.TryQuerySelector(out _, id: "Main"));
+		Assert.IsFalse(document.TryQuerySelector(out _, id: "missing"));
+	}
+
+	[TestMethod]
+	public void MatchesByClassName()
+	{
+		var document = new LazyHtmlDocument("<a class=\"button\">1</a><div><a class=\"big btn\">2</a></div><a class=\"btn\">3</a>");
+
+		Assert.IsTrue(document.TryQuerySelector(out var element, className: "btn"));
+		Assert.AreEqual("<a class=\"big btn\">2</a>", element.OuterSpan.ToString());
+		Assert.IsFalse(document.TryQuerySelector(out _, className: "Btn"));
+		Assert.IsFalse(document.TryQuerySelector(out _, className: "bt"));
+	}
+
+	[TestMethod]
+	public void MatchesByNameIdClassNameAndAttributes()
+	{
+		var document = new LazyHtmlDocument("<a id=\"x\" class=\"btn\">1</a><span id=\"x\" class=\"btn\" href=\"/\">2</span><a id=\"x\" class=\"a btn\" href=\"/\">3</a>");
+
+		Assert.IsTrue(document.TryQuerySelector(out var element, name: "a", id: "x", className: "btn", attributes: [new("href", "/")]));
+		Assert.AreEqual("3", element.InnerSpan.ToString());
+	}
+
+	[TestMethod]
+	public void ElementMatchesByIdAndClassNameOnlyInsideItsContent()
+	{
+		var document = new LazyHtmlDocument("<a id=\"x\" class=\"c\">0</a><div><a id=\"x\" class=\"c\">1</a></div>");
+		var div = document.Elements().ToList()[1];
+
+		Assert.IsTrue(div.TryQuerySelector(out var byId, id: "x"));
+		Assert.AreEqual("1", byId.InnerSpan.ToString());
+		Assert.IsTrue(div.TryQuerySelector(out var byClass, className: "c"));
+		Assert.AreEqual("1", byClass.InnerSpan.ToString());
+	}
+
+	[TestMethod]
 	public void EmptyNameThrows()
 	{
 		var document = new LazyHtmlDocument("<a></a>");
@@ -171,6 +214,17 @@ public sealed class TryQuerySelectorTests
 		Assert.ThrowsExactly<ArgumentException>(() => document.TryQuerySelector(out _, name: ""));
 		Assert.ThrowsExactly<ArgumentException>(() => element.TryQuerySelector(out _, name: ""));
 		Assert.ThrowsExactly<ArgumentException>(() => document.TryQuerySelector(out _, name: "", attributes: default));
+	}
+
+	[TestMethod]
+	public void EmptyIdOrInvalidClassNameThrows()
+	{
+		var document = new LazyHtmlDocument("<a></a>");
+		var element = TestHelpers.FirstElement("<a></a>");
+
+		Assert.ThrowsExactly<ArgumentException>(() => document.TryQuerySelector(out _, id: ""));
+		Assert.ThrowsExactly<ArgumentException>(() => element.TryQuerySelector(out _, className: ""));
+		Assert.ThrowsExactly<ArgumentException>(() => element.TryQuerySelector(out _, className: "a b"));
 	}
 
 	private static KeyValuePair<string, string>[] Attributes(params (string Name, string Value)[] attributes)
