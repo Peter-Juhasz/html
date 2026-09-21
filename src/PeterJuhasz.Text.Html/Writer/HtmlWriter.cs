@@ -108,3 +108,14 @@ public class HtmlWriter<TWriter>(TWriter writer, HtmlEncoder htmlEncoder) where 
 		writer.Write(html);
 	}
 }
+
+public static partial class Extensions
+{
+	extension<TWriter>(HtmlWriter<TWriter> writer) where TWriter : IBufferWriter<char>
+	{
+		public void WriteHtml5Doctype()
+		{
+			writer.WriteHtml("<!DOCTYPE html>");
+		}
+	}
+}
