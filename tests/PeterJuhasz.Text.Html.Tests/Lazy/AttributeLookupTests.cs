@@ -26,6 +26,34 @@ public sealed class AttributeLookupTests
 	}
 
 	[TestMethod]
+	public void StandardNameIsSharedAndDoesNotAllocate()
+	{
+		var elements = LazyHtmlDocument.Parse("<a href=\"x\" onclick=\"f()\" aria-label=\"l\"></a><b href=\"y\"></b>").Elements().ToList();
+		Assert.IsTrue(elements[0].TryGetAttribute("href", out var first));
+		Assert.IsTrue(elements[1].TryGetAttribute("href", out var second));
+		_ = first.Name;
+
+		var before = GC.GetAllocatedBytesForCurrentThread();
+		var name = first.Name;
+		var allocated = GC.GetAllocatedBytesForCurrentThread() - before;
+
+		Assert.AreEqual("href", name);
+		Assert.AreEqual(0, allocated);
+		Assert.AreSame(name, second.Name);
+		CollectionAssert.AreEqual(new[] { "href", "onclick", "aria-label" }, elements[0].Attributes().Names());
+	}
+
+	[TestMethod]
+	public void NonLowercaseOrCustomNameIsCopied()
+	{
+		var element = TestHelpers.FirstElement("<a HREF=\"x\" Href=\"y\" data-x=\"z\"></a>");
+
+		CollectionAssert.AreEqual(new[] { "HREF", "Href", "data-x" }, element.Attributes().Names());
+		Assert.IsTrue(element.TryGetAttribute("data-x", out var attribute));
+		Assert.AreNotSame(attribute.Name, attribute.Name);
+	}
+
+	[TestMethod]
 	public void ReturnsFalseForMissingAttribute()
 	{
 		var element = TestHelpers.FirstElement("<a href=\"x\">link</a>");

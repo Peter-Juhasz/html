@@ -23,6 +23,32 @@ public sealed class ElementNameTests
 	}
 
 	[TestMethod]
+	public void StandardNameIsSharedAndDoesNotAllocate()
+	{
+		var elements = LazyHtmlDocument.Parse("<div></div><div></div>").Elements().ToList();
+		_ = elements[0].Name;
+
+		var before = GC.GetAllocatedBytesForCurrentThread();
+		var name = elements[0].Name;
+		var allocated = GC.GetAllocatedBytesForCurrentThread() - before;
+
+		Assert.AreEqual("div", name);
+		Assert.AreEqual(0, allocated);
+		Assert.AreSame(name, elements[1].Name);
+	}
+
+	[TestMethod]
+	public void NonLowercaseOrCustomNameIsCopied()
+	{
+		var elements = LazyHtmlDocument.Parse("<DIV></DIV><Div></Div><my-element></my-element>").Elements().ToList();
+
+		Assert.AreEqual("DIV", elements[0].Name);
+		Assert.AreEqual("Div", elements[1].Name);
+		Assert.AreEqual("my-element", elements[2].Name);
+		Assert.AreNotSame(elements[0].Name, elements[0].Name);
+	}
+
+	[TestMethod]
 	public void NameEndsAtWhitespace()
 	{
 		var element = TestHelpers.FirstElement("<div class=\"a\"></div>");

@@ -37,7 +37,7 @@ public readonly struct LazyHtmlAttribute
 
 	public ReadOnlySpan<char> NameSpan => _document.AsSpan().Slice(_start, _nameLength);
 
-	public string Name => NameSpan.ToString();
+	public string Name => SyntaxFacts.ToName(NameSpan);
 
 	public bool HasValue => _hasValue;
 

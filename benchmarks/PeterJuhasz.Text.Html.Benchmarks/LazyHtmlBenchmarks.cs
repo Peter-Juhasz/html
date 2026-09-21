@@ -10,6 +10,7 @@ public class LazyHtmlBenchmarks
 	private LazyHtmlDocument document;
 	private LazyHtmlElement body;
 	private readonly CountingVisitor visitor = new();
+	private readonly NameVisitor nameVisitor = new();
 	private readonly FilteringVisitor filteringVisitor = new("a");
 
 	[GlobalSetup]
@@ -26,6 +27,15 @@ public class LazyHtmlBenchmarks
 		visitor.Count = 0;
 		visitor.VisitDocument(document);
 		return visitor.Count;
+	}
+
+	// Materializes the name of every element and attribute as a string.
+	[Benchmark]
+	public int Names()
+	{
+		nameVisitor.Count = 0;
+		nameVisitor.VisitDocument(document);
+		return nameVisitor.Count;
 	}
 
 	[Benchmark]
@@ -116,6 +126,22 @@ public class LazyHtmlBenchmarks
 		public override void VisitAttribute(LazyHtmlElement element, LazyHtmlAttribute attribute)
 		{
 			Count += attribute.NameSpan.Length + attribute.ValueSpan.Length;
+		}
+	}
+
+	private sealed class NameVisitor : LazyHtmlVisitor
+	{
+		public int Count;
+
+		public override void VisitElement(LazyHtmlElement element)
+		{
+			Count += element.Name.Length;
+			base.VisitElement(element);
+		}
+
+		public override void VisitAttribute(LazyHtmlElement element, LazyHtmlAttribute attribute)
+		{
+			Count += attribute.Name.Length;
 		}
 	}
 

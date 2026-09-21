@@ -53,7 +53,7 @@ public readonly struct LazyHtmlElement
 
 	public ReadOnlySpan<char> NameSpan => _nameLength == 0 ? default : _document.AsSpan().Slice(_start + 1, _nameLength);
 
-	public string Name => NameSpan.ToString();
+	public string Name => SyntaxFacts.ToName(NameSpan);
 
 	public ReadOnlySpan<char> OuterSpan => _document.AsSpan().Slice(_start, _end - _start);
 
