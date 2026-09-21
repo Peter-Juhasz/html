@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.Primitives;
 
-namespace PeterJuhasz.Text.Html.Lazy;
+namespace System.Text.Html.Lazy;
 
-public struct LazyHtmlDocument(StringSegment document)
+public readonly struct LazyHtmlDocument(StringSegment document)
 {
-	public ElementsEnumerator Elements() => throw new NotImplementedException();
+	public ElementsEnumerator Elements() => new(document, 0, document.Length);
 }

@@ -1,0 +1,85 @@
+﻿using System.Text.Html.Lazy;
+
+namespace PeterJuhasz.Text.Html.Tests;
+
+[TestClass]
+public sealed class DocumentTests
+{
+	[TestMethod]
+	public void EmptyDocumentHasNoElements()
+	{
+		var document = new LazyHtmlDocument("");
+
+		Assert.IsFalse(document.Elements().MoveNext());
+	}
+
+	[TestMethod]
+	public void DefaultDocumentHasNoElements()
+	{
+		var document = default(LazyHtmlDocument);
+
+		Assert.IsFalse(document.Elements().MoveNext());
+	}
+
+	[TestMethod]
+	public void TextOnlyDocumentHasNoElements()
+	{
+		var document = new LazyHtmlDocument("just some text");
+
+		Assert.IsFalse(document.Elements().MoveNext());
+	}
+
+	[TestMethod]
+	public void EnumeratesSingleRootElement()
+	{
+		var document = new LazyHtmlDocument("<html><body></body></html>");
+
+		CollectionAssert.AreEqual(new[] { "html" }, document.Elements().Names());
+	}
+
+	[TestMethod]
+	public void EnumeratesMultipleRootElements()
+	{
+		var document = new LazyHtmlDocument("<a></a><b></b><c></c>");
+
+		CollectionAssert.AreEqual(new[] { "a", "b", "c" }, document.Elements().Names());
+	}
+
+	[TestMethod]
+	public void SkipsTextBetweenRootElements()
+	{
+		var document = new LazyHtmlDocument("before <a>x</a> between <b>y</b> after");
+
+		CollectionAssert.AreEqual(new[] { "a", "b" }, document.Elements().Names());
+	}
+
+	[TestMethod]
+	public void SkipsDoctypeAndWhitespace()
+	{
+		var document = new LazyHtmlDocument("<!DOCTYPE html>\r\n<html>\r\n</html>\r\n");
+
+		CollectionAssert.AreEqual(new[] { "html" }, document.Elements().Names());
+	}
+
+	[TestMethod]
+	public void EnumeratorCanBeIteratedWithForeach()
+	{
+		var document = new LazyHtmlDocument("<a></a><b></b>");
+		var count = 0;
+
+		foreach (var element in document.Elements())
+			count++;
+
+		Assert.AreEqual(2, count);
+	}
+
+	[TestMethod]
+	public void EnumeratorReturnsFalseRepeatedlyAfterEnd()
+	{
+		var elements = new LazyHtmlDocument("<a></a>").Elements();
+
+		Assert.IsTrue(elements.MoveNext());
+		Assert.IsFalse(elements.MoveNext());
+		Assert.IsFalse(elements.MoveNext());
+	}
+}

@@ -1,13 +1,43 @@
 ﻿using Microsoft.Extensions.Primitives;
 
-namespace PeterJuhasz.Text.Html.Lazy;
+namespace System.Text.Html.Lazy;
 
-public struct LazyHtmlAttribute(StringSegment document, int startIndex)
+public readonly struct LazyHtmlAttribute
 {
-	public ReadOnlySpan<char> NameSpan { get; }
-	public string Name { get; }
-	public ReadOnlySpan<char> ValueSpan { get; }
-	public bool TryGetValue(out ReadOnlySpan<char> valueSpan);
-	public bool HasValue { get; }
-	public string? Value { get; }
+	private readonly StringSegment _document;
+	private readonly int _start;
+	private readonly int _nameLength;
+	private readonly bool _hasValue;
+	private readonly int _valueStart;
+	private readonly int _valueLength;
+
+	public LazyHtmlAttribute(StringSegment document, int startIndex)
+	{
+		ArgumentOutOfRangeException.ThrowIfNegative(startIndex);
+		ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(startIndex, document.Length);
+
+		_document = document;
+		_start = startIndex;
+		End = HtmlScanner.ScanAttribute(document.AsSpan(), startIndex, out _nameLength, out _hasValue, out _valueStart, out _valueLength);
+	}
+
+	// Index right after the attribute, used to continue enumeration.
+	internal int End { get; }
+
+	public ReadOnlySpan<char> NameSpan => _document.AsSpan().Slice(_start, _nameLength);
+
+	public string Name => NameSpan.ToString();
+
+	public bool HasValue => _hasValue;
+
+	// Value as written, without quotes; empty when the attribute has no value.
+	public ReadOnlySpan<char> ValueSpan => _hasValue ? _document.AsSpan().Slice(_valueStart, _valueLength) : default;
+
+	public bool TryGetValue(out ReadOnlySpan<char> valueSpan)
+	{
+		valueSpan = ValueSpan;
+		return _hasValue;
+	}
+
+	public string? Value => _hasValue ? ValueSpan.ToString() : null;
 }
