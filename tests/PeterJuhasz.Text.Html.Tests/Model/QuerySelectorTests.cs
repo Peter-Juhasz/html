@@ -155,7 +155,8 @@ public sealed class QuerySelectorTests
 	[TestMethod]
 	[DataRow("<input NAME='q'><input name='Q'><q></q><input id='q'><input name='q-extra'><input name=' q'><input name='q q'>", "q", "<input NAME='q'>")]
 	[DataRow("<input name='x' name='q'><input name='q' name='x'>", "q", "<input name='q' name='x'>")]
-	[DataRow("<input name='a&amp;b'><input name='a&b'>", "a&amp;b", "<input name='a&amp;b'>")]
+	[DataRow("<input name='a&amp;b'><input name='a&amp;amp;b'><input name='a-b'>", "a&b", "<input name='a&amp;b'>")]
+	[DataRow("<input name='a&amp;amp;b'><input name='a&amp;b'>", "a&amp;b", "<input name='a&amp;amp;b'>")]
 	[DataRow("<input name='first last'><input name='first'><input name='last'>", "first last", "<input name='first last'>")]
 	[DataRow("<script><input name='q'></script><!--<input name='q'>--><input name='q'>", "q", "<input name='q'>")]
 	public void GetElementsByNameUsesAttributeMatchingRules(string html, string name, string expected)

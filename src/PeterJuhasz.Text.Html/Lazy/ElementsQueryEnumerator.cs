@@ -73,7 +73,7 @@ public ref struct ElementsQueryEnumerator
 	}
 
 	// Checks that the start tag at `elementStart`, whose attributes are in [start, end), has all the required classes
-	// and every required attribute with the required value.
+	// and every required attribute with the required (decoded) value.
 	private readonly bool HasAttributes(int elementStart, int start, int end)
 	{
 		if (_classNames.Count > 0 && !(TryFindAttribute(elementStart, start, end, "class", out var @class) && ElementQuery.HasClasses(@class.ValueSpan, _classNames)))
@@ -81,7 +81,7 @@ public ref struct ElementsQueryEnumerator
 
 		foreach (var (name, value) in _attributes)
 		{
-			if (!TryFindAttribute(elementStart, start, end, name, out var attribute) || !attribute.ValueSpan.SequenceEqual(value))
+			if (!TryFindAttribute(elementStart, start, end, name, out var attribute) || !ElementQuery.HasAttributeValue(attribute.ValueSpan, value))
 				return false;
 		}
 

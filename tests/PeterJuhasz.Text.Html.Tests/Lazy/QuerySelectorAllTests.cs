@@ -374,12 +374,25 @@ public sealed class QuerySelectorAllTests
 	}
 
 	[TestMethod]
-	public void AttributeValueIsMatchedAsWritten()
+	public void AttributeValueIsMatchedDecoded()
 	{
-		var document = LazyHtmlDocument.Parse("<a href=\"/x?a=1&amp;b=2\">1</a><a href=\"/x?a=1&b=2\">2</a>");
+		var document = LazyHtmlDocument.Parse("<a href=\"/x?a=1&amp;b=2\">1</a><a href=\"/x?a=1&b=2\">2</a><a href=\"/x?a=1&#38;b=2\">3</a><a href=\"/x?a=1&amp;amp;b=2\">4</a>");
 
-		Assert.AreSequenceEqual(["<a href=\"/x?a=1&amp;b=2\">1</a>"], document.QuerySelectorAll(element: "a", attributes: Attributes(("href", "/x?a=1&amp;b=2"))).Outers());
-		Assert.AreSequenceEqual(["<a href=\"/x?a=1&b=2\">2</a>"], document.QuerySelectorAll(element: "a", attributes: Attributes(("href", "/x?a=1&b=2"))).Outers());
+		Assert.AreSequenceEqual(["1", "2", "3"], document.QuerySelectorAll(element: "a", attributes: Attributes(("href", "/x?a=1&b=2"))).Inners());
+		Assert.AreSequenceEqual(["4"], document.QuerySelectorAll(element: "a", attributes: Attributes(("href", "/x?a=1&amp;b=2"))).Inners());
+	}
+
+	[TestMethod]
+	public void DecodedAttributeValueIsComparedAsAWhole()
+	{
+		var document = LazyHtmlDocument.Parse("<a title=\"&lt;b&gt;\">1</a><a title=\"a&nbsp;b\">2</a><a title=\"&#x1F600;\">3</a><a title=\"&#x1F600;&#x1F600;\">4</a>");
+
+		Assert.AreSequenceEqual(["1"], document.QuerySelectorAll(attributes: Attributes(("title", "<b>"))).Inners());
+		Assert.AreSequenceEqual(["2"], document.QuerySelectorAll(attributes: Attributes(("title", "a\u00a0b"))).Inners());
+		Assert.AreSequenceEqual(["3"], document.QuerySelectorAll(attributes: Attributes(("title", "\U0001F600"))).Inners());
+		Assert.IsFalse(document.QuerySelectorAll(attributes: Attributes(("title", "&lt;b&gt;"))).MoveNext());
+		Assert.IsFalse(document.QuerySelectorAll(attributes: Attributes(("title", "a b"))).MoveNext());
+		Assert.IsFalse(document.QuerySelectorAll(attributes: Attributes(("title", "<b"))).MoveNext());
 	}
 
 	[TestMethod]
@@ -611,7 +624,7 @@ public sealed class QuerySelectorAllTests
 		var html =
 			"<!DOCTYPE html><html lang=\"en\"><head><title>T</title><meta charset=\"utf-8\"><link rel=\"icon\" href=\"/i\"></head>" +
 			"<body class=\"page\"><div class=\"a\" id='x'><p class=\"a\">text<br class=\"a\">more <b>bold</b></p>" +
-			"<a href=\"/1\" rel=\"author\" class=\"btn\">1</a><a href=\"/2\" class=\"btn\">2</a><a href=\"/3\" rel=\"author\">3</a>" +
+			"<a href=\"/1\" rel=\"author\" class=\"btn\">1</a><a href=\"/2\" class=\"btn\">2</a><a href=\"/3\" rel=\"author\">3</a><a href=\"/4?a=1&amp;b=2\" class=\"b&#116;n\">4</a>" +
 			"<!-- <a class=\"btn\"> --><ul><li class=a>1<li>2</ul><script>if (a<b) {}</script><div><p><a class=\"btn\" rel=\"author\">nested</a></p></div></div></body></html>";
 		var document = LazyHtmlDocument.Parse(html);
 
@@ -624,6 +637,8 @@ public sealed class QuerySelectorAllTests
 			(null, new[] { ("rel", "author"), ("class", "btn") }),
 			("p", new[] { ("class", "a") }),
 			(null, new[] { ("href", "/2") }),
+			(null, new[] { ("href", "/4?a=1&b=2") }),
+			(null, new[] { ("href", "/4?a=1&amp;b=2") }),
 			("li", new[] { ("class", "a") }),
 			(null, new[] { ("class", "zzz") }),
 			("zzz", new[] { ("class", "a") }),
@@ -736,7 +751,7 @@ public sealed class QuerySelectorAllTests
 		{
 			foreach (var (attributeName, value) in attributes)
 			{
-				if (!element.TryGetAttribute(attributeName, out var attribute) || !attribute.ValueSpan.SequenceEqual(value))
+				if (!element.TryGetAttribute(attributeName, out var attribute) || (attribute.Value ?? "") != value)
 					return false;
 			}
 

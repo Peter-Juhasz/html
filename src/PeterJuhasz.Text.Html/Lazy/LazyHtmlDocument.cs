@@ -50,7 +50,7 @@ public static partial class Extensions
 			return QuerySelector(document, attributes: [new("id", id)]);
 		}
 
-		// Matches the raw name attribute value case-sensitively, not the tag name.
+		// Matches the decoded name attribute value case-sensitively, not the tag name.
 		public ElementsQueryEnumerator GetElementsByName(string name)
 		{
 			ArgumentException.ThrowIfNullOrEmpty(name);

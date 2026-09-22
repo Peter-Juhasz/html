@@ -17,6 +17,8 @@ internal static class SyntaxFacts
 
 	public const char SingleQuote = '\'';
 
+	public const char CharacterReferenceStart = '&';
+
 	public const string EndTagStart = "</";
 
 	public const string CommentStart = "<!--";
@@ -62,6 +64,14 @@ internal static class SyntaxFacts
 	// Returns the shared string for a known name, otherwise a copy of the span.
 	public static string ToName(ReadOnlySpan<char> name)
 		=> KnownNames.TryGetValue(name, out var known) ? known : name.ToString();
+
+	// Whether text as written in the document may contain character references, so that reading its value needs decoding.
+	public static bool NeedsDecoding(ReadOnlySpan<char> text) => text.Contains(CharacterReferenceStart);
+
+	// The value of text as written in the document: the text itself when it has no character references, otherwise a decoded copy.
+	// Decoding never makes the text longer, so the result is at most as long as the input.
+	public static ReadOnlySpan<char> DecodeIfNeeded(ReadOnlySpan<char> text)
+		=> NeedsDecoding(text) ? HtmlDecoder.Decode(text) : text;
 
 	private static FrozenDictionary<string, FrozenSet<string>.AlternateLookup<ReadOnlySpan<char>>>.AlternateLookup<ReadOnlySpan<char>> CreateImplicitClosers()
 	{

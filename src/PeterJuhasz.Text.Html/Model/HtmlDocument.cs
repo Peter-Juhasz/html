@@ -59,7 +59,7 @@ public static partial class Extensions
 
 		public HtmlElement? GetElementById(string id) => document.TryGetElementById(id, out var result) ? result : null;
 
-		// Matches the raw name attribute value case-sensitively, not the tag name.
+		// Matches the decoded name attribute value case-sensitively, not the tag name.
 		public IEnumerable<HtmlElement> GetElementsByName(string name)
 		{
 			ArgumentException.ThrowIfNullOrEmpty(name);

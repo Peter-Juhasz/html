@@ -163,12 +163,25 @@ public sealed class QuerySelectorAllTests
 	}
 
 	[TestMethod]
-	public void AttributeValueIsMatchedAsWritten()
+	public void AttributeValueIsMatchedDecoded()
 	{
-		var document = HtmlDocument.Parse("<a href=\"/x?a=1&amp;b=2\">1</a><a href=\"/x?a=1&b=2\">2</a>");
+		var document = HtmlDocument.Parse("<a href=\"/x?a=1&amp;b=2\">1</a><a href=\"/x?a=1&b=2\">2</a><a href=\"/x?a=1&#38;b=2\">3</a><a href=\"/x?a=1&amp;amp;b=2\">4</a>");
 
-		Assert.AreSequenceEqual(["1"], document.QuerySelectorAll(element: "a", attributes: Attributes(("href", "/x?a=1&amp;b=2"))).Inners());
-		Assert.AreSequenceEqual(["2"], document.QuerySelectorAll(element: "a", attributes: Attributes(("href", "/x?a=1&b=2"))).Inners());
+		Assert.AreSequenceEqual(["1", "2", "3"], document.QuerySelectorAll(element: "a", attributes: Attributes(("href", "/x?a=1&b=2"))).Inners());
+		Assert.AreSequenceEqual(["4"], document.QuerySelectorAll(element: "a", attributes: Attributes(("href", "/x?a=1&amp;b=2"))).Inners());
+	}
+
+	[TestMethod]
+	public void DecodedAttributeValueIsComparedAsAWhole()
+	{
+		var document = HtmlDocument.Parse("<a title=\"&lt;b&gt;\">1</a><a title=\"a&nbsp;b\">2</a><a title=\"&#x1F600;\">3</a><a title=\"&#x1F600;&#x1F600;\">4</a>");
+
+		Assert.AreSequenceEqual(["1"], document.QuerySelectorAll(attributes: Attributes(("title", "<b>"))).Inners());
+		Assert.AreSequenceEqual(["2"], document.QuerySelectorAll(attributes: Attributes(("title", "a\u00a0b"))).Inners());
+		Assert.AreSequenceEqual(["3"], document.QuerySelectorAll(attributes: Attributes(("title", "\U0001F600"))).Inners());
+		Assert.IsEmpty(document.QuerySelectorAll(attributes: Attributes(("title", "&lt;b&gt;"))));
+		Assert.IsEmpty(document.QuerySelectorAll(attributes: Attributes(("title", "a b"))));
+		Assert.IsEmpty(document.QuerySelectorAll(attributes: Attributes(("title", "<b"))));
 	}
 
 	[TestMethod]

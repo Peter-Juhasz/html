@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Primitives;
+using Microsoft.Extensions.Primitives;
 
 namespace PeterJuhasz.Text.Html.Tests.Lazy;
 
@@ -6,12 +6,12 @@ namespace PeterJuhasz.Text.Html.Tests.Lazy;
 public sealed class AllocationTests
 {
 	private const string Html =
-		"<!DOCTYPE html><html><head><title>T</title><meta charset=\"utf-8\"></head>" +
+		"<!DOCTYPE html><html><head><title>T &amp; U</title><meta charset=\"utf-8\"></head>" +
 		"<body><div class=\"a\" id='x'><p>text<br>more <b class=\"b a\">bold</b></p>" +
-		"<a href=\"/link?a=1&amp;b=2\" target=_blank>link</a><!-- c --><ul><li>1<li>2</ul>" +
+		"<a href=\"/link?a=1\" target=_blank>link</a><!-- c --><ul><li>1<li>2</ul>" +
 		"<script>if (a<b) {}</script></div></body></html>";
 
-	private static readonly KeyValuePair<string, string>[] LinkQuery = [KeyValuePair.Create("href", "/link?a=1&amp;b=2"), KeyValuePair.Create("target", "_blank")];
+	private static readonly KeyValuePair<string, string>[] LinkQuery = [KeyValuePair.Create("href", "/link?a=1"), KeyValuePair.Create("target", "_blank")];
 	private static readonly KeyValuePair<string, string>[] ClassQuery = [KeyValuePair.Create("class", "a")];
 	// Multiple class names are backed by an array, which is allocated once here rather than per query.
 	private static readonly StringValues TwoClasses = new(["a", "b"]);
@@ -116,6 +116,33 @@ public sealed class AllocationTests
 		Assert.IsLessThanOrEqualTo(64, allocated, $"Allocated {allocated} bytes.");
 	}
 
+	// Values with character references have to be decoded to be compared, which allocates the decoded copy;
+	// values without any are compared in place, and a value that is too long to match is not decoded at all.
+	[TestMethod]
+	public void QueryOnAttributeWithCharacterReferencesAllocatesOnlyTheDecodedValue()
+	{
+		var document = LazyHtmlDocument.Parse("<a href=\"/link?a=1&amp;b=2\" class=\"x&amp;y\" title=\"plain\">link</a>");
+		KeyValuePair<string, string>[] href = [new("href", "/link?a=1&b=2")];
+		KeyValuePair<string, string>[] longer = [new("href", "/link?a=1&amp;amp;b=2")];
+		KeyValuePair<string, string>[] plain = [new("title", "plain")];
+		_ = document.TryQuerySelector(out _, attributes: href);
+		_ = document.TryQuerySelector(out _, classNames: "x&y");
+
+		var before = GC.GetAllocatedBytesForCurrentThread();
+		var found = document.TryQuerySelector(out _, attributes: href) && document.TryQuerySelector(out _, classNames: "x&y");
+		var allocated = GC.GetAllocatedBytesForCurrentThread() - before;
+
+		before = GC.GetAllocatedBytesForCurrentThread();
+		var skipped = !document.TryQuerySelector(out _, attributes: longer) && document.TryQuerySelector(out _, attributes: plain);
+		var allocatedWithoutDecoding = GC.GetAllocatedBytesForCurrentThread() - before;
+
+		Assert.IsTrue(found);
+		Assert.IsGreaterThan(0, allocated);
+		Assert.IsLessThanOrEqualTo(256, allocated, $"Allocated {allocated} bytes.");
+		Assert.IsTrue(skipped);
+		Assert.AreEqual(0, allocatedWithoutDecoding);
+	}
+
 	private sealed class EmptyVisitor : LazyHtmlVisitor
 	{
 	}
@@ -189,7 +216,7 @@ public sealed class AllocationTests
 		foreach (var element in document.QuerySelectorAll(attributes: [new("class", "a"), new("id", "x")]))
 			count += element.NameSpan.Length;
 
-		if (document.TryQuerySelector(out var blank, element: "a", attributes: [new("href", "/link?a=1&amp;b=2"), new("target", "_blank")]))
+		if (document.TryQuerySelector(out var blank, element: "a", attributes: [new("href", "/link?a=1"), new("target", "_blank")]))
 			count += blank.InnerSpan.Length;
 
 		count += document.TryQuerySelector(out _, element: "meta", attributes: [new("charset", "utf-8")]) ? 1 : 0;

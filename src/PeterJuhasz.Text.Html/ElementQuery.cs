@@ -47,25 +47,29 @@ internal static class ElementQuery
 	}
 
 	// Checks whether the class attribute value, as written in the document, contains every one of the class names.
+	// The value is decoded before splitting, because e.g. "&#32;" is a separator and "&amp;" is not.
 	public static bool HasClasses(ReadOnlySpan<char> classes, StringValues classNames)
 	{
 		if (classNames.Count == 0)
 			return true;
 
-		return HasDecodedClasses(Decode(classes), classNames);
+		return HasDecodedClasses(SyntaxFacts.DecodeIfNeeded(classes), classNames);
 	}
 
 	// Checks whether the class attribute value, as written in the document, contains the class name.
 	public static bool HasClass(ReadOnlySpan<char> classes, ReadOnlySpan<char> className)
 	{
-		return HasDecodedClass(Decode(classes), className);
+		return HasDecodedClass(SyntaxFacts.DecodeIfNeeded(classes), className);
 	}
 
-	// Character references must be decoded before splitting, because e.g. "&#32;" is a separator and "&amp;" is not.
-	// Most class lists have none, so the value is only decoded when it may contain one.
-	private static ReadOnlySpan<char> Decode(ReadOnlySpan<char> classes)
+	// Checks whether the attribute value, as written in the document, equals the value.
+	public static bool HasAttributeValue(ReadOnlySpan<char> attributeValue, ReadOnlySpan<char> value)
 	{
-		return classes.Contains('&') ? HtmlDecoder.HtmlDecode(classes) : classes;
+		// decoding never makes the text longer, so a longer value cannot match and the decoding is skipped
+		if (value.Length > attributeValue.Length)
+			return false;
+
+		return SyntaxFacts.DecodeIfNeeded(attributeValue).SequenceEqual(value);
 	}
 
 	// Splits the whitespace-separated class list only once, ticking off each class name as its token is found.
