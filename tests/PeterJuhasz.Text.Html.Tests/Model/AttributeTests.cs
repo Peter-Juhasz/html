@@ -62,11 +62,13 @@ public sealed class AttributeTests
 	}
 
 	[TestMethod]
-	public void ValueIsNotDecoded()
+	public void ValueIsDecodedButValueSpanIsAsWritten()
 	{
-		var element = TestHelpers.FirstElement("<a title=\"a &amp; b\"></a>");
+		var element = TestHelpers.FirstElement("<a title=\"a &amp; b &lt; &#x63; &quot;d&quot;\"></a>");
 
-		Assert.AreEqual("a &amp; b", element.GetAttribute("title")?.Value);
+		Assert.IsTrue(element.TryGetAttribute("title", out var attribute));
+		Assert.AreEqual("a & b < c \"d\"", attribute.Value);
+		Assert.AreEqual("a &amp; b &lt; &#x63; &quot;d&quot;", attribute.ValueSpan.ToString());
 	}
 
 	[TestMethod]

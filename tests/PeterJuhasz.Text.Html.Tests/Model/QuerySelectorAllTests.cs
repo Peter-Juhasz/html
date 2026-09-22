@@ -151,6 +151,15 @@ public sealed class QuerySelectorAllTests
 	}
 
 	[TestMethod]
+	public void AttributeValueIsMatchedAsWritten()
+	{
+		var document = HtmlDocument.Parse("<a href=\"/x?a=1&amp;b=2\">1</a><a href=\"/x?a=1&b=2\">2</a>");
+
+		Assert.AreSequenceEqual(["1"], document.QuerySelectorAll(name: "a", attributes: Attributes(("href", "/x?a=1&amp;b=2"))).Inners());
+		Assert.AreSequenceEqual(["2"], document.QuerySelectorAll(name: "a", attributes: Attributes(("href", "/x?a=1&b=2"))).Inners());
+	}
+
+	[TestMethod]
 	public void BareAttributeMatchesEmptyValue()
 	{
 		var document = HtmlDocument.Parse("<input disabled><input disabled=\"\"><input disabled=\"disabled\"><input>");

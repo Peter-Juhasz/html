@@ -16,6 +16,7 @@ public sealed class HtmlText : HtmlNode
 	// Text as written (character references are not decoded).
 	public ReadOnlySpan<char> TextSpan => _source.TextSpan;
 
+	// Text with character references decoded, except for the content of script and style, which is taken literally.
 	public string Text => _source.Text;
 
 	public override ReadOnlySpan<char> OuterSpan => _source.TextSpan;

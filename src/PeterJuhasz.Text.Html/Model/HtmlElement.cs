@@ -31,7 +31,8 @@ public sealed class HtmlElement : HtmlNode
 
 	public ReadOnlySpan<char> InnerSpan => _source.InnerSpan;
 
-	// Concatenated text of the content with all markup removed, as written (character references are not decoded).
+	// Concatenated text of the content with all markup removed and character references decoded,
+	// except for the content of script and style, which is taken literally.
 	public string TextContent => _source.TextContent;
 
 	// Finds the first attribute with the given name, compared case-insensitively.
@@ -107,21 +108,22 @@ public sealed class HtmlElement : HtmlNode
 		return Descendants(nodes).Where(element => element.Matches(name, id, className, required));
 	}
 
-	// Same rules as the lazy layer: names are case-insensitive, values are case-sensitive and an attribute without a value matches "".
+	// Same rules as the lazy layer: names are case-insensitive, values are compared as written (case-sensitively, without decoding)
+	// and an attribute without a value matches "".
 	private bool Matches(string? name, string? id, string? className, KeyValuePair<string, string>[] attributes)
 	{
 		if (name is not null && !string.Equals(Name, name, StringComparison.OrdinalIgnoreCase))
 			return false;
 
-		if (id is not null && !(TryGetAttribute("id", out var idAttribute) && idAttribute.Value.AsSpan().SequenceEqual(id)))
+		if (id is not null && !(TryGetAttribute("id", out var idAttribute) && idAttribute.ValueSpan.SequenceEqual(id)))
 			return false;
 
-		if (className is not null && !(TryGetAttribute("class", out var classAttribute) && ElementQuery.HasClass(classAttribute.Value, className)))
+		if (className is not null && !(TryGetAttribute("class", out var classAttribute) && ElementQuery.HasClass(classAttribute.ValueSpan, className)))
 			return false;
 
 		foreach (var (attributeName, value) in attributes)
 		{
-			if (!TryGetAttribute(attributeName, out var attribute) || !attribute.Value.AsSpan().SequenceEqual(value))
+			if (!TryGetAttribute(attributeName, out var attribute) || !attribute.ValueSpan.SequenceEqual(value))
 				return false;
 		}
 

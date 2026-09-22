@@ -23,6 +23,7 @@ public readonly struct LazyHtmlNode
 	private readonly int _contentStart;
 	private readonly int _contentEnd;
 	private readonly int _end;
+	private readonly bool _isLiteral;
 
 	internal LazyHtmlNode(LazyHtmlElement element)
 	{
@@ -36,7 +37,8 @@ public readonly struct LazyHtmlNode
 	}
 
 	// A text or comment node spanning the [start, end) range of the document.
-	internal LazyHtmlNode(LazyHtmlNodeKind kind, StringSegment document, int start, int end)
+	// `isLiteral` is true for the text of script and style, which is taken literally; it is not used for comments.
+	internal LazyHtmlNode(LazyHtmlNodeKind kind, StringSegment document, int start, int end, bool isLiteral = false)
 	{
 		Debug.Assert(kind is LazyHtmlNodeKind.Text or LazyHtmlNodeKind.Comment);
 
@@ -44,6 +46,7 @@ public readonly struct LazyHtmlNode
 		_kind = kind;
 		_start = start;
 		_end = end;
+		_isLiteral = isLiteral;
 	}
 
 	// Index right after the node, used to continue enumeration.
@@ -80,7 +83,7 @@ public readonly struct LazyHtmlNode
 			return false;
 		}
 
-		text = new(_document, _start, _end);
+		text = new(_document, _start, _end, _isLiteral);
 		return true;
 	}
 

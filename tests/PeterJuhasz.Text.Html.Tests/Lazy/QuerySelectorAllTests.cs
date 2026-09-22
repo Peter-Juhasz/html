@@ -361,6 +361,15 @@ public sealed class QuerySelectorAllTests
 	}
 
 	[TestMethod]
+	public void AttributeValueIsMatchedAsWritten()
+	{
+		var document = LazyHtmlDocument.Parse("<a href=\"/x?a=1&amp;b=2\">1</a><a href=\"/x?a=1&b=2\">2</a>");
+
+		Assert.AreSequenceEqual(["<a href=\"/x?a=1&amp;b=2\">1</a>"], document.QuerySelectorAll(name: "a", attributes: Attributes(("href", "/x?a=1&amp;b=2"))).Outers());
+		Assert.AreSequenceEqual(["<a href=\"/x?a=1&b=2\">2</a>"], document.QuerySelectorAll(name: "a", attributes: Attributes(("href", "/x?a=1&b=2"))).Outers());
+	}
+
+	[TestMethod]
 	public void AttributesOfDescendantsDoNotMatchTheAncestor()
 	{
 		var document = LazyHtmlDocument.Parse("<div><p class=\"x\">1</p></div>");

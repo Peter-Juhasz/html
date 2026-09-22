@@ -80,7 +80,7 @@ public sealed class DocumentTests
 
 		var head = root.Elements().ToList()[0];
 		Assert.AreSequenceEqual(["meta", "title"], head.Elements().Names());
-		Assert.AreEqual("Tom &amp; Jerry", head.Elements().ToList()[1].TextContent);
+		Assert.AreEqual("Tom & Jerry", head.Elements().ToList()[1].TextContent);
 
 		var body = root.Elements().ToList()[1];
 		Assert.AreSequenceEqual(["h1", "p", "ul", "input"], body.Elements().Names());
@@ -90,7 +90,8 @@ public sealed class DocumentTests
 
 		var anchor = paragraph.Elements().ToList()[0];
 		Assert.IsTrue(anchor.TryGetAttribute("href", out var href));
-		Assert.AreEqual("/x?a=1&amp;b=2", href.Value);
+		Assert.AreEqual("/x?a=1&b=2", href.Value);
+		Assert.AreEqual("/x?a=1&amp;b=2", href.ValueSpan.ToString());
 		Assert.AreEqual("link", anchor.TextContent);
 
 		var input = body.Elements().ToList()[3];
@@ -112,7 +113,8 @@ public sealed class DocumentTests
 
 		Assert.AreEqual("div", element.Name);
 		Assert.IsFalse(element.Elements().MoveNext());
-		Assert.AreEqual("&lt;span&gt;x&lt;/span&gt;", element.TextContent);
+		Assert.AreEqual("&lt;span&gt;x&lt;/span&gt;", element.InnerSpan.ToString());
+		Assert.AreEqual("<span>x</span>", element.TextContent);
 	}
 
 	[TestMethod]

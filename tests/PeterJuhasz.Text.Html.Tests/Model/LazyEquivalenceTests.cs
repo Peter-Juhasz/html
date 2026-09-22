@@ -5,10 +5,10 @@
 public sealed class LazyEquivalenceTests
 {
 	private const string Html =
-		"<!DOCTYPE html><html lang=\"en\"><head><title>T</title><meta charset=\"utf-8\"><link rel=\"icon\" href=\"/i\"></head>" +
-		"<body class=\"page\"><div class=\"a\" id='x'><p class=\"a\">text<br class=\"a\">more <b>bold</b></p>" +
-		"<a href=\"/1\" rel=\"author\" class=\"btn\">1</a><a href=\"/2\" class=\"btn\">2</a><a href=\"/3\" rel=\"author\">3</a>" +
-		"<!-- <a class=\"btn\"> --><ul><li class=a>1<li>2</ul><script>if (a<b) {}</script><table><tr><td>1<td>2<tr><td>3</table>" +
+		"<!DOCTYPE html><html lang=\"en\"><head><title>T &amp; U</title><meta charset=\"utf-8\"><link rel=\"icon\" href=\"/i\"></head>" +
+		"<body class=\"page\"><div class=\"a\" id='x'><p class=\"a\">text &amp; <br class=\"a\">more &lt;<b>bold</b></p>" +
+		"<a href=\"/1?a=1&amp;b=2\" rel=\"author\" class=\"btn\">1</a><a href=\"/2\" class=\"btn\">2</a><a href=\"/3\" rel=\"author\">3</a>" +
+		"<!-- <a class=\"btn\"> --><ul><li class=a>1<li>2</ul><script>if (a<b &amp;&amp; c) {}</script><table><tr><td>1<td>2<tr><td>3</table>" +
 		"<select><option value=1>a<optgroup label=g><option>b</select><div><p><a class=\"btn\" rel=\"author\" disabled>nested</a></p></div></div></body></html>";
 
 	[TestMethod]
@@ -125,6 +125,8 @@ public sealed class LazyEquivalenceTests
 			("a", null, null, [("class", "btn"), ("rel", "author")]),
 			("a", null, "btn", [("rel", "author"), ("disabled", "")]),
 			(null, null, null, [("href", "/2")]),
+			(null, null, null, [("href", "/1?a=1&amp;b=2")]),
+			(null, null, null, [("href", "/1?a=1&b=2")]),
 			(null, null, null, [("class", "zzz")]),
 			("zzz", null, null, [("class", "a")]),
 		};

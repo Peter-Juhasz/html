@@ -39,6 +39,10 @@ internal static class SyntaxFacts
 	private static readonly FrozenSet<string>.AlternateLookup<ReadOnlySpan<char>> RawTextElements = CreateNameSet(
 		"script", "style", "textarea", "title");
 
+	// Raw text elements whose character references are still decoded; the content of the other raw text elements is taken literally.
+	private static readonly FrozenSet<string>.AlternateLookup<ReadOnlySpan<char>> EscapableRawTextElements = CreateNameSet(
+		"textarea", "title");
+
 	// Start tags that implicitly close an open element, keyed by the open element's name.
 	private static readonly FrozenDictionary<string, FrozenSet<string>.AlternateLookup<ReadOnlySpan<char>>>.AlternateLookup<ReadOnlySpan<char>> ImplicitClosers = CreateImplicitClosers();
 
@@ -49,6 +53,8 @@ internal static class SyntaxFacts
 	public static bool IsVoidElement(ReadOnlySpan<char> name) => VoidElements.Contains(name);
 
 	public static bool IsRawTextElement(ReadOnlySpan<char> name) => RawTextElements.Contains(name);
+
+	public static bool IsEscapableRawTextElement(ReadOnlySpan<char> name) => EscapableRawTextElements.Contains(name);
 
 	public static bool TryGetImplicitClosers(ReadOnlySpan<char> name, out FrozenSet<string>.AlternateLookup<ReadOnlySpan<char>> closers)
 		=> ImplicitClosers.TryGetValue(name, out closers);

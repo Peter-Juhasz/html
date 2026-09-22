@@ -92,11 +92,41 @@ public sealed class TextContentTests
 	}
 
 	[TestMethod]
-	public void DoesNotDecodeCharacterReferences()
+	public void DecodesCharacterReferences()
 	{
 		var element = TestHelpers.FirstElement("<p>a &amp; b</p>");
 
-		Assert.AreEqual("a &amp; b", element.TextContent);
+		Assert.AreEqual("a & b", element.TextContent);
+	}
+
+	[TestMethod]
+	public void DecodesCharacterReferencesAroundMarkup()
+	{
+		var element = TestHelpers.FirstElement("<p>a &lt; <b>b &amp; c</b><!-- &gt; --> &#x64;</p>");
+
+		Assert.AreEqual("a < b & c d", element.TextContent);
+	}
+
+	[TestMethod]
+	[DataRow("script")]
+	[DataRow("style")]
+	public void DoesNotDecodeRawTextContent(string name)
+	{
+		var element = TestHelpers.FirstElement($"<div>a &amp; <{name}>x = \"&amp;\";</{name}> b &amp;</div>");
+
+		Assert.AreEqual($"a & x = \"&amp;\"; b &", element.TextContent);
+		Assert.AreEqual("x = \"&amp;\";", element.Elements().ToList()[0].TextContent);
+	}
+
+	[TestMethod]
+	[DataRow("textarea")]
+	[DataRow("title")]
+	public void DecodesEscapableRawTextContent(string name)
+	{
+		var element = TestHelpers.FirstElement($"<div>a &amp; <{name}>&lt;b&gt; &amp; c</{name}></div>");
+
+		Assert.AreEqual("a & <b> & c", element.TextContent);
+		Assert.AreEqual("<b> & c", element.Elements().ToList()[0].TextContent);
 	}
 
 	[TestMethod]

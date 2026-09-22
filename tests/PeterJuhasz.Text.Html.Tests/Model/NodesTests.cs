@@ -50,10 +50,20 @@ public sealed class NodesTests
 	{
 		var text = (HtmlText)HtmlDocument.Parse("<p>a &amp; b</p>").Elements().First().Nodes[0];
 
-		Assert.AreEqual("a &amp; b", text.Text);
+		Assert.AreEqual("a & b", text.Text);
 		Assert.AreEqual("a &amp; b", text.TextSpan.ToString());
 		Assert.AreEqual("a &amp; b", text.OuterSpan.ToString());
 		Assert.AreEqual("a &amp; b", text.ToString());
+	}
+
+	[TestMethod]
+	public void RawTextIsNotDecoded()
+	{
+		var script = (HtmlText)HtmlDocument.Parse("<script>x = \"&amp;\";</script>").Elements().First().Nodes[0];
+		var title = (HtmlText)HtmlDocument.Parse("<title>a &amp; b</title>").Elements().First().Nodes[0];
+
+		Assert.AreEqual("x = \"&amp;\";", script.Text);
+		Assert.AreEqual("a & b", title.Text);
 	}
 
 	[TestMethod]

@@ -11,16 +11,19 @@ public struct NodesEnumerator
 	private readonly StringSegment _document;
 	private readonly int _end;
 	private readonly bool _isRawText;
+	private readonly bool _isLiteral;
 	private int _position;
 	private LazyHtmlNode _current;
 
-	// `isRawText` reports the whole range as a single text node, for the content of raw text elements.
-	internal NodesEnumerator(StringSegment document, int start, int end, bool isRawText = false)
+	// `isRawText` reports the whole range as a single text node, for the content of raw text elements;
+	// `isLiteral` is true when that text is taken literally (script and style), so its character references are not decoded.
+	internal NodesEnumerator(StringSegment document, int start, int end, bool isRawText = false, bool isLiteral = false)
 	{
 		_document = document;
 		_position = start;
 		_end = end;
 		_isRawText = isRawText;
+		_isLiteral = isLiteral;
 	}
 
 	public readonly LazyHtmlNode Current => _current;
@@ -34,7 +37,7 @@ public struct NodesEnumerator
 
 		if (_isRawText)
 		{
-			_current = new(LazyHtmlNodeKind.Text, _document, _position, _end);
+			_current = new(LazyHtmlNodeKind.Text, _document, _position, _end, _isLiteral);
 			_position = _end;
 			return true;
 		}

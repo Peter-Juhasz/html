@@ -71,7 +71,11 @@ public readonly struct LazyHtmlElement
 		: new(_document, _contentStart, _contentEnd);
 
 	// Enumerates the elements, text and comments directly inside this element; raw text content is a single text node.
-	public NodesEnumerator Nodes() => new(_document, _contentStart, _contentEnd, isRawText: SyntaxFacts.IsRawTextElement(NameSpan));
+	public NodesEnumerator Nodes()
+	{
+		var isRawText = SyntaxFacts.IsRawTextElement(NameSpan);
+		return new(_document, _contentStart, _contentEnd, isRawText, isLiteral: isRawText && !SyntaxFacts.IsEscapableRawTextElement(NameSpan));
+	}
 
 	// Finds the elements at any depth inside this element that have the given name (any name if null), id, class
 	// and all of the given attributes with the given values, in document order.
@@ -90,21 +94,25 @@ public readonly struct LazyHtmlElement
 		return found;
 	}
 
-	// Concatenated text of the content with all markup removed, as written (character references are not decoded).
+	// Concatenated text of the content with all markup removed and character references decoded,
+	// except for the content of script and style, which is taken literally.
 	public string TextContent
 	{
 		get
 		{
 			var text = _document.AsSpan().Slice(0, _contentEnd);
-			if (SyntaxFacts.IsRawTextElement(NameSpan) || !text.Slice(_contentStart).Contains(SyntaxFacts.OpenTag))
-				return InnerSpan.ToString();
+			if (SyntaxFacts.IsRawTextElement(NameSpan))
+				return SyntaxFacts.IsEscapableRawTextElement(NameSpan) ? HtmlDecoder.HtmlDecode(InnerSpan) : InnerSpan.ToString();
+
+			if (!text.Slice(_contentStart).Contains(SyntaxFacts.OpenTag))
+				return HtmlDecoder.HtmlDecode(InnerSpan);
 
 			using var pooled = StringBuilderPool.GetPooledObject(out var builder);
 			var position = _contentStart;
 			while (position < _contentEnd)
 			{
 				var kind = HtmlScanner.FindMarkup(text, position, out var index);
-				builder.Append(text[position..index]);
+				HtmlDecoder.HtmlDecode(text[position..index], builder);
 				switch (kind)
 				{
 					case MarkupKind.None:
@@ -117,7 +125,10 @@ public readonly struct LazyHtmlElement
 						if (!isSelfClosing && SyntaxFacts.IsRawTextElement(name))
 						{
 							var rawTextEnd = HtmlScanner.FindRawTextEnd(text, position, name);
-							builder.Append(text[position..rawTextEnd]);
+							if (SyntaxFacts.IsEscapableRawTextElement(name))
+								HtmlDecoder.HtmlDecode(text[position..rawTextEnd], builder);
+							else
+								builder.Append(text[position..rawTextEnd]);
 							position = HtmlScanner.SkipMarkup(text, rawTextEnd);
 						}
 						break;

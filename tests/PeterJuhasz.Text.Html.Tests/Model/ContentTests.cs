@@ -49,11 +49,19 @@ public sealed class ContentTests
 	}
 
 	[TestMethod]
-	public void TextContentIsNotDecoded()
+	public void TextContentIsDecoded()
 	{
-		var element = TestHelpers.FirstElement("<p>a &amp; b</p>");
+		var element = TestHelpers.FirstElement("<p>a &amp; <b>b &lt; c</b></p>");
 
-		Assert.AreEqual("a &amp; b", element.TextContent);
+		Assert.AreEqual("a & b < c", element.TextContent);
+	}
+
+	[TestMethod]
+	public void TextContentOfRawTextIsNotDecoded()
+	{
+		var element = TestHelpers.FirstElement("<div>a &amp; <script>x = \"&amp;\";</script><title>&lt;b&gt;</title></div>");
+
+		Assert.AreEqual("a & x = \"&amp;\";<b>", element.TextContent);
 	}
 
 	[TestMethod]

@@ -1,22 +1,29 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using PeterJuhasz.Text.Html.Lazy;
 
 namespace PeterJuhasz.Text.Html.Model;
 
 public sealed class HtmlAttribute
 {
-	internal HtmlAttribute(HtmlElement element, string name, string? value)
+	// The attribute in the source text; the value span is read from it, so the tree keeps the source alive.
+	private readonly LazyHtmlAttribute _source;
+
+	internal HtmlAttribute(HtmlElement element, LazyHtmlAttribute source)
 	{
 		Element = element;
-		Name = name;
-		Value = value;
+		_source = source;
+		Name = source.Name;
 	}
 
 	public HtmlElement Element { get; }
 
 	public string Name { get; }
 
-	// Value as written, without quotes; null when the attribute has no value.
-	public string? Value { get; }
+	// Value as written, without quotes; empty when the attribute has no value.
+	public ReadOnlySpan<char> ValueSpan => _source.ValueSpan;
+
+	// Value with character references decoded; null when the attribute has no value.
+	public string? Value => _source.Value;
 
 	[MemberNotNullWhen(true, nameof(Value))]
 	public bool HasValue => Value is not null;

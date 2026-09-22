@@ -68,11 +68,41 @@ public sealed class NodesTests
 	}
 
 	[TestMethod]
-	public void CharacterReferencesAreNotDecoded()
+	public void CharacterReferencesAreDecodedButTextSpanIsAsWritten()
 	{
 		var element = TestHelpers.FirstElement("<p>a &amp; b</p>");
 
-		Assert.AreEqual("a &amp; b", element.Nodes().ToList()[0].Text.Text);
+		var text = element.Nodes().ToList()[0].Text;
+
+		Assert.AreEqual("a & b", text.Text);
+		Assert.AreEqual("a &amp; b", text.TextSpan.ToString());
+	}
+
+	[TestMethod]
+	[DataRow("script")]
+	[DataRow("style")]
+	public void RawTextIsNotDecoded(string name)
+	{
+		var element = TestHelpers.FirstElement($"<{name}>x = \"&amp;\";</{name}>");
+
+		var nodes = element.Nodes().ToList();
+
+		Assert.HasCount(1, nodes);
+		Assert.AreEqual("x = \"&amp;\";", nodes[0].Text.Text);
+	}
+
+	[TestMethod]
+	[DataRow("textarea")]
+	[DataRow("title")]
+	public void EscapableRawTextIsDecoded(string name)
+	{
+		var element = TestHelpers.FirstElement($"<{name}>&lt;b&gt; &amp; c</{name}>");
+
+		var nodes = element.Nodes().ToList();
+
+		Assert.HasCount(1, nodes);
+		Assert.AreEqual("<b> & c", nodes[0].Text.Text);
+		Assert.AreEqual("&lt;b&gt; &amp; c", nodes[0].Text.TextSpan.ToString());
 	}
 
 	[TestMethod]
