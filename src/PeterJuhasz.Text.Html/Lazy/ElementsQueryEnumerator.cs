@@ -91,3 +91,17 @@ public ref struct ElementsQueryEnumerator
 	private readonly bool TryFindAttribute(int elementStart, int start, int end, ReadOnlySpan<char> name, out LazyHtmlAttribute attribute)
 		=> new AttributesEnumerator(_document, elementStart, start, end).TryFind(name, out attribute);
 }
+
+public static partial class Extensions
+{
+	extension(ElementsQueryEnumerator enumerator)
+	{
+		public LazyHtmlElement[] ToArray()
+		{
+			using var builder = new PooledArrayBuilder<LazyHtmlElement>();
+			foreach (var element in enumerator)
+				builder.Add(element);
+			return builder.ToArray();
+		}
+	}
+}

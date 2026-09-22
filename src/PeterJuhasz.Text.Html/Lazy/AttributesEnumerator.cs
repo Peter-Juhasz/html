@@ -68,3 +68,15 @@ public struct AttributesEnumerator
 		return false;
 	}
 }
+
+public static partial class Extensions
+{
+	extension(AttributesEnumerator enumerator)
+	{
+		public IEnumerable<LazyHtmlAttribute> AsEnumerable()
+		{
+			foreach (var attribute in enumerator)
+				yield return attribute;
+		}
+	}
+}

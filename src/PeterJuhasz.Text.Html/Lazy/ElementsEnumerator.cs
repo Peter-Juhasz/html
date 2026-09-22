@@ -45,3 +45,15 @@ public struct ElementsEnumerator
 		return false;
 	}
 }
+
+public static partial class Extensions
+{
+	extension(ElementsEnumerator enumerator)
+	{
+		public IEnumerable<LazyHtmlElement> AsEnumerable()
+		{
+			foreach (var element in enumerator)
+				yield return element;
+		}
+	}
+}

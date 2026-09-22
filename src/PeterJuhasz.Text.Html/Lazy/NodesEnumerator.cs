@@ -76,3 +76,15 @@ public struct NodesEnumerator
 		return false;
 	}
 }
+
+public static partial class Extensions
+{
+	extension(NodesEnumerator enumerator)
+	{
+		public IEnumerable<LazyHtmlNode> AsEnumerable()
+		{
+			foreach (var node in enumerator)
+				yield return node;
+		}
+	}
+}
