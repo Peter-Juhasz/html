@@ -73,6 +73,10 @@ internal static class SyntaxFacts
 	public static ReadOnlySpan<char> DecodeIfNeeded(ReadOnlySpan<char> text)
 		=> NeedsDecoding(text) ? HtmlDecoder.Decode(text) : text;
 
+	private static readonly SearchValues<char> AttributeValueWithoutQuotes = SearchValues.Create("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_");
+
+	public static bool AttributeValueNeedsQuotes(ReadOnlySpan<char> value) => value.ContainsAnyExcept(AttributeValueWithoutQuotes);
+
 	private static FrozenDictionary<string, FrozenSet<string>.AlternateLookup<ReadOnlySpan<char>>>.AlternateLookup<ReadOnlySpan<char>> CreateImplicitClosers()
 	{
 		var listItem = CreateNameSet("li");
