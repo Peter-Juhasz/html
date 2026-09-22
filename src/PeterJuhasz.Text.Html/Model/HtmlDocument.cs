@@ -78,5 +78,78 @@ public static partial class Extensions
 			ArgumentException.ThrowIfNullOrEmpty(className);
 			return document.QuerySelectorAll(className: className);
 		}
+
+
+		public bool TryGetHead([NotNullWhen(true)] out HtmlElement? result)
+		{
+			foreach (var rootNode in document.Nodes)
+			{
+				if (rootNode is not HtmlElement rootElement)
+				{
+					continue;
+				}
+
+				if (rootElement.Name.Equals("html", StringComparison.OrdinalIgnoreCase))
+				{
+					foreach (var insideHtmlNode in rootElement.Nodes)
+					{
+						if (insideHtmlNode is not HtmlElement insideHtmlElement)
+						{
+							continue;
+						}
+
+						if (insideHtmlElement.Name.Equals("head", StringComparison.OrdinalIgnoreCase))
+						{
+							result = insideHtmlElement;
+							return true;
+						}
+					}
+				}
+
+				if (rootElement.Name.Equals("head", StringComparison.OrdinalIgnoreCase))
+				{
+					result = rootElement;
+					return true;
+				}
+			}
+
+			return document.TryQuerySelector(out result, element: "head");
+		}
+
+		public bool TryGetBody([NotNullWhen(true)] out HtmlElement? result)
+		{
+			foreach (var rootNode in document.Nodes)
+			{
+				if (rootNode is not HtmlElement rootElement)
+				{
+					continue;
+				}
+
+				if (rootElement.Name.Equals("html", StringComparison.OrdinalIgnoreCase))
+				{
+					foreach (var insideHtmlNode in rootElement.Nodes)
+					{
+						if (insideHtmlNode is not HtmlElement insideHtmlElement)
+						{
+							continue;
+						}
+
+						if (insideHtmlElement.Name.Equals("body", StringComparison.OrdinalIgnoreCase))
+						{
+							result = insideHtmlElement;
+							return true;
+						}
+					}
+				}
+
+				if (rootElement.Name.Equals("body", StringComparison.OrdinalIgnoreCase))
+				{
+					result = rootElement;
+					return true;
+				}
+			}
+
+			return document.TryQuerySelector(out result, element: "body");
+		}
 	}
 }

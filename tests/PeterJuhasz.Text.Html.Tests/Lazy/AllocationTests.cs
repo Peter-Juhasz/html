@@ -60,6 +60,28 @@ public sealed class AllocationTests
 	}
 
 	[TestMethod]
+	[DataRow("<html><head><title>Title</title></head><body>Content</body></html>")]
+	[DataRow("<div><head>Title</head><body>Content</body></div>")]
+	[DataRow("<html><div>no sections</div></html>")]
+	public void HeadAndBodyLookupDoesNotAllocate(string html)
+	{
+		var document = LazyHtmlDocument.Parse(html);
+		var hasHead = document.TryGetHead(out var expectedHead);
+		var hasBody = document.TryGetBody(out var expectedBody);
+
+		var before = GC.GetAllocatedBytesForCurrentThread();
+		var foundHead = document.TryGetHead(out var head);
+		var foundBody = document.TryGetBody(out var body);
+		var allocated = GC.GetAllocatedBytesForCurrentThread() - before;
+
+		Assert.AreEqual(hasHead, foundHead);
+		Assert.AreEqual(hasBody, foundBody);
+		Assert.AreEqual(expectedHead, head);
+		Assert.AreEqual(expectedBody, body);
+		Assert.AreEqual(0, allocated);
+	}
+
+	[TestMethod]
 	public void NodesEnumerationDoesNotAllocate()
 	{
 		var document = LazyHtmlDocument.Parse(Html);

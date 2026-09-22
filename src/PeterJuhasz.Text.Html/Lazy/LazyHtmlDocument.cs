@@ -70,5 +70,10 @@ public static partial class Extensions
 			ArgumentException.ThrowIfNullOrEmpty(className);
 			return document.QuerySelectorAll(className: className);
 		}
+
+
+		public bool TryGetHead(out LazyHtmlElement result) => document.TryQuerySelector(out result, element: "head");
+
+		public bool TryGetBody(out LazyHtmlElement result) => document.TryQuerySelector(out result, element: "body");
 	}
 }
