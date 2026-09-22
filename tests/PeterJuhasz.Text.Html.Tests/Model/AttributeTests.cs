@@ -72,6 +72,18 @@ public sealed class AttributeTests
 	}
 
 	[TestMethod]
+	public void ValueIsCached()
+	{
+		var element = TestHelpers.FirstElement("<a title=\"a &amp; b\"></a>");
+
+		Assert.IsTrue(element.TryGetAttribute("title", out var attribute));
+		var first = attribute.Value;
+		var second = attribute.Value;
+
+		Assert.AreSame(first, second);
+	}
+
+	[TestMethod]
 	public void LookupIsCaseInsensitiveAndPreservesTheWrittenName()
 	{
 		var element = TestHelpers.FirstElement("<a HREF=\"/\"></a>");

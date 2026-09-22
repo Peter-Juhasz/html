@@ -57,6 +57,17 @@ public sealed class ContentTests
 	}
 
 	[TestMethod]
+	public void TextContentIsCached()
+	{
+		var element = TestHelpers.FirstElement("<p>a &amp; <b>b &lt; c</b></p>");
+
+		var first = element.TextContent;
+		var second = element.TextContent;
+
+		Assert.AreSame(first, second);
+	}
+
+	[TestMethod]
 	public void TextContentOfRawTextIsNotDecoded()
 	{
 		var element = TestHelpers.FirstElement("<div>a &amp; <script>x = \"&amp;\";</script><title>&lt;b&gt;</title></div>");

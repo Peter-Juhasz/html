@@ -67,6 +67,17 @@ public sealed class NodesTests
 	}
 
 	[TestMethod]
+	public void TextIsCached()
+	{
+		var text = (HtmlText)HtmlDocument.Parse("<p>a &amp; b</p>").Elements().First().Nodes[0];
+
+		var first = text.Text;
+		var second = text.Text;
+
+		Assert.AreSame(first, second);
+	}
+
+	[TestMethod]
 	public void CommentExposesItsContentAndDelimiters()
 	{
 		var comment = (HtmlComment)HtmlDocument.Parse("<!-- a > b -->").Nodes[0];

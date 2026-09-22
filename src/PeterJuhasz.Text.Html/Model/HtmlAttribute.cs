@@ -8,6 +8,9 @@ public sealed class HtmlAttribute
 	// The attribute in the source text; the value span is read from it, so the tree keeps the source alive.
 	private readonly LazyHtmlAttribute _source;
 
+	// The decoded value is created on first access and kept for the next ones.
+	private string? _value;
+
 	internal HtmlAttribute(HtmlElement element, LazyHtmlAttribute source)
 	{
 		Element = element;
@@ -23,8 +26,8 @@ public sealed class HtmlAttribute
 	public ReadOnlySpan<char> ValueSpan => _source.ValueSpan;
 
 	// Value with character references decoded; null when the attribute has no value.
-	public string? Value => _source.Value;
+	public string? Value => _source.HasValue ? _value ??= _source.Value : null;
 
 	[MemberNotNullWhen(true, nameof(Value))]
-	public bool HasValue => Value is not null;
+	public bool HasValue => _source.HasValue;
 }

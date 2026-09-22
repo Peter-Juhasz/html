@@ -9,6 +9,9 @@ public sealed class HtmlElement : HtmlNode
 	// The element in the source text; spans and text are read from it, so the tree keeps the source alive.
 	private readonly LazyHtmlElement _source;
 
+	// The text content is created on first access and kept for the next ones.
+	private string? _textContent;
+
 	// Attributes and nodes reference the element, so they are set by the parser after construction.
 	internal HtmlElement(HtmlDocument document, HtmlElement? parent, LazyHtmlElement source)
 		: base(document, parent)
@@ -33,7 +36,7 @@ public sealed class HtmlElement : HtmlNode
 
 	// Concatenated text of the content with all markup removed and character references decoded,
 	// except for the content of script and style, which is taken literally.
-	public string TextContent => _source.TextContent;
+	public string TextContent => _textContent ??= _source.TextContent;
 
 	// Finds the first attribute with the given name, compared case-insensitively.
 	public bool TryGetAttribute(ReadOnlySpan<char> name, [NotNullWhen(true)] out HtmlAttribute? attribute)
