@@ -8,18 +8,26 @@ namespace PeterJuhasz.Text.Html.Writer;
 public sealed class HtmlWriter<TWriter>(TWriter writer, HtmlEncoder htmlEncoder, HtmlWriterFormattingOptions? options = null) where TWriter : IBufferWriter<char>
 {
 	private readonly HtmlWriterFormattingOptions options = options ?? HtmlWriterFormattingOptions.Default;
-	private readonly Stack<string> openElements = new();
+	private readonly Stack<ElementScope> openElements = new();
 	private bool inTag = false;
-	private int indentLevel = 0;
+
+	// Whether the innermost open element (or the document, when there is none) has child elements or comments, and whether it has text.
+	// When formatting, an element with children but no text gets its children and end tag on their own lines; one with text stays on one line.
+	private bool hasChildren = false;
+	private bool hasText = false;
 
 	public HtmlWriterFormattingOptions Options => options;
 
 	public void OpenElement(string name)
 	{
 		CloseStartTag();
+		StartChildNode();
 		writer.Write("<");
 		writer.Write(name);
-		openElements.Push(name);
+		var isLiteral = SyntaxFacts.IsRawTextElement(name) && !SyntaxFacts.IsEscapableRawTextElement(name);
+		openElements.Push(new(name, isLiteral, hasChildren, hasText));
+		hasChildren = false;
+		hasText = false;
 		inTag = true;
 	}
 
@@ -62,11 +70,8 @@ public sealed class HtmlWriter<TWriter>(TWriter writer, HtmlEncoder htmlEncoder,
 
 	public void WriteComment(ReadOnlySpan<char> comment)
 	{
-		if (inTag)
-		{
-			throw new InvalidOperationException("Cannot write a comment inside of an open tag.");
-		}
-
+		CloseStartTag();
+		StartChildNode();
 		writer.Write("<!--");
 		WriteHtml(comment);
 		writer.Write("-->");
@@ -74,11 +79,12 @@ public sealed class HtmlWriter<TWriter>(TWriter writer, HtmlEncoder htmlEncoder,
 
 	public void CloseElement()
 	{
-		if (!openElements.TryPop(out var name))
+		if (!openElements.TryPop(out var element))
 		{
 			throw new InvalidOperationException("No open elements to close.");
 		}
 
+		var name = element.Name;
 		if (SyntaxFacts.IsVoidElement(name.AsSpan()))
 		{
 			if (options.XmlStyleSelfClosingTags)
@@ -94,23 +100,38 @@ public sealed class HtmlWriter<TWriter>(TWriter writer, HtmlEncoder htmlEncoder,
 			{
 				writer.Write(">");
 			}
-			WriteLine();
 		}
 		else
 		{
 			CloseStartTag();
+			if (hasChildren && !hasText)
+			{
+				WriteLine();
+			}
+
 			writer.Write("</");
 			writer.Write(name);
 			writer.Write(">");
 		}
 		inTag = false;
-		DecreaseIndent();
+		hasChildren = element.ParentHasChildren;
+		hasText = element.ParentHasText;
 	}
 
 	public void WriteText(ReadOnlySpan<char> text)
 	{
 		CloseStartTag();
-		WriteEncoded(text);
+		hasText = true;
+
+		// parsers take the content of script and style literally, so encoding it would change it
+		if (openElements.TryPeek(out var element) && element.IsLiteral)
+		{
+			writer.Write(text);
+		}
+		else
+		{
+			WriteEncoded(text);
+		}
 	}
 
 	private void CloseStartTag()
@@ -119,10 +140,18 @@ public sealed class HtmlWriter<TWriter>(TWriter writer, HtmlEncoder htmlEncoder,
 		{
 			writer.Write(">");
 			inTag = false;
-
-			WriteLine();
-			IncreaseIndent();
 		}
+	}
+
+	// Starts an element or comment on its own line, unless the enclosing scope has text or this is the first node of the document.
+	private void StartChildNode()
+	{
+		if (!hasText && (openElements.Count > 0 || hasChildren))
+		{
+			WriteLine();
+		}
+
+		hasChildren = true;
 	}
 
 	private void WriteEncoded(ReadOnlySpan<char> text)
@@ -150,51 +179,27 @@ public sealed class HtmlWriter<TWriter>(TWriter writer, HtmlEncoder htmlEncoder,
 		WriteIndent();
 	}
 
-	private void IncreaseIndent()
-	{
-		if (options.Indent == null)
-		{
-			return;
-		}
-
-		indentLevel++;
-	}
-
-	private void DecreaseIndent()
-	{
-		if (options.Indent == null)
-		{
-			return;
-		}
-
-		if (indentLevel > 0)
-		{
-			indentLevel--;
-		}
-	}
-
+	// Indents by the number of open elements, which is the depth of the node being written.
 	private void WriteIndent()
 	{
-		if (options.Indent == null)
+		var indent = options.Indent;
+		var indentLevel = openElements.Count;
+		if (indent is null or "" || indentLevel == 0)
 		{
 			return;
 		}
 
-		if (indentLevel == 0)
-		{
-			return;
-		}
-
-		var length = options.Indent.Length * indentLevel;
+		var length = indent.Length * indentLevel;
 		var span = writer.GetSpan(length);
-		var startIndex = 0;
-		for (int i = 0; i < indentLevel; i++)
+		for (var startIndex = 0; startIndex < length; startIndex += indent.Length)
 		{
-			options.Indent.CopyTo(span[startIndex..]);
-			startIndex += length;
+			indent.CopyTo(span[startIndex..]);
 		}
 		writer.Advance(length);
 	}
+
+	// An open element with the state of its enclosing scope, which is restored when the element is closed.
+	private readonly record struct ElementScope(string Name, bool IsLiteral, bool ParentHasChildren, bool ParentHasText);
 }
 
 public static partial class Extensions

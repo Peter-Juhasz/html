@@ -29,4 +29,6 @@ public readonly struct LazyHtmlText
 
 	// Text with character references decoded, except for the content of script and style, which is taken literally.
 	public string Text => _isLiteral ? TextSpan.ToString() : HtmlDecoder.HtmlDecode(TextSpan);
+
+	public bool IsLiteral => _isLiteral;
 }

@@ -7,6 +7,8 @@ public sealed class HtmlComment : HtmlNode
 	// The comment in the source; it is read from there on each access, so the tree keeps the source alive.
 	private readonly LazyHtmlComment _source;
 
+	private string? _text;
+
 	internal HtmlComment(HtmlDocument document, HtmlElement? parent, LazyHtmlComment source)
 		: base(document, parent)
 	{
@@ -16,7 +18,7 @@ public sealed class HtmlComment : HtmlNode
 	// The content between the delimiters, as written.
 	public ReadOnlySpan<char> TextSpan => _source.TextSpan;
 
-	public string Text => _source.Text;
+	public string Text => _text ??= _source.Text;
 
 	public override ReadOnlySpan<char> OuterSpan => _source.OuterSpan;
 }

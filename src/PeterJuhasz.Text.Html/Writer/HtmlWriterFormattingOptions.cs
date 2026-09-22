@@ -13,7 +13,7 @@ public sealed record class HtmlWriterFormattingOptions(
 	public static readonly HtmlWriterFormattingOptions Indented = new(
 		OmitQuotesIfNotNecessary: false,
 		XmlStyleSelfClosingTags: true,
-		SpaceBeforeSelfClosingSlash: false,
+		SpaceBeforeSelfClosingSlash: true,
 		Indent: "\t",
 		NewLine: "\n"
 	);

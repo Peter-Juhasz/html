@@ -76,35 +76,9 @@ public sealed class InvalidUsageTests
 		TestHelpers.Write(writer =>
 		{
 			writer.OpenElement("div");
-			writer.WriteText("");
 			writer.WriteComment("c");
 
 			Assert.ThrowsExactly<InvalidOperationException>(() => writer.WriteAttribute("id", "x"));
-		});
-	}
-
-	[TestMethod]
-	public void CommentInsideStartTagThrows()
-	{
-		var html = TestHelpers.Write(writer =>
-		{
-			writer.OpenElement("div");
-
-			Assert.ThrowsExactly<InvalidOperationException>(() => writer.WriteComment("c"));
-		});
-
-		Assert.AreEqual("<div", html);
-	}
-
-	[TestMethod]
-	public void CommentAfterAttributeThrows()
-	{
-		TestHelpers.Write(writer =>
-		{
-			writer.OpenElement("div");
-			writer.WriteAttribute("id", "x");
-
-			Assert.ThrowsExactly<InvalidOperationException>(() => writer.WriteComment("c"));
 		});
 	}
 
@@ -117,9 +91,6 @@ public sealed class InvalidUsageTests
 			Assert.ThrowsExactly<InvalidOperationException>(writer.CloseElement);
 
 			writer.OpenElement("p");
-
-			Assert.ThrowsExactly<InvalidOperationException>(() => writer.WriteComment("c"));
-
 			writer.WriteText("x");
 
 			Assert.ThrowsExactly<InvalidOperationException>(() => writer.WriteAttribute("id", "x"));

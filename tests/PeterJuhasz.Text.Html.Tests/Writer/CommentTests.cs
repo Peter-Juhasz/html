@@ -35,6 +35,33 @@ public sealed class CommentTests
 	}
 
 	[TestMethod]
+	public void CommentAsFirstChildClosesStartTag()
+	{
+		var html = TestHelpers.Write(writer =>
+		{
+			writer.OpenElement("div");
+			writer.WriteComment("c");
+			writer.CloseElement();
+		});
+
+		Assert.AreEqual("<div><!--c--></div>", html);
+	}
+
+	[TestMethod]
+	public void CommentAfterAttributesClosesStartTag()
+	{
+		var html = TestHelpers.Write(writer =>
+		{
+			writer.OpenElement("div");
+			writer.WriteAttribute("id", "x");
+			writer.WriteComment("c");
+			writer.CloseElement();
+		});
+
+		Assert.AreEqual("<div id=\"x\"><!--c--></div>", html);
+	}
+
+	[TestMethod]
 	public void CommentAfterClosedElement()
 	{
 		var html = TestHelpers.Write(writer =>
