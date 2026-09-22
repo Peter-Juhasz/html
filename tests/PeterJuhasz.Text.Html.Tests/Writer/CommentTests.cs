@@ -1,4 +1,4 @@
-namespace PeterJuhasz.Text.Html.Tests.Writer;
+﻿namespace PeterJuhasz.Text.Html.Tests.Writer;
 
 [TestClass]
 public sealed class CommentTests
@@ -69,7 +69,7 @@ public sealed class CommentTests
 	{
 		var html = TestHelpers.Write(writer => writer.WriteComment("a < b & \"c\""));
 
-		Assert.AreEqual("<!--a &lt; b &amp; &quot;c&quot;-->", html);
+		Assert.AreEqual("<!--a < b & \"c\"-->", html);
 	}
 
 	[TestMethod]
@@ -77,7 +77,7 @@ public sealed class CommentTests
 	{
 		var html = TestHelpers.Write(writer => writer.WriteComment("a --> <script>"));
 
-		Assert.AreEqual("<!--a --&gt; &lt;script&gt;-->", html);
+		Assert.AreEqual("<!--a --> <script>-->", html);
 	}
 
 	[TestMethod]
@@ -85,6 +85,6 @@ public sealed class CommentTests
 	{
 		var html = TestHelpers.Write(writer => writer.WriteComment("\r\n a \r\n"));
 
-		Assert.AreEqual("<!--&#xD;&#xA; a &#xD;&#xA;-->", html);
+		Assert.AreEqual("<!--\r\n a \r\n-->", html);
 	}
 }
