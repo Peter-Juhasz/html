@@ -170,7 +170,7 @@ public sealed class AttributeLookupTests
 	{
 		var document = LazyHtmlDocument.Parse("<div><a class=\"x\">1</a><a class=\"y\">2</a></div>");
 
-		Assert.IsTrue(document.TryQuerySelector(out var element, className: "y"));
+		Assert.IsTrue(document.TryQuerySelector(out var element, classNames: "y"));
 		Assert.IsTrue(element.TryGetAttribute("class", out var attribute));
 		Assert.AreEqual("<a class=\"y\">2</a>", attribute.Element.OuterSpan.ToString());
 	}

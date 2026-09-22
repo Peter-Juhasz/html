@@ -76,7 +76,7 @@ public class LazyHtmlBenchmarks
 	public int QuerySelectorAllByClassName()
 	{
 		var count = 0;
-		foreach (var element in document.QuerySelectorAll(className: "btn"))
+		foreach (var element in document.QuerySelectorAll(classNames: "btn"))
 			count += element.NameSpan.Length;
 		return count;
 	}

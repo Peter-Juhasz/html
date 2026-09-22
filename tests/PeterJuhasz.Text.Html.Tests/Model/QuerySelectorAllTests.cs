@@ -1,4 +1,5 @@
-﻿using static PeterJuhasz.Text.Html.Tests.Model.TestHelpers;
+﻿using Microsoft.Extensions.Primitives;
+using static PeterJuhasz.Text.Html.Tests.Model.TestHelpers;
 
 namespace PeterJuhasz.Text.Html.Tests.Model;
 
@@ -195,7 +196,7 @@ public sealed class QuerySelectorAllTests
 
 		Assert.IsEmpty(document.QuerySelectorAll(element: "div", attributes: Attributes(("class", "x"))));
 		Assert.IsEmpty(document.QuerySelectorAll(element: "div", attributes: Attributes(("id", "y"))));
-		Assert.IsEmpty(document.QuerySelectorAll(element: "div", className: "x"));
+		Assert.IsEmpty(document.QuerySelectorAll(element: "div", classNames: "x"));
 		Assert.AreSequenceEqual(["p"], document.QuerySelectorAll(attributes: Attributes(("class", "x"))).Names());
 	}
 
@@ -242,7 +243,46 @@ public sealed class QuerySelectorAllTests
 			"<a id=\"btn\">10</a>" +
 			"<a>11</a>");
 
-		Assert.AreSequenceEqual(["1", "2", "3", "4"], document.QuerySelectorAll(className: "btn").Inners());
+		Assert.AreSequenceEqual(["1", "2", "3", "4"], document.QuerySelectorAll(classNames: "btn").Inners());
+	}
+
+	[TestMethod]
+	public void MatchesByMultipleClassNames()
+	{
+		var document = HtmlDocument.Parse(
+			"<a class=\"btn primary\">1</a>" +
+			"<a class=\"primary btn\">2</a>" +
+			"<a class=\"x btn y primary z\">3</a>" +
+			"<a class=\"btn\">4</a>" +
+			"<a class=\"primary\">5</a>" +
+			"<a class=\"btn-primary\">6</a>" +
+			"<a class=\"btn Primary\">7</a>" +
+			"<a>8</a>");
+
+		Assert.AreSequenceEqual(["1", "2", "3"], document.QuerySelectorAll(classNames: new[] { "btn", "primary" }).Inners());
+		Assert.AreSequenceEqual(["1", "2", "3"], document.QuerySelectorAll(classNames: new StringValues(["primary", "btn"])).Inners());
+		Assert.AreSequenceEqual(["1", "2", "3", "4", "7"], document.QuerySelectorAll(classNames: new[] { "btn", "btn" }).Inners());
+		Assert.AreSequenceEqual(["3"], document.QuerySelectorAll(classNames: new[] { "z", "btn", "x" }).Inners());
+		Assert.IsEmpty(document.QuerySelectorAll(classNames: new[] { "btn", "primary", "missing" }));
+	}
+
+	[TestMethod]
+	public void MultipleClassNamesCombineWithElementAndAttributes()
+	{
+		var document = HtmlDocument.Parse("<a id=\"x\" class=\"a b\">1</a><span id=\"x\" class=\"a b\">2</span><a id=\"y\" class=\"a b\">3</a><a id=\"x\" class=\"a\">4</a><div><a class=\"b a\" id=\"x\">5</a></div>");
+
+		Assert.AreSequenceEqual(["1", "5"], document.QuerySelectorAll(element: "a", classNames: new[] { "a", "b" }, attributes: Attributes(("id", "x"))).Inners());
+	}
+
+	[TestMethod]
+	public void EmptyClassNamesDoNotFilter()
+	{
+		var document = HtmlDocument.Parse("<a class=\"x\">1</a><a>2</a>");
+
+		Assert.AreSequenceEqual(["1", "2"], document.QuerySelectorAll(classNames: default).Inners());
+		Assert.AreSequenceEqual(["1", "2"], document.QuerySelectorAll(classNames: StringValues.Empty).Inners());
+		Assert.AreSequenceEqual(["1", "2"], document.QuerySelectorAll(classNames: (string?)null).Inners());
+		Assert.AreSequenceEqual(["1", "2"], document.QuerySelectorAll(classNames: Array.Empty<string>()).Inners());
 	}
 
 	[TestMethod]
@@ -256,7 +296,7 @@ public sealed class QuerySelectorAllTests
 			"<span id=\"x\" class=\"btn\" href=\"/\">5</span>" +
 			"<div><a href=\"/\" class=\"big btn\" id=\"x\">6</a></div>");
 
-		var matches = document.QuerySelectorAll(element: "a", className: "btn", attributes: Attributes(("id", "x"), ("href", "/"))).Inners();
+		var matches = document.QuerySelectorAll(element: "a", classNames: "btn", attributes: Attributes(("id", "x"), ("href", "/"))).Inners();
 
 		Assert.AreSequenceEqual(["1", "6"], matches);
 	}
@@ -268,7 +308,7 @@ public sealed class QuerySelectorAllTests
 		var div = document.Elements().ElementAt(1);
 
 		Assert.AreSequenceEqual(["1"], div.QuerySelectorAll(attributes: Attributes(("id", "x"))).Inners());
-		Assert.AreSequenceEqual(["1"], div.QuerySelectorAll(className: "c").Inners());
+		Assert.AreSequenceEqual(["1"], div.QuerySelectorAll(classNames: "c").Inners());
 		Assert.AreSequenceEqual(["1"], div.QuerySelectorAll(element: "a", attributes: Attributes(("class", "c"))).Inners());
 	}
 
@@ -280,9 +320,12 @@ public sealed class QuerySelectorAllTests
 
 		Assert.AreEqual("element", Assert.ThrowsExactly<ArgumentException>(() => document.QuerySelectorAll(element: "")).ParamName);
 		Assert.AreEqual("element", Assert.ThrowsExactly<ArgumentException>(() => element.QuerySelectorAll(element: "")).ParamName);
-		Assert.ThrowsExactly<ArgumentException>(() => document.QuerySelectorAll(className: ""));
-		Assert.ThrowsExactly<ArgumentException>(() => document.QuerySelectorAll(className: "a b"));
-		Assert.ThrowsExactly<ArgumentException>(() => element.QuerySelectorAll(className: " a"));
+		Assert.ThrowsExactly<ArgumentException>(() => document.QuerySelectorAll(classNames: ""));
+		Assert.ThrowsExactly<ArgumentException>(() => document.QuerySelectorAll(classNames: "a b"));
+		Assert.ThrowsExactly<ArgumentException>(() => element.QuerySelectorAll(classNames: " a"));
+		Assert.AreEqual("classNames", Assert.ThrowsExactly<ArgumentException>(() => document.QuerySelectorAll(classNames: new[] { "a", "" })).ParamName);
+		Assert.AreEqual("classNames", Assert.ThrowsExactly<ArgumentException>(() => document.QuerySelectorAll(classNames: new[] { "a", "b c" })).ParamName);
+		Assert.AreEqual("classNames", Assert.ThrowsExactly<ArgumentException>(() => element.QuerySelectorAll(classNames: new string?[] { "a", null })).ParamName);
 		Assert.ThrowsExactly<ArgumentNullException>(() => document.QuerySelectorAll(attributes: Attributes((null!, "x"))));
 		Assert.ThrowsExactly<ArgumentException>(() => document.QuerySelectorAll(attributes: Attributes(("id", "1"), ("", "x"))));
 	}

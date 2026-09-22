@@ -1,16 +1,22 @@
-﻿namespace PeterJuhasz.Text.Html.Tests.Lazy;
+﻿using Microsoft.Extensions.Primitives;
+
+namespace PeterJuhasz.Text.Html.Tests.Lazy;
 
 [TestClass]
 public sealed class AllocationTests
 {
 	private const string Html =
 		"<!DOCTYPE html><html><head><title>T</title><meta charset=\"utf-8\"></head>" +
-		"<body><div class=\"a\" id='x'><p>text<br>more <b>bold</b></p>" +
+		"<body><div class=\"a\" id='x'><p>text<br>more <b class=\"b a\">bold</b></p>" +
 		"<a href=\"/link?a=1&amp;b=2\" target=_blank>link</a><!-- c --><ul><li>1<li>2</ul>" +
 		"<script>if (a<b) {}</script></div></body></html>";
 
 	private static readonly KeyValuePair<string, string>[] LinkQuery = [KeyValuePair.Create("href", "/link?a=1&amp;b=2"), KeyValuePair.Create("target", "_blank")];
 	private static readonly KeyValuePair<string, string>[] ClassQuery = [KeyValuePair.Create("class", "a")];
+	// Multiple class names are backed by an array, which is allocated once here rather than per query.
+	private static readonly StringValues TwoClasses = new(["a", "b"]);
+	private static readonly StringValues TwoClassesReversed = new(["b", "a"]);
+	private static readonly StringValues MissingClasses = new(["a", "missing"]);
 
 	[TestMethod]
 	public void VisitorTraversalDoesNotAllocate()
@@ -192,13 +198,27 @@ public sealed class AllocationTests
 		foreach (var element in document.QuerySelectorAll(attributes: [new("id", "x")]))
 			count += element.NameSpan.Length;
 
-		foreach (var element in document.QuerySelectorAll(className: "a"))
+		foreach (var element in document.QuerySelectorAll(classNames: "a"))
 			count += element.NameSpan.Length;
 
-		if (document.TryQuerySelector(out var box, element: "div", className: "a", attributes: [new("id", "x")]))
+		foreach (var element in document.QuerySelectorAll(classNames: TwoClasses))
+			count += element.NameSpan.Length;
+
+		if (document.TryQuerySelector(out var box, element: "div", classNames: "a", attributes: [new("id", "x")]))
 			count += box.OuterSpan.Length;
 
-		count += document.TryQuerySelector(out _, className: "missing") ? 1 : 0;
+		if (document.TryQuerySelector(out var multiClassBox, element: "div", classNames: TwoClassesReversed, attributes: [new("id", "x")]))
+			count += multiClassBox.OuterSpan.Length;
+
+		count += document.TryQuerySelector(out _, classNames: "missing") ? 1 : 0;
+		count += document.TryQuerySelector(out _, classNames: MissingClasses) ? 1 : 0;
+
+		// a single class name is stored in the StringValues without an array, so this must not allocate either
+		foreach (var element in document.GetElementsByClassName("a"))
+			count += element.NameSpan.Length;
+
+		foreach (var element in document.GetElementsByClassName(TwoClasses))
+			count += element.NameSpan.Length;
 
 		if (document.GetElementById("x") is { } byId)
 			count += byId.OuterSpan.Length;

@@ -28,17 +28,17 @@ public sealed class HtmlDocument
 	// Enumerates the elements at any depth in the document, in document order.
 	public IEnumerable<HtmlElement> Descendants() => HtmlElement.Descendants(Nodes);
 
-	// Finds the elements at any depth in the document that have the given element name (any if null), class
+	// Finds the elements at any depth in the document that have the given element name (any if null), all of the given classes
 	// and all of the given attributes with the given values, in document order.
 	// Attribute memory is retained without copying; keep its storage valid until enumeration completes.
-	public IEnumerable<HtmlElement> QuerySelectorAll(string? element = null, string? className = null, ReadOnlyMemory<KeyValuePair<string, string>> attributes = default)
-		=> HtmlElement.Query(Nodes, element, className, attributes);
+	public IEnumerable<HtmlElement> QuerySelectorAll(string? element = null, StringValues classNames = default, ReadOnlyMemory<KeyValuePair<string, string>> attributes = default)
+		=> HtmlElement.Query(Nodes, element, classNames, attributes);
 
-	// Finds the first element at any depth in the document that has the given element name (any if null), class
+	// Finds the first element at any depth in the document that has the given element name (any if null), all of the given classes
 	// and all of the given attributes with the given values.
-	public bool TryQuerySelector([NotNullWhen(true)] out HtmlElement? result, string? element = null, string? className = null, ReadOnlyMemory<KeyValuePair<string, string>> attributes = default)
+	public bool TryQuerySelector([NotNullWhen(true)] out HtmlElement? result, string? element = null, StringValues classNames = default, ReadOnlyMemory<KeyValuePair<string, string>> attributes = default)
 	{
-		result = QuerySelectorAll(element: element, className: className, attributes: attributes).FirstOrDefault();
+		result = QuerySelectorAll(element: element, classNames: classNames, attributes: attributes).FirstOrDefault();
 		return result is not null;
 	}
 }
@@ -47,8 +47,8 @@ public static partial class Extensions
 {
 	extension(HtmlDocument document)
 	{
-		public HtmlElement? QuerySelector(string? element = null, string? className = null, ReadOnlyMemory<KeyValuePair<string, string>> attributes = default)
-			=> document.TryQuerySelector(out var result, element: element, className: className, attributes: attributes) ? result : null;
+		public HtmlElement? QuerySelector(string? element = null, StringValues classNames = default, ReadOnlyMemory<KeyValuePair<string, string>> attributes = default)
+			=> document.TryQuerySelector(out var result, element: element, classNames: classNames, attributes: attributes) ? result : null;
 
 		public bool TryGetElementById(string id, [NotNullWhen(true)] out HtmlElement? result)
 		{
@@ -76,7 +76,14 @@ public static partial class Extensions
 		public IEnumerable<HtmlElement> GetElementsByClassName(string className)
 		{
 			ArgumentException.ThrowIfNullOrEmpty(className);
-			return document.QuerySelectorAll(className: className);
+			return document.QuerySelectorAll(classNames: className);
+		}
+
+		// Finds the elements that have all of the given classes.
+		public IEnumerable<HtmlElement> GetElementsByClassName(StringValues classNames)
+		{
+			ElementQuery.ValidateClassNames(classNames);
+			return document.QuerySelectorAll(classNames: classNames);
 		}
 
 

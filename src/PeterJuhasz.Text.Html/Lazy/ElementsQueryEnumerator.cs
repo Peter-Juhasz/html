@@ -3,29 +3,29 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace PeterJuhasz.Text.Html.Lazy;
 
-// Enumerates the elements matching an element name, class and/or attributes at any depth inside a range of the document, in document order.
+// Enumerates the elements matching an element name, classes and/or attributes at any depth inside a range of the document, in document order.
 // A ref struct so the attributes can be kept as a span, letting callers pass them without allocating.
 [PerformanceCritical]
 public ref struct ElementsQueryEnumerator
 {
 	private readonly StringSegment _document;
 	private readonly string? _element;
-	private readonly string? _className;
+	private readonly StringValues _classNames;
 	private readonly ReadOnlySpan<KeyValuePair<string, string>> _attributes;
 	private readonly bool _filtersAttributes;
 	private readonly int _end;
 	private int _position;
 	private LazyHtmlElement _current;
 
-	internal ElementsQueryEnumerator(StringSegment document, string? element, string? className, ReadOnlySpan<KeyValuePair<string, string>> attributes, int start, int end)
+	internal ElementsQueryEnumerator(StringSegment document, string? element, StringValues classNames, ReadOnlySpan<KeyValuePair<string, string>> attributes, int start, int end)
 	{
-		ElementQuery.ValidateArguments(element, className, attributes);
+		ElementQuery.ValidateArguments(element, classNames, attributes);
 
 		_document = document;
 		_element = element;
-		_className = className;
+		_classNames = classNames;
 		_attributes = attributes;
-		_filtersAttributes = className is not null || !attributes.IsEmpty;
+		_filtersAttributes = classNames.Count > 0 || !attributes.IsEmpty;
 		_position = start;
 		_end = end;
 	}
@@ -72,11 +72,11 @@ public ref struct ElementsQueryEnumerator
 		return false;
 	}
 
-	// Checks that the start tag at `elementStart`, whose attributes are in [start, end), has the required class
+	// Checks that the start tag at `elementStart`, whose attributes are in [start, end), has all the required classes
 	// and every required attribute with the required value.
 	private readonly bool HasAttributes(int elementStart, int start, int end)
 	{
-		if (_className is not null && !(TryFindAttribute(elementStart, start, end, "class", out var @class) && ElementQuery.HasClass(@class.ValueSpan, _className)))
+		if (_classNames.Count > 0 && !(TryFindAttribute(elementStart, start, end, "class", out var @class) && ElementQuery.HasClasses(@class.ValueSpan, _classNames)))
 			return false;
 
 		foreach (var (name, value) in _attributes)

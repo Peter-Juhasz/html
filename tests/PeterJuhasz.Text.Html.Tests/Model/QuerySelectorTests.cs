@@ -1,4 +1,6 @@
-﻿namespace PeterJuhasz.Text.Html.Tests.Model;
+﻿using Microsoft.Extensions.Primitives;
+
+namespace PeterJuhasz.Text.Html.Tests.Model;
 
 [TestClass]
 public sealed class QuerySelectorTests
@@ -28,7 +30,7 @@ public sealed class QuerySelectorTests
 	{
 		var document = HtmlDocument.Parse("<a id=\"x\" class=\"btn\">1</a><span id=\"x\" class=\"btn\" href=\"/\">2</span><a id=\"x\" class=\"a btn\" href=\"/\">3</a>");
 
-		Assert.IsTrue(document.TryQuerySelector(out var element, element: "a", className: "btn", attributes: TestHelpers.Attributes(("id", "x"), ("href", "/"))));
+		Assert.IsTrue(document.TryQuerySelector(out var element, element: "a", classNames: "btn", attributes: TestHelpers.Attributes(("id", "x"), ("href", "/"))));
 		Assert.AreEqual("3", element.InnerSpan.ToString());
 	}
 
@@ -82,10 +84,13 @@ public sealed class QuerySelectorTests
 		var document = HtmlDocument.Parse("<div><a class=\"btn\" id=\"x\">1</a><a class=\"big btn\" id=\"y\">2</a></div><a class=\"btn\" id=\"y\">3</a>");
 		var div = document.Elements().First();
 
-		Assert.AreEqual("1", document.QuerySelector(className: "btn")?.InnerSpan.ToString());
+		Assert.AreEqual("1", document.QuerySelector(classNames: "btn")?.InnerSpan.ToString());
 		Assert.AreEqual("1", div.QuerySelector(element: "a", attributes: TestHelpers.Attributes(("class", "btn")))?.InnerSpan.ToString());
-		Assert.AreEqual("2", document.QuerySelector(element: "a", className: "btn", attributes: TestHelpers.Attributes(("id", "y")))?.InnerSpan.ToString());
-		Assert.AreEqual("2", div.QuerySelector(element: "a", className: "btn", attributes: TestHelpers.Attributes(("id", "y")))?.InnerSpan.ToString());
+		Assert.AreEqual("2", document.QuerySelector(element: "a", classNames: "btn", attributes: TestHelpers.Attributes(("id", "y")))?.InnerSpan.ToString());
+		Assert.AreEqual("2", div.QuerySelector(element: "a", classNames: "btn", attributes: TestHelpers.Attributes(("id", "y")))?.InnerSpan.ToString());
+		Assert.AreEqual("2", document.QuerySelector(classNames: new[] { "btn", "big" })?.InnerSpan.ToString());
+		Assert.AreEqual("2", div.QuerySelector(classNames: new[] { "big", "btn" })?.InnerSpan.ToString());
+		Assert.IsNull(document.QuerySelector(classNames: new[] { "btn", "missing" }));
 		Assert.AreSame(div, document.QuerySelector());
 		Assert.AreSame(div.Elements().First(), div.QuerySelector(element: null));
 		Assert.IsNull(document.QuerySelector(element: "span"));
@@ -187,11 +192,15 @@ public sealed class QuerySelectorTests
 	[TestMethod]
 	public void GetElementsByClassNameFindsAllDescendantsWithTheClass()
 	{
-		var document = HtmlDocument.Parse("<div class=\"c\"><p class=\"a c\">1</p><span class=\"cc\">2</span></div><p class=\"c\">3</p>");
+		var document = HtmlDocument.Parse("<div class=\"c\"><p class=\"a c\">1</p><span class=\"cc\">2</span><span><p class=\"c a\">3</p></span></div><p class=\"c\">4</p>");
 		var div = document.Elements().First();
 
-		Assert.AreSequenceEqual(["div", "p", "p"], document.GetElementsByClassName("c").Names());
-		Assert.AreSequenceEqual(["p"], div.GetElementsByClassName("c").Names());
+		Assert.AreSequenceEqual(["div", "p", "p", "p"], document.GetElementsByClassName("c").Names());
+		Assert.AreSequenceEqual(["p", "p"], div.GetElementsByClassName("c").Names());
+		Assert.AreSequenceEqual(["1", "3"], document.GetElementsByClassName(new[] { "c", "a" }).Inners());
+		Assert.AreSequenceEqual(["1", "3"], div.GetElementsByClassName(new StringValues(["a", "c"])).Inners());
+		Assert.AreSequenceEqual(["div", "p", "p", "p"], document.GetElementsByClassName(new StringValues("c")).Names());
+		Assert.IsEmpty(document.GetElementsByClassName(new[] { "c", "missing" }));
 	}
 
 	[TestMethod]
@@ -207,7 +216,12 @@ public sealed class QuerySelectorTests
 		Assert.ThrowsExactly<ArgumentException>(() => element.GetElementsByTagName(""));
 		Assert.ThrowsExactly<ArgumentException>(() => element.GetElementsByClassName(""));
 		Assert.ThrowsExactly<ArgumentException>(() => document.GetElementsByClassName("a b"));
-		Assert.ThrowsExactly<ArgumentException>(() => element.QuerySelector(className: ""));
+		Assert.AreEqual("classNames", Assert.ThrowsExactly<ArgumentException>(() => document.GetElementsByClassName(StringValues.Empty)).ParamName);
+		Assert.AreEqual("classNames", Assert.ThrowsExactly<ArgumentException>(() => element.GetElementsByClassName(Array.Empty<string>())).ParamName);
+		Assert.AreEqual("classNames", Assert.ThrowsExactly<ArgumentException>(() => document.GetElementsByClassName(new[] { "a", "" })).ParamName);
+		Assert.AreEqual("classNames", Assert.ThrowsExactly<ArgumentException>(() => element.GetElementsByClassName(new[] { "a", "b c" })).ParamName);
+		Assert.AreEqual("classNames", Assert.ThrowsExactly<ArgumentException>(() => document.GetElementsByClassName(new string?[] { "a", null })).ParamName);
+		Assert.ThrowsExactly<ArgumentException>(() => element.QuerySelector(classNames: ""));
 	}
 
 	[TestMethod]

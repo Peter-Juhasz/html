@@ -56,6 +56,9 @@ internal static class TestHelpers
 	public static List<string> Outers(this ElementsQueryEnumerator elements)
 		=> elements.ToList().ConvertAll(e => e.OuterSpan.ToString());
 
+	public static List<string> Inners(this ElementsQueryEnumerator elements)
+		=> elements.ToList().ConvertAll(e => e.InnerSpan.ToString());
+
 	public static List<string> Names(this AttributesEnumerator attributes)
 		=> attributes.ToList().ConvertAll(a => a.Name);
 }

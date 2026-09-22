@@ -105,47 +105,52 @@ public sealed class LazyEquivalenceTests
 		var lazy = LazyHtmlDocument.Parse(Html);
 		var document = HtmlDocument.Parse(Html);
 
-		var queries = new (string? Element, string? ClassName, (string, string)[] Attributes)[]
+		var queries = new (string? Element, string[] ClassNames, (string, string)[] Attributes)[]
 		{
-			(null, null, []),
-			("a", null, []),
-			("A", null, []),
-			("li", null, []),
-			("td", null, []),
-			("option", null, []),
-			(null, null, [("id", "x")]),
-			("div", null, [("id", "x")]),
-			("p", null, [("id", "x")]),
-			("div", "a", [("id", "x")]),
-			(null, null, [("ID", "x")]),
-			(null, null, [("id", "X")]),
-			(null, null, [("id", "")]),
-			(null, "a", []),
-			(null, "btn", []),
-			("a", "btn", []),
-			(null, null, [("class", "a")]),
-			("a", null, [("class", "btn")]),
-			("a", null, [("rel", "author")]),
-			("a", null, [("class", "btn"), ("rel", "author")]),
-			("a", "btn", [("rel", "author"), ("disabled", "")]),
-			(null, null, [("href", "/2")]),
-			(null, null, [("href", "/1?a=1&amp;b=2")]),
-			(null, null, [("href", "/1?a=1&b=2")]),
-			(null, null, [("class", "zzz")]),
-			("zzz", null, [("class", "a")]),
+			(null, [], []),
+			("a", [], []),
+			("A", [], []),
+			("li", [], []),
+			("td", [], []),
+			("option", [], []),
+			(null, [], [("id", "x")]),
+			("div", [], [("id", "x")]),
+			("p", [], [("id", "x")]),
+			("div", ["a"], [("id", "x")]),
+			(null, [], [("ID", "x")]),
+			(null, [], [("id", "X")]),
+			(null, [], [("id", "")]),
+			(null, ["a"], []),
+			(null, ["btn"], []),
+			("a", ["btn"], []),
+			(null, ["a", "btn"], []),
+			(null, ["btn", "a"], []),
+			("a", ["btn", "a"], [("rel", "author")]),
+			(null, ["a", "a"], []),
+			(null, ["btn", "missing"], []),
+			(null, [], [("class", "a")]),
+			("a", [], [("class", "btn")]),
+			("a", [], [("rel", "author")]),
+			("a", [], [("class", "btn"), ("rel", "author")]),
+			("a", ["btn"], [("rel", "author"), ("disabled", "")]),
+			(null, [], [("href", "/2")]),
+			(null, [], [("href", "/1?a=1&amp;b=2")]),
+			(null, [], [("href", "/1?a=1&b=2")]),
+			(null, [], [("class", "zzz")]),
+			("zzz", [], [("class", "a")]),
 		};
 
-		foreach (var (element, className, attributes) in queries)
+		foreach (var (element, classNames, attributes) in queries)
 		{
 			var required = Array.ConvertAll(attributes, a => KeyValuePair.Create(a.Item1, a.Item2));
 			var expected = new List<string>();
-			foreach (var match in lazy.QuerySelectorAll(element: element, className: className, attributes: required))
+			foreach (var match in lazy.QuerySelectorAll(element: element, classNames: classNames, attributes: required))
 				expected.Add(match.OuterSpan.ToString());
 
-			var actual = document.QuerySelectorAll(element: element, className: className, attributes: required).Outers();
+			var actual = document.QuerySelectorAll(element: element, classNames: classNames, attributes: required).Outers();
 
-			Assert.AreSequenceEqual(expected, actual, $"Mismatch for element={element}, class={className}, attributes={string.Join(",", attributes)}.");
-			Assert.AreEqual(lazy.TryQuerySelector(out _, element: element, className: className, attributes: required), document.TryQuerySelector(out _, element: element, className: className, attributes: required));
+			Assert.AreSequenceEqual(expected, actual, $"Mismatch for element={element}, classes={string.Join(",", classNames)}, attributes={string.Join(",", attributes)}.");
+			Assert.AreEqual(lazy.TryQuerySelector(out _, element: element, classNames: classNames, attributes: required), document.TryQuerySelector(out _, element: element, classNames: classNames, attributes: required));
 		}
 	}
 

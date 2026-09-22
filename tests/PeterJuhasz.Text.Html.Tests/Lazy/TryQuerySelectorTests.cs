@@ -1,4 +1,6 @@
-﻿namespace PeterJuhasz.Text.Html.Tests.Lazy;
+﻿using Microsoft.Extensions.Primitives;
+
+namespace PeterJuhasz.Text.Html.Tests.Lazy;
 
 [TestClass]
 public sealed class TryQuerySelectorTests
@@ -188,10 +190,25 @@ public sealed class TryQuerySelectorTests
 	{
 		var document = LazyHtmlDocument.Parse("<a class=\"button\">1</a><div><a class=\"big btn\">2</a></div><a class=\"btn\">3</a>");
 
-		Assert.IsTrue(document.TryQuerySelector(out var element, className: "btn"));
+		Assert.IsTrue(document.TryQuerySelector(out var element, classNames: "btn"));
 		Assert.AreEqual("<a class=\"big btn\">2</a>", element.OuterSpan.ToString());
-		Assert.IsFalse(document.TryQuerySelector(out _, className: "Btn"));
-		Assert.IsFalse(document.TryQuerySelector(out _, className: "bt"));
+		Assert.IsFalse(document.TryQuerySelector(out _, classNames: "Btn"));
+		Assert.IsFalse(document.TryQuerySelector(out _, classNames: "bt"));
+	}
+
+	[TestMethod]
+	public void MatchesByMultipleClassNames()
+	{
+		var document = LazyHtmlDocument.Parse("<a class=\"btn\">1</a><a class=\"primary\">2</a><div><a class=\"primary big btn\">3</a></div><a class=\"btn primary\">4</a>");
+
+		Assert.IsTrue(document.TryQuerySelector(out var element, classNames: new[] { "btn", "primary" }));
+		Assert.AreEqual("3", element.InnerSpan.ToString());
+		Assert.IsTrue(document.TryQuerySelector(out var reversed, classNames: new[] { "primary", "btn" }));
+		Assert.AreEqual(element, reversed);
+		Assert.IsTrue(document.TryQuerySelector(out var duplicated, classNames: new[] { "btn", "btn" }));
+		Assert.AreEqual("1", duplicated.InnerSpan.ToString());
+		Assert.IsFalse(document.TryQuerySelector(out _, classNames: new[] { "btn", "primary", "missing" }));
+		Assert.IsFalse(document.TryQuerySelector(out _, classNames: new[] { "btn", "Primary" }));
 	}
 
 	[TestMethod]
@@ -199,7 +216,7 @@ public sealed class TryQuerySelectorTests
 	{
 		var document = LazyHtmlDocument.Parse("<a id=\"x\" class=\"btn\">1</a><span id=\"x\" class=\"btn\" href=\"/\">2</span><a id=\"x\" class=\"a btn\" href=\"/\">3</a>");
 
-		Assert.IsTrue(document.TryQuerySelector(out var element, element: "a", className: "btn", attributes: [new("id", "x"), new("href", "/")]));
+		Assert.IsTrue(document.TryQuerySelector(out var element, element: "a", classNames: "btn", attributes: [new("id", "x"), new("href", "/")]));
 		Assert.AreEqual("3", element.InnerSpan.ToString());
 	}
 
@@ -211,7 +228,7 @@ public sealed class TryQuerySelectorTests
 
 		Assert.IsTrue(div.TryQuerySelector(out var byId, attributes: [new("id", "x")]));
 		Assert.AreEqual("1", byId.InnerSpan.ToString());
-		Assert.IsTrue(div.TryQuerySelector(out var byClass, className: "c"));
+		Assert.IsTrue(div.TryQuerySelector(out var byClass, classNames: "c"));
 		Assert.AreEqual("1", byClass.InnerSpan.ToString());
 	}
 
@@ -221,8 +238,8 @@ public sealed class TryQuerySelectorTests
 		var document = LazyHtmlDocument.Parse("<div><a class=\"btn\" id=\"x\">1</a><a class=\"big btn\" id=\"y\">2</a></div><a class=\"btn\" id=\"y\">3</a>");
 		var div = document.Elements().ToList()[0];
 
-		Assert.AreEqual("2", document.QuerySelector(element: "a", className: "btn", attributes: [new("id", "y")])?.InnerSpan.ToString());
-		Assert.AreEqual("2", div.QuerySelector(element: "a", className: "btn", attributes: [new("id", "y")])?.InnerSpan.ToString());
+		Assert.AreEqual("2", document.QuerySelector(element: "a", classNames: "btn", attributes: [new("id", "y")])?.InnerSpan.ToString());
+		Assert.AreEqual("2", div.QuerySelector(element: "a", classNames: "btn", attributes: [new("id", "y")])?.InnerSpan.ToString());
 		Assert.AreEqual("div", document.QuerySelector()?.Name);
 		Assert.AreEqual("a", div.QuerySelector(element: null)?.Name);
 		Assert.IsNull(document.QuerySelector(element: "span"));
@@ -298,6 +315,38 @@ public sealed class TryQuerySelectorTests
 	}
 
 	[TestMethod]
+	public void GetElementsByClassNameFindsAllDescendantsWithTheClass()
+	{
+		var document = LazyHtmlDocument.Parse("<div class=\"c\"><p class=\"c d\">1</p><span><p class=\"d c\">2</p></span></div><p class=\"c\">3</p>");
+		var div = document.Elements().ToList()[0];
+
+		Assert.AreSequenceEqual(["div", "p", "p", "p"], document.GetElementsByClassName("c").Names());
+		Assert.AreSequenceEqual(["p", "p"], div.GetElementsByClassName("c").Names());
+		Assert.AreSequenceEqual(["<p class=\"c d\">1</p>", "<p class=\"d c\">2</p>"], document.GetElementsByClassName(new[] { "c", "d" }).Outers());
+		Assert.AreSequenceEqual(["<p class=\"c d\">1</p>", "<p class=\"d c\">2</p>"], div.GetElementsByClassName(new[] { "d", "c" }).Outers());
+		Assert.AreSequenceEqual(["div", "p", "p", "p"], document.GetElementsByClassName(new StringValues("c")).Names());
+		Assert.IsFalse(document.GetElementsByClassName(new[] { "c", "missing" }).MoveNext());
+	}
+
+	[TestMethod]
+	public void GetElementsByClassNameRejectsInvalidClassNames()
+	{
+		var document = LazyHtmlDocument.Parse("<a></a>");
+		var element = TestHelpers.FirstElement("<a></a>");
+
+		Assert.ThrowsExactly<ArgumentNullException>(() => document.GetElementsByClassName((string)null!));
+		Assert.ThrowsExactly<ArgumentNullException>(() => element.GetElementsByClassName((string)null!));
+		Assert.ThrowsExactly<ArgumentException>(() => document.GetElementsByClassName(""));
+		Assert.ThrowsExactly<ArgumentException>(() => element.GetElementsByClassName(""));
+		Assert.ThrowsExactly<ArgumentException>(() => document.GetElementsByClassName("a b"));
+		Assert.AreEqual("classNames", Assert.ThrowsExactly<ArgumentException>(() => document.GetElementsByClassName(StringValues.Empty)).ParamName);
+		Assert.AreEqual("classNames", Assert.ThrowsExactly<ArgumentException>(() => element.GetElementsByClassName(StringValues.Empty)).ParamName);
+		Assert.AreEqual("classNames", Assert.ThrowsExactly<ArgumentException>(() => document.GetElementsByClassName(new[] { "a", "" })).ParamName);
+		Assert.AreEqual("classNames", Assert.ThrowsExactly<ArgumentException>(() => element.GetElementsByClassName(new[] { "a", "b c" })).ParamName);
+		Assert.AreEqual("classNames", Assert.ThrowsExactly<ArgumentException>(() => document.GetElementsByClassName(new string?[] { "a", null })).ParamName);
+	}
+
+	[TestMethod]
 	public void ShortcutsRejectNullOrEmptyArguments()
 	{
 		var document = LazyHtmlDocument.Parse("<a></a>");
@@ -329,9 +378,9 @@ public sealed class TryQuerySelectorTests
 		var document = LazyHtmlDocument.Parse("<a></a>");
 		var element = TestHelpers.FirstElement("<a></a>");
 
-		Assert.ThrowsExactly<ArgumentException>(() => document.TryQuerySelector(out _, className: ""));
-		Assert.ThrowsExactly<ArgumentException>(() => element.TryQuerySelector(out _, className: ""));
-		Assert.ThrowsExactly<ArgumentException>(() => element.TryQuerySelector(out _, className: "a b"));
+		Assert.ThrowsExactly<ArgumentException>(() => document.TryQuerySelector(out _, classNames: ""));
+		Assert.ThrowsExactly<ArgumentException>(() => element.TryQuerySelector(out _, classNames: ""));
+		Assert.ThrowsExactly<ArgumentException>(() => element.TryQuerySelector(out _, classNames: "a b"));
 	}
 
 	private static KeyValuePair<string, string>[] Attributes(params (string Name, string Value)[] attributes)

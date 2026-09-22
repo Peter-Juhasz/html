@@ -73,7 +73,7 @@ public class ModelHtmlBenchmarks
 	public int QuerySelectorAllByClassName()
 	{
 		var count = 0;
-		foreach (var element in document.QuerySelectorAll(className: "btn"))
+		foreach (var element in document.QuerySelectorAll(classNames: "btn"))
 			count += element.Name.Length;
 		return count;
 	}
