@@ -30,12 +30,13 @@ public sealed class HtmlDocument
 
 	// Finds the elements at any depth in the document that have the given element name (any if null), class
 	// and all of the given attributes with the given values, in document order.
-	public IEnumerable<HtmlElement> QuerySelectorAll(string? element = null, string? className = null, ReadOnlySpan<KeyValuePair<string, string>> attributes = default)
+	// Attribute memory is retained without copying; keep its storage valid until enumeration completes.
+	public IEnumerable<HtmlElement> QuerySelectorAll(string? element = null, string? className = null, ReadOnlyMemory<KeyValuePair<string, string>> attributes = default)
 		=> HtmlElement.Query(Nodes, element, className, attributes);
 
 	// Finds the first element at any depth in the document that has the given element name (any if null), class
 	// and all of the given attributes with the given values.
-	public bool TryQuerySelector([NotNullWhen(true)] out HtmlElement? result, string? element = null, string? className = null, ReadOnlySpan<KeyValuePair<string, string>> attributes = default)
+	public bool TryQuerySelector([NotNullWhen(true)] out HtmlElement? result, string? element = null, string? className = null, ReadOnlyMemory<KeyValuePair<string, string>> attributes = default)
 	{
 		result = QuerySelectorAll(element: element, className: className, attributes: attributes).FirstOrDefault();
 		return result is not null;
@@ -46,13 +47,24 @@ public static partial class Extensions
 {
 	extension(HtmlDocument document)
 	{
-		public HtmlElement? QuerySelector(string? element = null, string? className = null, ReadOnlySpan<KeyValuePair<string, string>> attributes = default)
+		public HtmlElement? QuerySelector(string? element = null, string? className = null, ReadOnlyMemory<KeyValuePair<string, string>> attributes = default)
 			=> document.TryQuerySelector(out var result, element: element, className: className, attributes: attributes) ? result : null;
 
-		public HtmlElement? GetElementById(string id)
+		public bool TryGetElementById(string id, [NotNullWhen(true)] out HtmlElement? result)
 		{
 			ArgumentException.ThrowIfNullOrEmpty(id);
-			return QuerySelector(document, attributes: [new("id", id)]);
+			KeyValuePair<string, string>[] attributes = [new("id", id)];
+			return document.TryQuerySelector(out result, attributes: attributes);
+		}
+
+		public HtmlElement? GetElementById(string id) => document.TryGetElementById(id, out var result) ? result : null;
+
+		// Matches the raw name attribute value case-sensitively, not the tag name.
+		public IEnumerable<HtmlElement> GetElementsByName(string name)
+		{
+			ArgumentException.ThrowIfNullOrEmpty(name);
+			KeyValuePair<string, string>[] attributes = [new("name", name)];
+			return document.QuerySelectorAll(attributes: attributes);
 		}
 
 		public IEnumerable<HtmlElement> GetElementsByTagName(string tagName)

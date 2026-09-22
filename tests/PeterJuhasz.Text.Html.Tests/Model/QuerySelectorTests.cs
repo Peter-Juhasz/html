@@ -28,8 +28,25 @@ public sealed class QuerySelectorTests
 	{
 		var document = HtmlDocument.Parse("<a id=\"x\" class=\"btn\">1</a><span id=\"x\" class=\"btn\" href=\"/\">2</span><a id=\"x\" class=\"a btn\" href=\"/\">3</a>");
 
-		Assert.IsTrue(document.TryQuerySelector(out var element, element: "a", className: "btn", attributes: [new("id", "x"), new("href", "/")]));
+		Assert.IsTrue(document.TryQuerySelector(out var element, element: "a", className: "btn", attributes: TestHelpers.Attributes(("id", "x"), ("href", "/"))));
 		Assert.AreEqual("3", element.InnerSpan.ToString());
+	}
+
+	[TestMethod]
+	public void QueriesUseOnlyTheSpecifiedAttributeMemorySlice()
+	{
+		var document = HtmlDocument.Parse("<div><a class=\"btn\" rel=\"author\">1</a><a class=\"btn\" rel=\"other\">2</a></div><a class=\"btn\" rel=\"author\">3</a>");
+		var div = document.Elements().First();
+		ReadOnlyMemory<KeyValuePair<string, string>> attributes = TestHelpers.Attributes((null!, "ignored"), ("class", "btn"), ("rel", "author"), ("", "ignored")).AsMemory(1, 2);
+
+		Assert.AreSequenceEqual(["1", "3"], document.QuerySelectorAll(element: "a", attributes: attributes).Inners());
+		Assert.AreSequenceEqual(["1"], div.QuerySelectorAll(element: "a", attributes: attributes).Inners());
+		Assert.IsTrue(document.TryQuerySelector(out var first, element: "a", attributes: attributes));
+		Assert.IsTrue(div.TryQuerySelector(out var child, element: "a", attributes: attributes));
+		Assert.AreEqual("1", first.InnerSpan.ToString());
+		Assert.AreSame(first, child);
+		Assert.AreSame(first, document.QuerySelector(element: "a", attributes: attributes));
+		Assert.AreSame(first, div.QuerySelector(element: "a", attributes: attributes));
 	}
 
 	[TestMethod]
@@ -66,9 +83,9 @@ public sealed class QuerySelectorTests
 		var div = document.Elements().First();
 
 		Assert.AreEqual("1", document.QuerySelector(className: "btn")?.InnerSpan.ToString());
-		Assert.AreEqual("1", div.QuerySelector(element: "a", attributes: [new("class", "btn")])?.InnerSpan.ToString());
-		Assert.AreEqual("2", document.QuerySelector(element: "a", className: "btn", attributes: [new("id", "y")])?.InnerSpan.ToString());
-		Assert.AreEqual("2", div.QuerySelector(element: "a", className: "btn", attributes: [new("id", "y")])?.InnerSpan.ToString());
+		Assert.AreEqual("1", div.QuerySelector(element: "a", attributes: TestHelpers.Attributes(("class", "btn")))?.InnerSpan.ToString());
+		Assert.AreEqual("2", document.QuerySelector(element: "a", className: "btn", attributes: TestHelpers.Attributes(("id", "y")))?.InnerSpan.ToString());
+		Assert.AreEqual("2", div.QuerySelector(element: "a", className: "btn", attributes: TestHelpers.Attributes(("id", "y")))?.InnerSpan.ToString());
 		Assert.AreSame(div, document.QuerySelector());
 		Assert.AreSame(div.Elements().First(), div.QuerySelector(element: null));
 		Assert.IsNull(document.QuerySelector(element: "span"));
@@ -93,9 +110,9 @@ public sealed class QuerySelectorTests
 		var document = HtmlDocument.Parse("<div><a>0</a><a id>1</a><a id=\"\">2</a></div>");
 		var div = document.Elements().First();
 
-		Assert.IsTrue(document.TryQuerySelector(out var first, attributes: [new("id", "")]));
+		Assert.IsTrue(document.TryQuerySelector(out var first, attributes: TestHelpers.Attributes(("id", ""))));
 		Assert.AreEqual("<a id>1</a>", first.OuterSpan.ToString());
-		Assert.IsTrue(div.TryQuerySelector(out var child, attributes: [new("id", "")]));
+		Assert.IsTrue(div.TryQuerySelector(out var child, attributes: TestHelpers.Attributes(("id", ""))));
 		Assert.AreSame(first, child);
 	}
 
@@ -112,6 +129,49 @@ public sealed class QuerySelectorTests
 		Assert.IsNull(document.GetElementById("missing"));
 		Assert.IsNull(div.GetElementById("missing"));
 		Assert.IsNull(div.GetElementById("x"));
+	}
+
+	[TestMethod]
+	public void GetElementsByNameFindsAllDescendantsWithTheNameAttribute()
+	{
+		var document = HtmlDocument.Parse("<input name=\"q\"><form name=\"q\"><input name=\"q\"><fieldset><input NAME=\"q\"><select name=\"q\"></select></fieldset><textarea name=\"q\"></textarea></form><button name=\"q\"></button>");
+		var form = document.Elements().ElementAt(1);
+		var matches = document.GetElementsByName(name: "q");
+		var descendants = form.GetElementsByName(name: "q");
+		var names = matches.Names();
+
+		Assert.AreSequenceEqual(["input", "form", "input", "input", "select", "textarea", "button"], names);
+		Assert.AreSequenceEqual(["input", "input", "select", "textarea"], descendants.Names());
+		Assert.AreSequenceEqual(names, matches.Names());
+		Assert.IsEmpty(document.GetElementsByName("missing"));
+		Assert.IsEmpty(form.GetElementsByName("missing"));
+	}
+
+	[TestMethod]
+	[DataRow("<input NAME='q'><input name='Q'><q></q><input id='q'><input name='q-extra'><input name=' q'><input name='q q'>", "q", "<input NAME='q'>")]
+	[DataRow("<input name='x' name='q'><input name='q' name='x'>", "q", "<input name='q' name='x'>")]
+	[DataRow("<input name='a&amp;b'><input name='a&b'>", "a&amp;b", "<input name='a&amp;b'>")]
+	[DataRow("<input name='first last'><input name='first'><input name='last'>", "first last", "<input name='first last'>")]
+	[DataRow("<script><input name='q'></script><!--<input name='q'>--><input name='q'>", "q", "<input name='q'>")]
+	public void GetElementsByNameUsesAttributeMatchingRules(string html, string name, string expected)
+	{
+		var document = HtmlDocument.Parse("<form>" + html + "</form>");
+		var form = document.Elements().First();
+
+		Assert.AreSequenceEqual([expected], document.GetElementsByName(name).Outers());
+		Assert.AreSequenceEqual([expected], form.GetElementsByName(name).Outers());
+	}
+
+	[TestMethod]
+	public void GetElementsByNameRejectsNullOrEmptyNames()
+	{
+		var document = HtmlDocument.Parse("<form></form>");
+		var form = document.Elements().First();
+
+		Assert.AreEqual("name", Assert.ThrowsExactly<ArgumentNullException>(() => document.GetElementsByName(null!)).ParamName);
+		Assert.AreEqual("name", Assert.ThrowsExactly<ArgumentNullException>(() => form.GetElementsByName(null!)).ParamName);
+		Assert.AreEqual("name", Assert.ThrowsExactly<ArgumentException>(() => document.GetElementsByName("")).ParamName);
+		Assert.AreEqual("name", Assert.ThrowsExactly<ArgumentException>(() => form.GetElementsByName("")).ParamName);
 	}
 
 	[TestMethod]

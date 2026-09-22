@@ -50,6 +50,15 @@ public static partial class Extensions
 			return QuerySelector(document, attributes: [new("id", id)]);
 		}
 
+		// Matches the raw name attribute value case-sensitively, not the tag name.
+		public ElementsQueryEnumerator GetElementsByName(string name)
+		{
+			ArgumentException.ThrowIfNullOrEmpty(name);
+			// The returned enumerator retains the filter span, so it needs heap-backed storage.
+			KeyValuePair<string, string>[] attributes = [new("name", name)];
+			return document.QuerySelectorAll(attributes: attributes);
+		}
+
 		public ElementsQueryEnumerator GetElementsByTagName(string tagName)
 		{
 			ArgumentException.ThrowIfNullOrEmpty(tagName);

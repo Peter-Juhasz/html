@@ -245,6 +245,49 @@ public sealed class TryQuerySelectorTests
 	}
 
 	[TestMethod]
+	public void GetElementsByNameFindsAllDescendantsWithTheNameAttribute()
+	{
+		var document = LazyHtmlDocument.Parse("<input name=\"q\"><form name=\"q\"><input name=\"q\"><fieldset><input NAME=\"q\"><select name=\"q\"></select></fieldset><textarea name=\"q\"></textarea></form><button name=\"q\"></button>");
+		var form = document.Elements().ToList()[1];
+		var matches = document.GetElementsByName(name: "q");
+		var descendants = form.GetElementsByName(name: "q");
+		var names = matches.Names();
+
+		Assert.AreSequenceEqual(["input", "form", "input", "input", "select", "textarea", "button"], names);
+		Assert.AreSequenceEqual(["input", "input", "select", "textarea"], descendants.Names());
+		Assert.AreSequenceEqual(names, matches.Names());
+		Assert.IsFalse(document.GetElementsByName("missing").MoveNext());
+		Assert.IsFalse(form.GetElementsByName("missing").MoveNext());
+	}
+
+	[TestMethod]
+	[DataRow("<input NAME='q'><input name='Q'><q></q><input id='q'><input name='q-extra'><input name=' q'><input name='q q'>", "q", "<input NAME='q'>")]
+	[DataRow("<input name='x' name='q'><input name='q' name='x'>", "q", "<input name='q' name='x'>")]
+	[DataRow("<input name='a&amp;b'><input name='a&b'>", "a&amp;b", "<input name='a&amp;b'>")]
+	[DataRow("<input name='first last'><input name='first'><input name='last'>", "first last", "<input name='first last'>")]
+	[DataRow("<script><input name='q'></script><!--<input name='q'>--><input name='q'>", "q", "<input name='q'>")]
+	public void GetElementsByNameUsesAttributeMatchingRules(string html, string name, string expected)
+	{
+		var document = LazyHtmlDocument.Parse("<form>" + html + "</form>");
+		var form = document.Elements().ToList()[0];
+
+		Assert.AreSequenceEqual([expected], document.GetElementsByName(name).Outers());
+		Assert.AreSequenceEqual([expected], form.GetElementsByName(name).Outers());
+	}
+
+	[TestMethod]
+	public void GetElementsByNameRejectsNullOrEmptyNames()
+	{
+		var document = LazyHtmlDocument.Parse("<form></form>");
+		var form = document.Elements().ToList()[0];
+
+		Assert.AreEqual("name", Assert.ThrowsExactly<ArgumentNullException>(() => document.GetElementsByName(null!)).ParamName);
+		Assert.AreEqual("name", Assert.ThrowsExactly<ArgumentNullException>(() => form.GetElementsByName(null!)).ParamName);
+		Assert.AreEqual("name", Assert.ThrowsExactly<ArgumentException>(() => document.GetElementsByName("")).ParamName);
+		Assert.AreEqual("name", Assert.ThrowsExactly<ArgumentException>(() => form.GetElementsByName("")).ParamName);
+	}
+
+	[TestMethod]
 	public void GetElementsByTagNameFindsAllDescendantsWithTheName()
 	{
 		var document = LazyHtmlDocument.Parse("<div><p>1</p><span><p>2</p></span></div><p>3</p>");

@@ -61,12 +61,13 @@ public sealed class HtmlElement : HtmlNode
 
 	// Finds the elements at any depth inside this element that have the given element name (any if null), class
 	// and all of the given attributes with the given values, in document order.
-	public IEnumerable<HtmlElement> QuerySelectorAll(string? element = null, string? className = null, ReadOnlySpan<KeyValuePair<string, string>> attributes = default)
+	// Attribute memory is retained without copying; keep its storage valid until enumeration completes.
+	public IEnumerable<HtmlElement> QuerySelectorAll(string? element = null, string? className = null, ReadOnlyMemory<KeyValuePair<string, string>> attributes = default)
 		=> Query(Nodes, element, className, attributes);
 
 	// Finds the first element at any depth inside this element that has the given element name (any if null), class
 	// and all of the given attributes with the given values.
-	public bool TryQuerySelector([NotNullWhen(true)] out HtmlElement? result, string? element = null, string? className = null, ReadOnlySpan<KeyValuePair<string, string>> attributes = default)
+	public bool TryQuerySelector([NotNullWhen(true)] out HtmlElement? result, string? element = null, string? className = null, ReadOnlyMemory<KeyValuePair<string, string>> attributes = default)
 	{
 		result = QuerySelectorAll(element: element, className: className, attributes: attributes).FirstOrDefault();
 		return result is not null;
@@ -103,17 +104,16 @@ public sealed class HtmlElement : HtmlNode
 		}
 	}
 
-	// The arguments are validated eagerly and the attributes are copied, because the enumeration is deferred.
-	internal static IEnumerable<HtmlElement> Query(ImmutableArray<HtmlNode> nodes, string? element, string? className, ReadOnlySpan<KeyValuePair<string, string>> attributes)
+	// Arguments are validated eagerly; the attribute memory is retained for deferred enumeration.
+	internal static IEnumerable<HtmlElement> Query(ImmutableArray<HtmlNode> nodes, string? element, string? className, ReadOnlyMemory<KeyValuePair<string, string>> attributes)
 	{
-		ElementQuery.ValidateArguments(element, className, attributes);
-		var required = attributes.ToArray();
-		return Descendants(nodes).Where(candidate => candidate.Matches(element, className, required));
+		ElementQuery.ValidateArguments(element, className, attributes.Span);
+		return Descendants(nodes).Where(candidate => candidate.Matches(element, className, attributes));
 	}
 
 	// Same rules as the lazy layer: names are case-insensitive, values are compared as written (case-sensitively, without decoding)
 	// and an attribute without a value matches "".
-	private bool Matches(string? element, string? className, KeyValuePair<string, string>[] attributes)
+	private bool Matches(string? element, string? className, ReadOnlyMemory<KeyValuePair<string, string>> attributes)
 	{
 		if (element is not null && !string.Equals(Name, element, StringComparison.OrdinalIgnoreCase))
 			return false;
@@ -121,7 +121,7 @@ public sealed class HtmlElement : HtmlNode
 		if (className is not null && !(TryGetAttribute("class", out var classAttribute) && ElementQuery.HasClass(classAttribute.ValueSpan, className)))
 			return false;
 
-		foreach (var (attributeName, value) in attributes)
+		foreach (var (attributeName, value) in attributes.Span)
 		{
 			if (!TryGetAttribute(attributeName, out var attribute) || !attribute.ValueSpan.SequenceEqual(value))
 				return false;
@@ -135,13 +135,24 @@ public static partial class Extensions
 {
 	extension(HtmlElement source)
 	{
-		public HtmlElement? QuerySelector(string? element = null, string? className = null, ReadOnlySpan<KeyValuePair<string, string>> attributes = default)
+		public HtmlElement? QuerySelector(string? element = null, string? className = null, ReadOnlyMemory<KeyValuePair<string, string>> attributes = default)
 			=> source.TryQuerySelector(out var child, element: element, className: className, attributes: attributes) ? child : null;
 
-		public HtmlElement? GetElementById(string id)
+		public bool TryGetElementById(string id, [NotNullWhen(true)] out HtmlElement? result)
 		{
 			ArgumentException.ThrowIfNullOrEmpty(id);
-			return QuerySelector(source, attributes: [new("id", id)]);
+			KeyValuePair<string, string>[] attributes = [new("id", id)];
+			return source.TryQuerySelector(out result, attributes: attributes);
+		}
+
+		public HtmlElement? GetElementById(string id) => source.TryGetElementById(id, out var result) ? result : null;
+
+		// Matches the raw name attribute value case-sensitively, not the tag name.
+		public IEnumerable<HtmlElement> GetElementsByName(string name)
+		{
+			ArgumentException.ThrowIfNullOrEmpty(name);
+			KeyValuePair<string, string>[] attributes = [new("name", name)];
+			return source.QuerySelectorAll(attributes: attributes);
 		}
 
 		public IEnumerable<HtmlElement> GetElementsByTagName(string tagName)

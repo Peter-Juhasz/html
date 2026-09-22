@@ -63,7 +63,7 @@ public sealed class QuerySelectorAllTests
 		var document = HtmlDocument.Parse("<input name=\"q\"><q name=\"input\"></q><input name=\"other\">");
 
 		Assert.AreSequenceEqual(["<input name=\"q\">", "<input name=\"other\">"], document.QuerySelectorAll(element: "input").Outers());
-		Assert.AreSequenceEqual(["<input name=\"q\">"], document.QuerySelectorAll(element: "input", attributes: [new("name", "q")]).Outers());
+		Assert.AreSequenceEqual(["<input name=\"q\">"], document.QuerySelectorAll(element: "input", attributes: Attributes(("name", "q"))).Outers());
 	}
 
 	[TestMethod]
@@ -118,7 +118,7 @@ public sealed class QuerySelectorAllTests
 	{
 		var document = HtmlDocument.Parse("<div id=\"a\"><p id=\"b\">1</p><span id=\"a\">2</span></div><a id=a>3</a>");
 
-		Assert.AreSequenceEqual(["div", "span", "a"], document.QuerySelectorAll(attributes: [new("id", "a")]).Names());
+		Assert.AreSequenceEqual(["div", "span", "a"], document.QuerySelectorAll(attributes: Attributes(("id", "a"))).Names());
 	}
 
 	[TestMethod]
@@ -126,7 +126,7 @@ public sealed class QuerySelectorAllTests
 	{
 		var document = HtmlDocument.Parse("<a class=\"btn\">1</a><button class=\"btn\">2</button><a class=\"link\">3</a><div><a class=\"btn\">4</a></div>");
 
-		Assert.AreSequenceEqual(["<a class=\"btn\">1</a>", "<a class=\"btn\">4</a>"], document.QuerySelectorAll(element: "a", attributes: [new("class", "btn")]).Outers());
+		Assert.AreSequenceEqual(["<a class=\"btn\">1</a>", "<a class=\"btn\">4</a>"], document.QuerySelectorAll(element: "a", attributes: Attributes(("class", "btn"))).Outers());
 	}
 
 	[TestMethod]
@@ -138,7 +138,7 @@ public sealed class QuerySelectorAllTests
 			"<input type=\"hidden\" name=\"q\">" +
 			"<input name=\"q\" type=\"text\" id=\"search\">");
 
-		var matches = document.QuerySelectorAll(element: "input", attributes: [new("type", "text"), new("name", "q")]).Outers();
+		var matches = document.QuerySelectorAll(element: "input", attributes: Attributes(("type", "text"), ("name", "q"))).Outers();
 
 		Assert.AreSequenceEqual(["<input type=\"text\" name=\"q\">", "<input name=\"q\" type=\"text\" id=\"search\">"], matches);
 	}
@@ -194,7 +194,7 @@ public sealed class QuerySelectorAllTests
 		var document = HtmlDocument.Parse("<div><p class=\"x\" id=\"y\">1</p></div>");
 
 		Assert.IsEmpty(document.QuerySelectorAll(element: "div", attributes: Attributes(("class", "x"))));
-		Assert.IsEmpty(document.QuerySelectorAll(element: "div", attributes: [new("id", "y")]));
+		Assert.IsEmpty(document.QuerySelectorAll(element: "div", attributes: Attributes(("id", "y"))));
 		Assert.IsEmpty(document.QuerySelectorAll(element: "div", className: "x"));
 		Assert.AreSequenceEqual(["p"], document.QuerySelectorAll(attributes: Attributes(("class", "x"))).Names());
 	}
@@ -204,8 +204,8 @@ public sealed class QuerySelectorAllTests
 	{
 		var document = HtmlDocument.Parse("<div id=\"a\"><p id=\"b\">1</p><span id=\"a\">2</span></div><a id=a>3</a>");
 
-		Assert.AreSequenceEqual(["div", "span", "a"], document.QuerySelectorAll(attributes: [new("id", "a")]).Names());
-		Assert.AreSequenceEqual(["span"], document.QuerySelectorAll(element: "span", attributes: [new("id", "a")]).Names());
+		Assert.AreSequenceEqual(["div", "span", "a"], document.QuerySelectorAll(attributes: Attributes(("id", "a"))).Names());
+		Assert.AreSequenceEqual(["span"], document.QuerySelectorAll(element: "span", attributes: Attributes(("id", "a"))).Names());
 	}
 
 	[TestMethod]
@@ -213,7 +213,7 @@ public sealed class QuerySelectorAllTests
 	{
 		var document = HtmlDocument.Parse("<div id=\"Main\">1</div><div id=\"main-content\">2</div><div id=\"main\">3</div><div id=\" main\">4</div><div id>5</div><div class=\"main\">6</div>");
 
-		Assert.AreSequenceEqual(["<div id=\"main\">3</div>"], document.QuerySelectorAll(attributes: [new("id", "main")]).Outers());
+		Assert.AreSequenceEqual(["<div id=\"main\">3</div>"], document.QuerySelectorAll(attributes: Attributes(("id", "main"))).Outers());
 	}
 
 	[TestMethod]
@@ -222,8 +222,8 @@ public sealed class QuerySelectorAllTests
 		var document = HtmlDocument.Parse("<div><a id>1</a><a id=\"\">2</a><a>3</a><a id=\"x\">4</a></div>");
 		var div = document.Elements().First();
 
-		Assert.AreSequenceEqual(["<a id>1</a>", "<a id=\"\">2</a>"], document.QuerySelectorAll(attributes: [new("id", "")]).Outers());
-		Assert.AreSequenceEqual(["<a id>1</a>", "<a id=\"\">2</a>"], div.QuerySelectorAll(attributes: [new("id", "")]).Outers());
+		Assert.AreSequenceEqual(["<a id>1</a>", "<a id=\"\">2</a>"], document.QuerySelectorAll(attributes: Attributes(("id", ""))).Outers());
+		Assert.AreSequenceEqual(["<a id>1</a>", "<a id=\"\">2</a>"], div.QuerySelectorAll(attributes: Attributes(("id", ""))).Outers());
 	}
 
 	[TestMethod]
@@ -256,7 +256,7 @@ public sealed class QuerySelectorAllTests
 			"<span id=\"x\" class=\"btn\" href=\"/\">5</span>" +
 			"<div><a href=\"/\" class=\"big btn\" id=\"x\">6</a></div>");
 
-		var matches = document.QuerySelectorAll(element: "a", className: "btn", attributes: [new("id", "x"), new("href", "/")]).Inners();
+		var matches = document.QuerySelectorAll(element: "a", className: "btn", attributes: Attributes(("id", "x"), ("href", "/"))).Inners();
 
 		Assert.AreSequenceEqual(["1", "6"], matches);
 	}
@@ -267,7 +267,7 @@ public sealed class QuerySelectorAllTests
 		var document = HtmlDocument.Parse("<a id=\"x\" class=\"c\">0</a><div><a id=\"x\" class=\"c\">1</a><p><a class=\"y\">2</a></p></div><a id=\"x\" class=\"c\">3</a>");
 		var div = document.Elements().ElementAt(1);
 
-		Assert.AreSequenceEqual(["1"], div.QuerySelectorAll(attributes: [new("id", "x")]).Inners());
+		Assert.AreSequenceEqual(["1"], div.QuerySelectorAll(attributes: Attributes(("id", "x"))).Inners());
 		Assert.AreSequenceEqual(["1"], div.QuerySelectorAll(className: "c").Inners());
 		Assert.AreSequenceEqual(["1"], div.QuerySelectorAll(element: "a", attributes: Attributes(("class", "c"))).Inners());
 	}
@@ -288,14 +288,33 @@ public sealed class QuerySelectorAllTests
 	}
 
 	[TestMethod]
-	public void ResultIsNotAffectedByLaterChangesToTheAttributes()
+	public void EmptyAttributeMemoryDoesNotApplyFilters()
 	{
-		var document = HtmlDocument.Parse("<a class=\"x\">1</a><a class=\"y\">2</a>");
-		var attributes = Attributes(("class", "x"));
+		var document = HtmlDocument.Parse("<div><a>1</a><b>2</b></div>");
+		var div = document.Elements().First();
+		ReadOnlyMemory<KeyValuePair<string, string>> attributes = Attributes(("", "ignored")).AsMemory(1, 0);
 
-		var query = document.QuerySelectorAll(attributes: attributes);
-		attributes[0] = KeyValuePair.Create("class", "y");
+		Assert.AreSequenceEqual(["div", "a", "b"], document.QuerySelectorAll(attributes: attributes).Names());
+		Assert.AreSequenceEqual(["a", "b"], div.QuerySelectorAll(attributes: ReadOnlyMemory<KeyValuePair<string, string>>.Empty).Names());
+	}
+
+	[TestMethod]
+	public void ResultsUseTheRetainedAttributeMemory()
+	{
+		var document = HtmlDocument.Parse("<div><a class=\"x\">1</a><a class=\"y\">2</a></div>");
+		var div = document.Elements().First();
+		var attributes = Attributes(("class", "x"));
+		ReadOnlyMemory<KeyValuePair<string, string>> memory = attributes;
+
+		var query = document.QuerySelectorAll(attributes: memory);
+		var descendants = div.QuerySelectorAll(attributes: memory);
 
 		Assert.AreSequenceEqual(["1"], query.Inners());
+		Assert.AreSequenceEqual(["1"], descendants.Inners());
+
+		attributes[0] = KeyValuePair.Create("class", "y");
+
+		Assert.AreSequenceEqual(["2"], query.Inners());
+		Assert.AreSequenceEqual(["2"], descendants.Inners());
 	}
 }
