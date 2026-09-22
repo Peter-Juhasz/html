@@ -483,6 +483,18 @@ public sealed class QuerySelectorAllTests
 	}
 
 	[TestMethod]
+	public void ClassNameMatchesTheDecodedAttributeValue()
+	{
+		var document = LazyHtmlDocument.Parse("<a class=\"a&amp;b\">1</a><a class=\"a&b\">2</a><a class=\"&#98;tn&#32;x\">3</a><a class=\"btn\">4</a><a class=\"x&nbsp;btn\">5</a>");
+
+		Assert.AreSequenceEqual(["1", "2"], document.QuerySelectorAll(classNames: "a&b").Inners());
+		Assert.AreSequenceEqual(["3", "4"], document.QuerySelectorAll(classNames: "btn").Inners());
+		Assert.AreSequenceEqual(["3"], document.QuerySelectorAll(classNames: new[] { "x", "btn" }).Inners());
+		Assert.AreSequenceEqual(["5"], document.QuerySelectorAll(classNames: "x\u00a0btn").Inners());
+		Assert.IsFalse(document.QuerySelectorAll(classNames: "a&amp;b").MoveNext());
+	}
+
+	[TestMethod]
 	public void MissingOrEmptyClassAttributeDoesNotMatch()
 	{
 		var document = LazyHtmlDocument.Parse("<a>1</a><a class>2</a><a class=\"\">3</a><a class=\"  \">4</a><a id=\"btn\">5</a>");

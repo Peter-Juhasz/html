@@ -112,8 +112,8 @@ public sealed class HtmlElement : HtmlNode
 		return Descendants(nodes).Where(candidate => candidate.Matches(element, classNames, attributes));
 	}
 
-	// Same rules as the lazy layer: names are case-insensitive, values are compared as written (case-sensitively, without decoding)
-	// and an attribute without a value matches "".
+	// Same rules as the lazy layer: names are case-insensitive, attribute values are compared as written (case-sensitively,
+	// without decoding), an attribute without a value matches "", and class names are matched against the decoded class list.
 	private bool Matches(string? element, StringValues classNames, ReadOnlyMemory<KeyValuePair<string, string>> attributes)
 	{
 		if (element is not null && !string.Equals(Name, element, StringComparison.OrdinalIgnoreCase))
@@ -177,5 +177,16 @@ public static partial class Extensions
 
 		public HtmlAttribute? GetAttribute(string name)
 			=> source.TryGetAttribute(name, out var attribute) ? attribute : null;
+
+		public bool HasClass(string className)
+		{
+			ArgumentException.ThrowIfNullOrEmpty(className);
+			return source.TryGetAttribute("class", out var attribute) && ElementQuery.HasClass(attribute.ValueSpan, className);
+		}
+
+		public bool HasClass(StringValues classNames)
+		{
+			return source.TryGetAttribute("class", out var attribute) && ElementQuery.HasClasses(attribute.ValueSpan, classNames);
+		}
 	}
 }

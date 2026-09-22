@@ -196,5 +196,16 @@ public static partial class Extensions
 		{
 			return source.TryGetAttribute(name, out var attribute) ? attribute : null;
 		}
+
+		public bool HasClass(string className)
+		{
+			ArgumentException.ThrowIfNullOrEmpty(className);
+			return source.TryGetAttribute("class", out var attribute) && ElementQuery.HasClass(attribute.ValueSpan, className);
+		}
+
+		public bool HasClass(StringValues classNames)
+		{
+			return source.TryGetAttribute("class", out var attribute) && ElementQuery.HasClasses(attribute.ValueSpan, classNames);
+		}
 	}
 }

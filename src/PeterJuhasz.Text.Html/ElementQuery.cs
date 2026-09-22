@@ -1,8 +1,10 @@
 ﻿using Microsoft.Extensions.Primitives;
+using System.Diagnostics.CodeAnalysis;
 
 namespace PeterJuhasz.Text.Html;
 
 // Argument validation and matching rules shared by the lazy and model query implementations.
+[PerformanceCritical]
 internal static class ElementQuery
 {
 	public static void ValidateArguments(string? element, StringValues classNames, ReadOnlySpan<KeyValuePair<string, string>> attributes)
@@ -44,20 +46,59 @@ internal static class ElementQuery
 			ArgumentException.ThrowIfNullOrEmpty(attribute.Key, nameof(attributes));
 	}
 
-	// Checks whether the whitespace-separated class list contains every one of the class names.
+	// Checks whether the class attribute value, as written in the document, contains every one of the class names.
 	public static bool HasClasses(ReadOnlySpan<char> classes, StringValues classNames)
 	{
-		foreach (var className in classNames)
-		{
-			if (!HasClass(classes, className))
-				return false;
-		}
+		if (classNames.Count == 0)
+			return true;
 
-		return true;
+		return HasDecodedClasses(Decode(classes), classNames);
 	}
 
-	// Checks whether the whitespace-separated class list contains the class name.
+	// Checks whether the class attribute value, as written in the document, contains the class name.
 	public static bool HasClass(ReadOnlySpan<char> classes, ReadOnlySpan<char> className)
+	{
+		return HasDecodedClass(Decode(classes), className);
+	}
+
+	// Character references must be decoded before splitting, because e.g. "&#32;" is a separator and "&amp;" is not.
+	// Most class lists have none, so the value is only decoded when it may contain one.
+	private static ReadOnlySpan<char> Decode(ReadOnlySpan<char> classes)
+	{
+		return classes.Contains('&') ? HtmlDecoder.HtmlDecode(classes) : classes;
+	}
+
+	// Splits the whitespace-separated class list only once, ticking off each class name as its token is found.
+	private static bool HasDecodedClasses(ReadOnlySpan<char> classes, StringValues classNames)
+	{
+		var count = classNames.Count;
+		if (count == 1)
+			return HasDecodedClass(classes, classNames[0]);
+
+		Span<bool> found = count <= 32 ? stackalloc bool[count] : new bool[count];
+		var remaining = count;
+
+		foreach (var range in classes.SplitAny(SyntaxFacts.Whitespace))
+		{
+			var token = classes[range];
+			if (token.IsEmpty)
+				continue;
+
+			for (var i = 0; i < count; i++)
+			{
+				if (!found[i] && token.SequenceEqual(classNames[i]))
+				{
+					found[i] = true;
+					if (--remaining == 0)
+						return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	private static bool HasDecodedClass(ReadOnlySpan<char> classes, ReadOnlySpan<char> className)
 	{
 		foreach (var range in classes.SplitAny(SyntaxFacts.Whitespace))
 		{
