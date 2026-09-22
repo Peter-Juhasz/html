@@ -14,18 +14,18 @@ public readonly struct LazyHtmlDocument(StringSegment document)
 	// Enumerates the elements, text and comments at the top level of the document.
 	public NodesEnumerator Nodes() => new(document, 0, document.Length);
 
-	// Finds the elements at any depth in the document that have the given name (any name if null), id, class
+	// Finds the elements at any depth in the document that have the given element name (any if null), class
 	// and all of the given attributes with the given values, in document order.
-	public ElementsQueryEnumerator QuerySelectorAll(string? name = null, string? id = null, string? className = null, ReadOnlySpan<KeyValuePair<string, string>> attributes = default)
-		=> new(document, name, id, className, attributes, 0, document.Length);
+	public ElementsQueryEnumerator QuerySelectorAll(string? element = null, string? className = null, ReadOnlySpan<KeyValuePair<string, string>> attributes = default)
+		=> new(document, element, className, attributes, 0, document.Length);
 
-	// Finds the first element at any depth in the document that has the given name (any name if null), id, class
+	// Finds the first element at any depth in the document that has the given element name (any if null), class
 	// and all of the given attributes with the given values.
-	public bool TryQuerySelector(out LazyHtmlElement element, string? name = null, string? id = null, string? className = null, ReadOnlySpan<KeyValuePair<string, string>> attributes = default)
+	public bool TryQuerySelector(out LazyHtmlElement result, string? element = null, string? className = null, ReadOnlySpan<KeyValuePair<string, string>> attributes = default)
 	{
-		var elements = QuerySelectorAll(name: name, id: id, className: className, attributes: attributes);
+		var elements = QuerySelectorAll(element: element, className: className, attributes: attributes);
 		var found = elements.MoveNext();
-		element = found ? elements.Current : default;
+		result = found ? elements.Current : default;
 		return found;
 	}
 }
@@ -34,11 +34,11 @@ public static partial class Extensions
 {
 	extension(LazyHtmlDocument document)
 	{
-		public LazyHtmlElement? QuerySelector(string? name = null, string? id = null, string? className = null, ReadOnlySpan<KeyValuePair<string, string>> attributes = default)
+		public LazyHtmlElement? QuerySelector(string? element = null, string? className = null, ReadOnlySpan<KeyValuePair<string, string>> attributes = default)
 		{
-			if (document.TryQuerySelector(out var element, name: name, id: id, className: className, attributes: attributes))
+			if (document.TryQuerySelector(out var result, element: element, className: className, attributes: attributes))
 			{
-				return element;
+				return result;
 			}
 
 			return null;
@@ -47,13 +47,13 @@ public static partial class Extensions
 		public LazyHtmlElement? GetElementById(string id)
 		{
 			ArgumentException.ThrowIfNullOrEmpty(id);
-			return QuerySelector(document, id: id);
+			return QuerySelector(document, attributes: [new("id", id)]);
 		}
 
 		public ElementsQueryEnumerator GetElementsByTagName(string tagName)
 		{
 			ArgumentException.ThrowIfNullOrEmpty(tagName);
-			return document.QuerySelectorAll(name: tagName);
+			return document.QuerySelectorAll(element: tagName);
 		}
 
 		public ElementsQueryEnumerator GetElementsByClassName(string className)

@@ -77,20 +77,20 @@ public readonly struct LazyHtmlElement
 		return new(_document, _contentStart, _contentEnd, isRawText, isLiteral: isRawText && !SyntaxFacts.IsEscapableRawTextElement(NameSpan));
 	}
 
-	// Finds the elements at any depth inside this element that have the given name (any name if null), id, class
+	// Finds the elements at any depth inside this element that have the given element name (any if null), class
 	// and all of the given attributes with the given values, in document order.
-	public ElementsQueryEnumerator QuerySelectorAll(string? name = null, string? id = null, string? className = null, ReadOnlySpan<KeyValuePair<string, string>> attributes = default)
+	public ElementsQueryEnumerator QuerySelectorAll(string? element = null, string? className = null, ReadOnlySpan<KeyValuePair<string, string>> attributes = default)
 		=> SyntaxFacts.IsRawTextElement(NameSpan)
-			? new(_document, name, id, className, attributes, _contentEnd, _contentEnd)
-			: new(_document, name, id, className, attributes, _contentStart, _contentEnd);
+			? new(_document, element, className, attributes, _contentEnd, _contentEnd)
+			: new(_document, element, className, attributes, _contentStart, _contentEnd);
 
-	// Finds the first element at any depth inside this element that has the given name (any name if null), id, class
+	// Finds the first element at any depth inside this element that has the given element name (any if null), class
 	// and all of the given attributes with the given values.
-	public bool TryQuerySelector(out LazyHtmlElement element, string? name = null, string? id = null, string? className = null, ReadOnlySpan<KeyValuePair<string, string>> attributes = default)
+	public bool TryQuerySelector(out LazyHtmlElement result, string? element = null, string? className = null, ReadOnlySpan<KeyValuePair<string, string>> attributes = default)
 	{
-		var elements = QuerySelectorAll(name: name, id: id, className: className, attributes: attributes);
+		var elements = QuerySelectorAll(element: element, className: className, attributes: attributes);
 		var found = elements.MoveNext();
-		element = found ? elements.Current : default;
+		result = found ? elements.Current : default;
 		return found;
 	}
 
@@ -146,11 +146,11 @@ public readonly struct LazyHtmlElement
 
 public static partial class Extensions
 {
-	extension(LazyHtmlElement element)
+	extension(LazyHtmlElement source)
 	{
-		public LazyHtmlElement? QuerySelector(string? name = null, string? id = null, string? className = null, ReadOnlySpan<KeyValuePair<string, string>> attributes = default)
+		public LazyHtmlElement? QuerySelector(string? element = null, string? className = null, ReadOnlySpan<KeyValuePair<string, string>> attributes = default)
 		{
-			if (element.TryQuerySelector(out var child, name: name, id: id, className: className, attributes: attributes))
+			if (source.TryQuerySelector(out var child, element: element, className: className, attributes: attributes))
 			{
 				return child;
 			}
@@ -161,24 +161,24 @@ public static partial class Extensions
 		public LazyHtmlElement? GetElementById(string id)
 		{
 			ArgumentException.ThrowIfNullOrEmpty(id);
-			return QuerySelector(element, id: id);
+			return QuerySelector(source, attributes: [new("id", id)]);
 		}
 
 		public ElementsQueryEnumerator GetElementsByTagName(string tagName)
 		{
 			ArgumentException.ThrowIfNullOrEmpty(tagName);
-			return element.QuerySelectorAll(name: tagName);
+			return source.QuerySelectorAll(element: tagName);
 		}
 
 		public ElementsQueryEnumerator GetElementsByClassName(string className)
 		{
 			ArgumentException.ThrowIfNullOrEmpty(className);
-			return element.QuerySelectorAll(className: className);
+			return source.QuerySelectorAll(className: className);
 		}
 
 		public LazyHtmlAttribute? GetAttribute(string name)
 		{
-			return element.TryGetAttribute(name, out var attribute) ? attribute : null;
+			return source.TryGetAttribute(name, out var attribute) ? attribute : null;
 		}
 	}
 }

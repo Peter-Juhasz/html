@@ -45,16 +45,16 @@ public class LazyHtmlBenchmarks
 	public int QuerySelectorAll()
 	{
 		var count = 0;
-		foreach (var element in document.QuerySelectorAll(name: "a"))
+		foreach (var element in document.QuerySelectorAll(element: "a"))
 			count += element.NameSpan.Length;
 		return count;
 	}
 
 	[Benchmark]
-	public int QuerySelectorAllByNameAndAttribute()
+	public int QuerySelectorAllByElementAndAttribute()
 	{
 		var count = 0;
-		foreach (var element in document.QuerySelectorAll(name: "a", attributes: [new("class", "btn")]))
+		foreach (var element in document.QuerySelectorAll(element: "a", attributes: [new("class", "btn")]))
 			count += element.NameSpan.Length;
 		return count;
 	}
@@ -69,8 +69,8 @@ public class LazyHtmlBenchmarks
 	}
 
 	[Benchmark]
-	public int TryQuerySelectorByNameAndAttribute()
-		=> document.TryQuerySelector(out var element, name: "a", attributes: [new("class", "btn"), new("rel", "author")]) ? element.OuterSpan.Length : 0;
+	public int TryQuerySelectorByElementAndAttribute()
+		=> document.TryQuerySelector(out var element, element: "a", attributes: [new("class", "btn"), new("rel", "author")]) ? element.OuterSpan.Length : 0;
 
 	[Benchmark]
 	public int QuerySelectorAllByClassName()
@@ -83,8 +83,8 @@ public class LazyHtmlBenchmarks
 
 	// The id is near the end of the sample, so most of the document is scanned.
 	[Benchmark]
-	public int TryQuerySelectorById()
-		=> document.TryQuerySelector(out var element, id: "article-40") ? element.OuterSpan.Length : 0;
+	public int TryQuerySelectorByIdAttribute()
+		=> document.TryQuerySelector(out var element, attributes: [new("id", "article-40")]) ? element.OuterSpan.Length : 0;
 
 	// The same search done by descending through Elements() recursively, for comparison.
 	[Benchmark]

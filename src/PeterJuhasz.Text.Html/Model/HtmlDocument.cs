@@ -28,17 +28,17 @@ public sealed class HtmlDocument
 	// Enumerates the elements at any depth in the document, in document order.
 	public IEnumerable<HtmlElement> Descendants() => HtmlElement.Descendants(Nodes);
 
-	// Finds the elements at any depth in the document that have the given name (any name if null), id, class
+	// Finds the elements at any depth in the document that have the given element name (any if null), class
 	// and all of the given attributes with the given values, in document order.
-	public IEnumerable<HtmlElement> QuerySelectorAll(string? name = null, string? id = null, string? className = null, ReadOnlySpan<KeyValuePair<string, string>> attributes = default)
-		=> HtmlElement.Query(Nodes, name, id, className, attributes);
+	public IEnumerable<HtmlElement> QuerySelectorAll(string? element = null, string? className = null, ReadOnlySpan<KeyValuePair<string, string>> attributes = default)
+		=> HtmlElement.Query(Nodes, element, className, attributes);
 
-	// Finds the first element at any depth in the document that has the given name (any name if null), id, class
+	// Finds the first element at any depth in the document that has the given element name (any if null), class
 	// and all of the given attributes with the given values.
-	public bool TryQuerySelector([NotNullWhen(true)] out HtmlElement? element, string? name = null, string? id = null, string? className = null, ReadOnlySpan<KeyValuePair<string, string>> attributes = default)
+	public bool TryQuerySelector([NotNullWhen(true)] out HtmlElement? result, string? element = null, string? className = null, ReadOnlySpan<KeyValuePair<string, string>> attributes = default)
 	{
-		element = QuerySelectorAll(name: name, id: id, className: className, attributes: attributes).FirstOrDefault();
-		return element is not null;
+		result = QuerySelectorAll(element: element, className: className, attributes: attributes).FirstOrDefault();
+		return result is not null;
 	}
 }
 
@@ -46,19 +46,19 @@ public static partial class Extensions
 {
 	extension(HtmlDocument document)
 	{
-		public HtmlElement? QuerySelector(string? name = null, string? id = null, string? className = null, ReadOnlySpan<KeyValuePair<string, string>> attributes = default)
-			=> document.TryQuerySelector(out var element, name: name, id: id, className: className, attributes: attributes) ? element : null;
+		public HtmlElement? QuerySelector(string? element = null, string? className = null, ReadOnlySpan<KeyValuePair<string, string>> attributes = default)
+			=> document.TryQuerySelector(out var result, element: element, className: className, attributes: attributes) ? result : null;
 
 		public HtmlElement? GetElementById(string id)
 		{
 			ArgumentException.ThrowIfNullOrEmpty(id);
-			return QuerySelector(document, id: id);
+			return QuerySelector(document, attributes: [new("id", id)]);
 		}
 
 		public IEnumerable<HtmlElement> GetElementsByTagName(string tagName)
 		{
 			ArgumentException.ThrowIfNullOrEmpty(tagName);
-			return document.QuerySelectorAll(name: tagName);
+			return document.QuerySelectorAll(element: tagName);
 		}
 
 		public IEnumerable<HtmlElement> GetElementsByClassName(string className)

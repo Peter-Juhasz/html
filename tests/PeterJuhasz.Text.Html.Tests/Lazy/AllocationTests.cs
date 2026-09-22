@@ -122,26 +122,26 @@ public sealed class AllocationTests
 	private static int CountQuerySelector(LazyHtmlDocument document)
 	{
 		var count = 0;
-		foreach (var element in document.QuerySelectorAll(name: "div"))
+		foreach (var element in document.QuerySelectorAll(element: "div"))
 		{
 			count += element.OuterSpan.Length;
-			foreach (var link in element.QuerySelectorAll(name: "a"))
+			foreach (var link in element.QuerySelectorAll(element: "a"))
 			{
 				if (link.TryGetAttribute("href", out var href))
 					count += href.ValueSpan.Length;
 			}
 
-			foreach (var script in element.QuerySelectorAll(name: "script"))
+			foreach (var script in element.QuerySelectorAll(element: "script"))
 				count += script.InnerSpan.Length;
 
-			if (element.TryQuerySelector(out var bold, name: "b"))
+			if (element.TryQuerySelector(out var bold, element: "b"))
 				count += bold.InnerSpan.Length;
 		}
 
-		if (document.TryQuerySelector(out var title, name: "title"))
+		if (document.TryQuerySelector(out var title, element: "title"))
 			count += title.InnerSpan.Length;
 
-		count += document.TryQuerySelector(out _, name: "missing") ? 0 : 1;
+		count += document.TryQuerySelector(out _, element: "missing") ? 0 : 1;
 
 		foreach (var element in document.QuerySelectorAll(attributes: ClassQuery))
 			count += element.NameSpan.Length;
@@ -149,34 +149,42 @@ public sealed class AllocationTests
 		foreach (var element in document.QuerySelectorAll())
 			count++;
 
-		if (document.TryQuerySelector(out var anchor, name: "a", attributes: LinkQuery))
+		if (document.TryQuerySelector(out var anchor, element: "a", attributes: LinkQuery))
 			count += anchor.InnerSpan.Length;
 
 		count += document.TryQuerySelector(out _, attributes: LinkQuery) ? 1 : 0;
 
 		// inline attributes are stack-allocated by the compiler, so these must not allocate either
-		foreach (var element in document.QuerySelectorAll(name: "a", attributes: [new("target", "_blank")]))
+		foreach (var element in document.QuerySelectorAll(element: "a", attributes: [new("target", "_blank")]))
 			count += element.NameSpan.Length;
 
 		foreach (var element in document.QuerySelectorAll(attributes: [new("class", "a"), new("id", "x")]))
 			count += element.NameSpan.Length;
 
-		if (document.TryQuerySelector(out var blank, name: "a", attributes: [new("href", "/link?a=1&amp;b=2"), new("target", "_blank")]))
+		if (document.TryQuerySelector(out var blank, element: "a", attributes: [new("href", "/link?a=1&amp;b=2"), new("target", "_blank")]))
 			count += blank.InnerSpan.Length;
 
-		count += document.TryQuerySelector(out _, name: "meta", attributes: [new("charset", "utf-8")]) ? 1 : 0;
+		count += document.TryQuerySelector(out _, element: "meta", attributes: [new("charset", "utf-8")]) ? 1 : 0;
 
-		// id and class matching, including the class list split, must not allocate either
-		foreach (var element in document.QuerySelectorAll(id: "x"))
+		// ID attribute and class matching, including the class list split, must not allocate either
+		foreach (var element in document.QuerySelectorAll(attributes: [new("id", "x")]))
 			count += element.NameSpan.Length;
 
 		foreach (var element in document.QuerySelectorAll(className: "a"))
 			count += element.NameSpan.Length;
 
-		if (document.TryQuerySelector(out var box, name: "div", id: "x", className: "a"))
+		if (document.TryQuerySelector(out var box, element: "div", className: "a", attributes: [new("id", "x")]))
 			count += box.OuterSpan.Length;
 
 		count += document.TryQuerySelector(out _, className: "missing") ? 1 : 0;
+
+		if (document.GetElementById("x") is { } byId)
+			count += byId.OuterSpan.Length;
+
+		if (document.TryQuerySelector(out var body, element: "body") && body.GetElementById("x") is { } childById)
+			count += childById.OuterSpan.Length;
+
+		count += document.GetElementById("missing") is null ? 1 : 0;
 
 		return count;
 	}

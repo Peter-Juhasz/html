@@ -3,13 +3,10 @@
 // Argument validation and matching rules shared by the lazy and model query implementations.
 internal static class ElementQuery
 {
-	public static void ValidateArguments(string? name, string? id, string? className, ReadOnlySpan<KeyValuePair<string, string>> attributes)
+	public static void ValidateArguments(string? element, string? className, ReadOnlySpan<KeyValuePair<string, string>> attributes)
 	{
-		if (name is { Length: 0 })
-			throw new ArgumentException("The element name must not be empty.", nameof(name));
-
-		if (id is { Length: 0 })
-			throw new ArgumentException("The id must not be empty.", nameof(id));
+		if (element is { Length: 0 })
+			throw new ArgumentException("The element name must not be empty.", nameof(element));
 
 		if (className is { Length: 0 } || (className is not null && className.AsSpan().ContainsAny(SyntaxFacts.Whitespace)))
 			throw new ArgumentException("The class name must be a single, non-empty class name.", nameof(className));

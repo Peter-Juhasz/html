@@ -173,7 +173,7 @@ public sealed class NodesTests
 
 		Assert.AreSequenceEqual(["a", "b"], document.Descendants().Names());
 		Assert.AreSequenceEqual(["a", "b"], document.QuerySelectorAll().Names());
-		Assert.IsNull(document.QuerySelector(name: "c"));
+		Assert.IsNull(document.QuerySelector(element: "c"));
 	}
 
 	[TestMethod]

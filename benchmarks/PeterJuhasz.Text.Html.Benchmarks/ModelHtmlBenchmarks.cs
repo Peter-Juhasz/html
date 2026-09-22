@@ -16,7 +16,7 @@ public class ModelHtmlBenchmarks
 	{
 		html = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Samples", "sample.html"));
 		document = HtmlDocument.Parse(html);
-		body = document.QuerySelector(name: "body") ?? throw new InvalidOperationException("Sample has no <body>.");
+		body = document.QuerySelector(element: "body") ?? throw new InvalidOperationException("Sample has no <body>.");
 	}
 
 	[Benchmark]
@@ -37,16 +37,16 @@ public class ModelHtmlBenchmarks
 	public int QuerySelectorAll()
 	{
 		var count = 0;
-		foreach (var element in document.QuerySelectorAll(name: "a"))
+		foreach (var element in document.QuerySelectorAll(element: "a"))
 			count += element.Name.Length;
 		return count;
 	}
 
 	[Benchmark]
-	public int QuerySelectorAllByNameAndAttribute()
+	public int QuerySelectorAllByElementAndAttribute()
 	{
 		var count = 0;
-		foreach (var element in document.QuerySelectorAll(name: "a", attributes: [new("class", "btn")]))
+		foreach (var element in document.QuerySelectorAll(element: "a", attributes: [new("class", "btn")]))
 			count += element.Name.Length;
 		return count;
 	}
@@ -61,8 +61,8 @@ public class ModelHtmlBenchmarks
 	}
 
 	[Benchmark]
-	public int TryQuerySelectorByNameAndAttribute()
-		=> document.TryQuerySelector(out var element, name: "a", attributes: [new("class", "btn"), new("rel", "author")]) ? element.OuterSpan.Length : 0;
+	public int TryQuerySelectorByElementAndAttribute()
+		=> document.TryQuerySelector(out var element, element: "a", attributes: [new("class", "btn"), new("rel", "author")]) ? element.OuterSpan.Length : 0;
 
 	[Benchmark]
 	public int QuerySelectorAllByClassName()
@@ -75,8 +75,8 @@ public class ModelHtmlBenchmarks
 
 	// The id is near the end of the sample, so most of the tree is walked.
 	[Benchmark]
-	public int TryQuerySelectorById()
-		=> document.TryQuerySelector(out var element, id: "article-40") ? element.OuterSpan.Length : 0;
+	public int TryQuerySelectorByIdAttribute()
+		=> document.TryQuerySelector(out var element, attributes: [new("id", "article-40")]) ? element.OuterSpan.Length : 0;
 
 	// Reads every element and attribute so the whole traversal is measured.
 	private sealed class CountingVisitor : HtmlVisitor
