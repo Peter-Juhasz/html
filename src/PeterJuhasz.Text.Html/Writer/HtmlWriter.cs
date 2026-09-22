@@ -52,7 +52,7 @@ public class HtmlWriter<TWriter>(TWriter writer, HtmlEncoder htmlEncoder) where 
 		}
 
 		writer.Write("<!--");
-		WriteEncoded(comment);
+		WriteHtml(comment);
 		writer.Write("-->");
 	}
 
