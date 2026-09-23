@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Primitives;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using PeterJuhasz.Text.Html.Lazy;
 
 namespace PeterJuhasz.Text.Html.Model;
@@ -37,7 +38,52 @@ public sealed class HtmlElement : HtmlNode
 
 	// Concatenated text of the content with all markup removed and character references decoded,
 	// except for the content of script and style, which is taken literally.
-	public string TextContent => _textContent ??= _source.TextContent;
+	public string TextContent => _textContent ??= CreateTextContent();
+
+	// Walks the tree instead of scanning the source again; the result is the same as the lazy layer gives.
+	private string CreateTextContent()
+	{
+		// a single text child is the common case for leaves; its decoded text is shared instead of copied
+		if (Nodes is [HtmlText text])
+			return text.Text;
+
+		if (Nodes.IsEmpty)
+			return IsTruncated ? _source.TextContent : string.Empty;
+
+		using var pooled = StringBuilderPool.GetPooledObject(out var builder);
+		AppendTextContent(builder);
+		return builder.ToString();
+	}
+
+	// Appends the text of the descendants in document order; the recursion is bounded by the depth the parser descends to.
+	private void AppendTextContent(StringBuilder builder)
+	{
+		foreach (var node in Nodes)
+		{
+			switch (node)
+			{
+				case HtmlText text:
+					text.AppendTo(builder);
+					break;
+
+				case HtmlElement { _textContent: { } textContent }:
+					builder.Append(textContent);
+					break;
+
+				case HtmlElement { IsTruncated: true } element:
+					builder.Append(element._source.TextContent);
+					break;
+
+				case HtmlElement element:
+					element.AppendTextContent(builder);
+					break;
+			}
+		}
+	}
+
+	// Content the parser did not descend into (nesting deeper than it follows) is only available in the source.
+	// Content that is made of skipped markup only looks the same, but that has no text either way.
+	private bool IsTruncated => Nodes.IsEmpty && !InnerSpan.IsEmpty;
 
 	// Finds the first attribute with the given name, compared case-insensitively.
 	public bool TryGetAttribute(ReadOnlySpan<char> name, [NotNullWhen(true)] out HtmlAttribute? attribute)

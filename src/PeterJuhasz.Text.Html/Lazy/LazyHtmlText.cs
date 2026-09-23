@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Primitives;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
 
 namespace PeterJuhasz.Text.Html.Lazy;
 
@@ -29,6 +30,15 @@ public readonly struct LazyHtmlText
 
 	// Text with character references decoded, except for the content of script and style, which is taken literally.
 	public string Text => _isLiteral ? TextSpan.ToString() : HtmlDecoder.HtmlDecode(TextSpan);
+
+	// Appends the same text as `Text` without creating a string for it.
+	internal void AppendTo(StringBuilder builder)
+	{
+		if (_isLiteral)
+			builder.Append(TextSpan);
+		else
+			HtmlDecoder.HtmlDecode(TextSpan, builder);
+	}
 
 	public bool IsLiteral => _isLiteral;
 }

@@ -8,15 +8,19 @@ public class ModelHtmlBenchmarks
 {
 	private string html = null!;
 	private HtmlDocument document = null!;
-	private HtmlElement body = null!;
+	private readonly HtmlElement[] bodies = new HtmlElement[TextContentInvocations];
+	private int nextBody;
 	private readonly CountingVisitor visitor = new();
+
+	// The element memoizes TextContent, so the first access is measured on fresh trees parsed before each iteration.
+	// A single invocation per iteration would never let the JIT tier the code up, so a batch of them is measured.
+	private const int TextContentInvocations = 16;
 
 	[GlobalSetup]
 	public void Setup()
 	{
 		html = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Samples", "sample.html"));
 		document = HtmlDocument.Parse(html);
-		body = document.QuerySelector(element: "body") ?? throw new InvalidOperationException("Sample has no <body>.");
 	}
 
 	[Benchmark]
@@ -30,8 +34,17 @@ public class ModelHtmlBenchmarks
 		return visitor.Count;
 	}
 
+	[IterationSetup(Target = nameof(TextContent))]
+	public void ParseBodies()
+	{
+		for (var i = 0; i < bodies.Length; i++)
+			bodies[i] = HtmlDocument.Parse(html).TryGetBody(out var body) ? body : throw new InvalidOperationException("Sample has no <body>.");
+		nextBody = 0;
+	}
+
 	[Benchmark]
-	public string TextContent() => body.TextContent;
+	[InvocationCount(TextContentInvocations, 1)]
+	public string TextContent() => bodies[nextBody++].TextContent;
 
 	[Benchmark]
 	public int QuerySelectorAll()

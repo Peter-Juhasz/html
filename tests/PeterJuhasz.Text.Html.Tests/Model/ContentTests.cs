@@ -68,6 +68,37 @@ public sealed class ContentTests
 	}
 
 	[TestMethod]
+	public void TextContentOfASingleTextChildIsTheTextOfTheChild()
+	{
+		var element = TestHelpers.FirstElement("<p>a &amp; b</p>");
+		var text = (HtmlText)element.Nodes.Single();
+
+		Assert.AreEqual("a & b", element.TextContent);
+		Assert.AreSame(text.Text, element.TextContent);
+	}
+
+	[TestMethod]
+	public void TextContentIsTheSameWhicheverNodeIsReadFirst()
+	{
+		const string html = "<div>a &amp; <p>b<b>c &lt; d</b>e</p><script>f &amp; g</script>h</div>";
+
+		var fresh = TestHelpers.FirstElement(html);
+		var expected = fresh.TextContent;
+
+		var childFirst = TestHelpers.FirstElement(html);
+		foreach (var child in childFirst.Descendants().Reverse())
+			_ = child.TextContent;
+		Assert.AreEqual(expected, childFirst.TextContent);
+
+		var textFirst = TestHelpers.FirstElement(html);
+		foreach (var text in textFirst.Nodes.OfType<HtmlText>())
+			_ = text.Text;
+		Assert.AreEqual(expected, textFirst.TextContent);
+
+		Assert.AreEqual("a & bc < def &amp; gh", expected);
+	}
+
+	[TestMethod]
 	public void TextContentOfRawTextIsNotDecoded()
 	{
 		var element = TestHelpers.FirstElement("<div>a &amp; <script>x = \"&amp;\";</script><title>&lt;b&gt;</title></div>");
