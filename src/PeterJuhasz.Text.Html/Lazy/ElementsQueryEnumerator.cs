@@ -4,12 +4,12 @@ using System.Diagnostics.CodeAnalysis;
 namespace PeterJuhasz.Text.Html.Lazy;
 
 // Enumerates the elements matching an element name, classes and/or attributes at any depth inside a range of the document, in document order.
-// A ref struct so the attributes can be kept as a span, letting callers pass them without allocating.
+// A ref struct so the element name and the attributes can be kept as spans, letting callers pass them without allocating.
 [PerformanceCritical]
 public ref struct ElementsQueryEnumerator
 {
 	private readonly StringSegment _document;
-	private readonly string? _element;
+	private readonly ReadOnlySpan<char> _element;
 	private readonly StringValues _classNames;
 	private readonly ReadOnlySpan<KeyValuePair<string, string>> _attributes;
 	private readonly bool _filtersAttributes;
@@ -17,9 +17,10 @@ public ref struct ElementsQueryEnumerator
 	private int _position;
 	private LazyHtmlElement _current;
 
-	internal ElementsQueryEnumerator(StringSegment document, string? element, StringValues classNames, ReadOnlySpan<KeyValuePair<string, string>> attributes, int start, int end)
+	// An empty element name matches any element.
+	internal ElementsQueryEnumerator(StringSegment document, ReadOnlySpan<char> element, StringValues classNames, ReadOnlySpan<KeyValuePair<string, string>> attributes, int start, int end)
 	{
-		ElementQuery.ValidateArguments(element, classNames, attributes);
+		ElementQuery.ValidateArguments(classNames, attributes);
 
 		_document = document;
 		_element = element;
@@ -55,7 +56,7 @@ public ref struct ElementsQueryEnumerator
 			var isRawText = !isSelfClosing && SyntaxFacts.IsRawTextElement(name);
 
 			// the attributes are only looked at when the name matches, and the element is only scanned when everything matches
-			if ((_element is null || name.Equals(_element, StringComparison.OrdinalIgnoreCase))
+			if ((_element.IsEmpty || name.Equals(_element, StringComparison.OrdinalIgnoreCase))
 				&& (!_filtersAttributes || HasAttributes(index, index + 1 + nameLength, _position)))
 			{
 				_current = new LazyHtmlElement(_document, index);

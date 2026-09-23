@@ -77,16 +77,16 @@ public readonly struct LazyHtmlElement
 		return new(_document, _contentStart, _contentEnd, isRawText, isLiteral: isRawText && !SyntaxFacts.IsEscapableRawTextElement(NameSpan));
 	}
 
-	// Finds the elements at any depth inside this element that have the given element name (any if null), all of the given classes
+	// Finds the elements at any depth inside this element that have the given element name (any if empty), all of the given classes
 	// and all of the given attributes with the given values, in document order.
-	public ElementsQueryEnumerator QuerySelectorAll(string? element = null, StringValues classNames = default, ReadOnlySpan<KeyValuePair<string, string>> attributes = default)
+	public ElementsQueryEnumerator QuerySelectorAll(ReadOnlySpan<char> element = default, StringValues classNames = default, ReadOnlySpan<KeyValuePair<string, string>> attributes = default)
 		=> SyntaxFacts.IsRawTextElement(NameSpan)
 			? new(_document, element, classNames, attributes, _contentEnd, _contentEnd)
 			: new(_document, element, classNames, attributes, _contentStart, _contentEnd);
 
-	// Finds the first element at any depth inside this element that has the given element name (any if null), all of the given classes
+	// Finds the first element at any depth inside this element that has the given element name (any if empty), all of the given classes
 	// and all of the given attributes with the given values.
-	public bool TryQuerySelector(out LazyHtmlElement result, string? element = null, StringValues classNames = default, ReadOnlySpan<KeyValuePair<string, string>> attributes = default)
+	public bool TryQuerySelector(out LazyHtmlElement result, ReadOnlySpan<char> element = default, StringValues classNames = default, ReadOnlySpan<KeyValuePair<string, string>> attributes = default)
 	{
 		var elements = QuerySelectorAll(element: element, classNames: classNames, attributes: attributes);
 		var found = elements.MoveNext();
@@ -148,7 +148,7 @@ public static partial class Extensions
 {
 	extension(LazyHtmlElement source)
 	{
-		public LazyHtmlElement? QuerySelector(string? element = null, StringValues classNames = default, ReadOnlySpan<KeyValuePair<string, string>> attributes = default)
+		public LazyHtmlElement? QuerySelector(ReadOnlySpan<char> element = default, StringValues classNames = default, ReadOnlySpan<KeyValuePair<string, string>> attributes = default)
 		{
 			if (source.TryQuerySelector(out var child, element: element, classNames: classNames, attributes: attributes))
 			{

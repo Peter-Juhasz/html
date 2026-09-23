@@ -10,7 +10,12 @@ internal static class ElementQuery
 	public static void ValidateArguments(string? element, StringValues classNames, ReadOnlySpan<KeyValuePair<string, string>> attributes)
 	{
 		ValidateElement(element);
+		ValidateArguments(classNames, attributes);
+	}
 
+	// Validates the filters other than the element name, for callers where an empty element name means any element.
+	public static void ValidateArguments(StringValues classNames, ReadOnlySpan<KeyValuePair<string, string>> attributes)
+	{
 		foreach (var className in classNames)
 			ValidateClassName(className, nameof(classNames));
 

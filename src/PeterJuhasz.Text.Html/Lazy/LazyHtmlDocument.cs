@@ -14,14 +14,14 @@ public readonly struct LazyHtmlDocument(StringSegment document)
 	// Enumerates the elements, text and comments at the top level of the document.
 	public NodesEnumerator Nodes() => new(document, 0, document.Length);
 
-	// Finds the elements at any depth in the document that have the given element name (any if null), all of the given classes
+	// Finds the elements at any depth in the document that have the given element name (any if empty), all of the given classes
 	// and all of the given attributes with the given values, in document order.
-	public ElementsQueryEnumerator QuerySelectorAll(string? element = null, StringValues classNames = default, ReadOnlySpan<KeyValuePair<string, string>> attributes = default)
+	public ElementsQueryEnumerator QuerySelectorAll(ReadOnlySpan<char> element = default, StringValues classNames = default, ReadOnlySpan<KeyValuePair<string, string>> attributes = default)
 		=> new(document, element, classNames, attributes, 0, document.Length);
 
-	// Finds the first element at any depth in the document that has the given element name (any if null), all of the given classes
+	// Finds the first element at any depth in the document that has the given element name (any if empty), all of the given classes
 	// and all of the given attributes with the given values.
-	public bool TryQuerySelector(out LazyHtmlElement result, string? element = null, StringValues classNames = default, ReadOnlySpan<KeyValuePair<string, string>> attributes = default)
+	public bool TryQuerySelector(out LazyHtmlElement result, ReadOnlySpan<char> element = default, StringValues classNames = default, ReadOnlySpan<KeyValuePair<string, string>> attributes = default)
 	{
 		var elements = QuerySelectorAll(element: element, classNames: classNames, attributes: attributes);
 		var found = elements.MoveNext();
@@ -34,7 +34,7 @@ public static partial class Extensions
 {
 	extension(LazyHtmlDocument document)
 	{
-		public LazyHtmlElement? QuerySelector(string? element = null, StringValues classNames = default, ReadOnlySpan<KeyValuePair<string, string>> attributes = default)
+		public LazyHtmlElement? QuerySelector(ReadOnlySpan<char> element = default, StringValues classNames = default, ReadOnlySpan<KeyValuePair<string, string>> attributes = default)
 		{
 			if (document.TryQuerySelector(out var result, element: element, classNames: classNames, attributes: attributes))
 			{

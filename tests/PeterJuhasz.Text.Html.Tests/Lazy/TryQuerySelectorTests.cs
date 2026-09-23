@@ -124,7 +124,7 @@ public sealed class TryQuerySelectorTests
 	}
 
 	[TestMethod]
-	public void OmittedOrNullElementMatchesTheFirstElementOfAnyName()
+	public void OmittedNullOrEmptyElementMatchesTheFirstElementOfAnyName()
 	{
 		var document = LazyHtmlDocument.Parse("text<!-- c --><html><body></body></html>");
 		var body = TestHelpers.FirstElement("<body><p><b>x</b></p></body>");
@@ -133,6 +133,8 @@ public sealed class TryQuerySelectorTests
 		Assert.AreEqual("html", root.Name);
 		Assert.IsTrue(body.TryQuerySelector(out var first, element: null));
 		Assert.AreEqual("p", first.Name);
+		Assert.IsTrue(body.TryQuerySelector(out var firstOfEmpty, element: ""));
+		Assert.AreEqual("p", firstOfEmpty.Name);
 	}
 
 	[TestMethod]
@@ -359,18 +361,6 @@ public sealed class TryQuerySelectorTests
 		Assert.ThrowsExactly<ArgumentException>(() => element.GetElementById(""));
 		Assert.ThrowsExactly<ArgumentNullException>(() => document.GetElementsByTagName(null!));
 		Assert.ThrowsExactly<ArgumentException>(() => element.GetElementsByTagName(""));
-	}
-
-	[TestMethod]
-	public void EmptyElementThrows()
-	{
-		var document = LazyHtmlDocument.Parse("<a></a>");
-		var element = TestHelpers.FirstElement("<a></a>");
-
-		Assert.AreEqual("element", Assert.ThrowsExactly<ArgumentException>(() => document.TryQuerySelector(out _, element: "")).ParamName);
-		Assert.AreEqual("element", Assert.ThrowsExactly<ArgumentException>(() => element.TryQuerySelector(out _, element: "")).ParamName);
-		Assert.AreEqual("element", Assert.ThrowsExactly<ArgumentException>(() => document.QuerySelector(element: "")).ParamName);
-		Assert.AreEqual("element", Assert.ThrowsExactly<ArgumentException>(() => element.QuerySelector(element: "")).ParamName);
 	}
 
 	[TestMethod]

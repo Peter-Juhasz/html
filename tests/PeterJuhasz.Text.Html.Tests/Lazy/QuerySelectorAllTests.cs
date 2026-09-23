@@ -247,16 +247,6 @@ public sealed class QuerySelectorAllTests
 	}
 
 	[TestMethod]
-	public void EmptyElementThrows()
-	{
-		var document = LazyHtmlDocument.Parse("<a></a>");
-		var element = TestHelpers.FirstElement("<a></a>");
-
-		Assert.AreEqual("element", Assert.ThrowsExactly<ArgumentException>(() => document.QuerySelectorAll(element: "")).ParamName);
-		Assert.AreEqual("element", Assert.ThrowsExactly<ArgumentException>(() => element.QuerySelectorAll(element: "")).ParamName);
-	}
-
-	[TestMethod]
 	public void NullOrEmptyAttributeNameThrows()
 	{
 		var document = LazyHtmlDocument.Parse("<a></a>");
@@ -273,6 +263,7 @@ public sealed class QuerySelectorAllTests
 
 		Assert.AreSequenceEqual(["html", "head", "title", "body", "p", "br", "script"], document.QuerySelectorAll().Names());
 		Assert.AreSequenceEqual(document.QuerySelectorAll().Names(), document.QuerySelectorAll(element: null).Names());
+		Assert.AreSequenceEqual(document.QuerySelectorAll().Names(), document.QuerySelectorAll(element: "").Names());
 	}
 
 	[TestMethod]
@@ -282,6 +273,7 @@ public sealed class QuerySelectorAllTests
 
 		Assert.AreSequenceEqual(["div", "p", "b", "hr"], body.QuerySelectorAll().Names());
 		Assert.AreSequenceEqual(body.QuerySelectorAll().Names(), body.QuerySelectorAll(element: null).Names());
+		Assert.AreSequenceEqual(body.QuerySelectorAll().Names(), body.QuerySelectorAll(element: "").Names());
 	}
 
 	[TestMethod]
