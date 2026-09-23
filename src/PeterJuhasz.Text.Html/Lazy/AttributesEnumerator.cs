@@ -44,7 +44,7 @@ public struct AttributesEnumerator
 
 	public bool MoveNext()
 	{
-		var text = _document.AsSpan().Slice(0, _end);
+		var text = _document.AsSpan()[.._end];
 		while (_position < _end)
 		{
 			var c = text[_position];

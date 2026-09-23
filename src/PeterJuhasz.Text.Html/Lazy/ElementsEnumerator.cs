@@ -25,7 +25,7 @@ public struct ElementsEnumerator
 
 	public bool MoveNext()
 	{
-		var text = _document.AsSpan().Slice(0, _end);
+		var text = _document.AsSpan()[.._end];
 		while (_position < _end)
 		{
 			var kind = HtmlScanner.FindMarkup(text, _position, out var index);

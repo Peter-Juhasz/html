@@ -55,7 +55,7 @@ public readonly struct LazyHtmlNode
 	public LazyHtmlNodeKind Kind => _kind;
 
 	// The whole node as written: the element with its tags, the text, or the comment with its delimiters.
-	public ReadOnlySpan<char> OuterSpan => _document.AsSpan().Slice(_start, _end - _start);
+	public ReadOnlySpan<char> OuterSpan => _document.AsSpan()[_start.._end];
 
 	public LazyHtmlElement Element => TryGetElement(out var element) ? element : throw new InvalidOperationException("The node is not an element.");
 

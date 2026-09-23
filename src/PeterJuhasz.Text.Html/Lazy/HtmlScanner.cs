@@ -23,7 +23,7 @@ internal static class HtmlScanner
 	{
 		while (true)
 		{
-			var offset = text.Slice(position).IndexOf(SyntaxFacts.OpenTag);
+			var offset = text[position..].IndexOf(SyntaxFacts.OpenTag);
 			if (offset < 0)
 			{
 				index = text.Length;
@@ -52,10 +52,10 @@ internal static class HtmlScanner
 	// Returns the index right after the end tag, comment or declaration at `index`.
 	public static int SkipMarkup(ReadOnlySpan<char> text, int index)
 	{
-		var rest = text.Slice(index);
+		var rest = text[index..];
 		if (rest.StartsWith(SyntaxFacts.CommentStart))
 		{
-			var end = rest.Slice(SyntaxFacts.CommentStart.Length).IndexOf(SyntaxFacts.CommentEnd);
+			var end = rest[SyntaxFacts.CommentStart.Length..].IndexOf(SyntaxFacts.CommentEnd);
 			return end < 0 ? text.Length : index + SyntaxFacts.CommentStart.Length + end + SyntaxFacts.CommentEnd.Length;
 		}
 
@@ -110,7 +110,7 @@ internal static class HtmlScanner
 		if (position < text.Length && text[position] is SyntaxFacts.DoubleQuote or SyntaxFacts.SingleQuote)
 		{
 			var quote = text[position++];
-			var end = text.Slice(position).IndexOf(quote);
+			var end = text[position..].IndexOf(quote);
 			if (end >= 0)
 			{
 				valueStart = position;
@@ -178,7 +178,7 @@ internal static class HtmlScanner
 	{
 		while (true)
 		{
-			var offset = text.Slice(position).IndexOf(SyntaxFacts.EndTagStart);
+			var offset = text[position..].IndexOf(SyntaxFacts.EndTagStart);
 			if (offset < 0)
 				return text.Length;
 
@@ -193,7 +193,7 @@ internal static class HtmlScanner
 	// Checks whether the tag name at `position` is `name`, followed by a terminator or the end of the text.
 	private static bool IsTagNameAt(ReadOnlySpan<char> text, int position, ReadOnlySpan<char> name)
 	{
-		var rest = text.Slice(position);
+		var rest = text[position..];
 		return rest.StartsWith(name, StringComparison.OrdinalIgnoreCase)
 			&& (rest.Length == name.Length || SyntaxFacts.TagNameTerminators.Contains(rest[name.Length]));
 	}
@@ -203,7 +203,7 @@ internal static class HtmlScanner
 
 	private static int LengthUntil(ReadOnlySpan<char> text, int position, SearchValues<char> terminators)
 	{
-		var length = text.Slice(position).IndexOfAny(terminators);
+		var length = text[position..].IndexOfAny(terminators);
 		return length < 0 ? text.Length - position : length;
 	}
 }

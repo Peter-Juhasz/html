@@ -56,9 +56,9 @@ public readonly struct LazyHtmlElement
 
 	public string Name => SyntaxFacts.ToName(NameSpan);
 
-	public ReadOnlySpan<char> OuterSpan => _document.AsSpan().Slice(_start, _end - _start);
+	public ReadOnlySpan<char> OuterSpan => _document.AsSpan()[_start.._end];
 
-	public ReadOnlySpan<char> InnerSpan => _document.AsSpan().Slice(_contentStart, _contentEnd - _contentStart);
+	public ReadOnlySpan<char> InnerSpan => _document.AsSpan()[_contentStart.._contentEnd];
 
 	public AttributesEnumerator Attributes() => new(_document, _start, _start + 1 + _nameLength, _contentStart);
 
@@ -100,11 +100,11 @@ public readonly struct LazyHtmlElement
 	{
 		get
 		{
-			var text = _document.AsSpan().Slice(0, _contentEnd);
+			var text = _document.AsSpan()[.._contentEnd];
 			if (SyntaxFacts.IsRawTextElement(NameSpan))
 				return SyntaxFacts.IsEscapableRawTextElement(NameSpan) ? HtmlDecoder.HtmlDecode(InnerSpan) : InnerSpan.ToString();
 
-			if (!text.Slice(_contentStart).Contains(SyntaxFacts.OpenTag))
+			if (!text[_contentStart..].Contains(SyntaxFacts.OpenTag))
 				return HtmlDecoder.HtmlDecode(InnerSpan);
 
 			using var pooled = StringBuilderPool.GetPooledObject(out var builder);

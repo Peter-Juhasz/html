@@ -26,7 +26,7 @@ public readonly struct LazyHtmlText
 	}
 
 	// Text as written (character references are not decoded).
-	public ReadOnlySpan<char> TextSpan => _document.AsSpan().Slice(_start, _end - _start);
+	public ReadOnlySpan<char> TextSpan => _document.AsSpan()[_start.._end];
 
 	// Text with character references decoded, except for the content of script and style, which is taken literally.
 	public string Text => _isLiteral ? TextSpan.ToString() : HtmlDecoder.HtmlDecode(TextSpan);

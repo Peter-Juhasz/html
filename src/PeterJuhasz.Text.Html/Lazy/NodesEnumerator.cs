@@ -42,7 +42,7 @@ public struct NodesEnumerator
 			return true;
 		}
 
-		var text = _document.AsSpan().Slice(0, _end);
+		var text = _document.AsSpan()[.._end];
 		while (_position < _end)
 		{
 			var kind = HtmlScanner.FindMarkup(text, _position, out var index);
@@ -62,7 +62,7 @@ public struct NodesEnumerator
 					_position = _current.End;
 					return true;
 
-				case MarkupKind.Other when text.Slice(index).StartsWith(SyntaxFacts.CommentStart):
+				case MarkupKind.Other when text[index..].StartsWith(SyntaxFacts.CommentStart):
 					_position = HtmlScanner.SkipMarkup(text, index);
 					_current = new(LazyHtmlNodeKind.Comment, _document, index, _position);
 					return true;
