@@ -84,6 +84,14 @@ public readonly struct LazyHtmlElement
 			? new(_document, element, classNames, attributes, _contentEnd, _contentEnd)
 			: new(_document, element, classNames, attributes, _contentStart, _contentEnd);
 
+	// Finds the elements at any depth inside this element that match a selector like "a.button[rel=next]", in document order.
+	// Only an element name or '*' followed by classes, IDs and exact attribute values is supported.
+	public ElementsQueryEnumerator QuerySelectorAll(string selector)
+	{
+		SelectorParser.ParseSelector(selector, out var element, out var classNames, out var attributes);
+		return QuerySelectorAll(element, classNames, attributes);
+	}
+
 	// Finds the first element at any depth inside this element that has the given element name (any if empty), all of the given classes
 	// and all of the given attributes with the given values.
 	public bool TryQuerySelector(out LazyHtmlElement result, ReadOnlySpan<char> element = default, StringValues classNames = default, ReadOnlySpan<KeyValuePair<string, string>> attributes = default)
@@ -156,6 +164,13 @@ public static partial class Extensions
 			}
 
 			return null;
+		}
+
+		// Finds the first element at any depth inside this element that matches a selector like "a.button[rel=next]".
+		public LazyHtmlElement? QuerySelector(string selector)
+		{
+			var elements = source.QuerySelectorAll(selector);
+			return elements.MoveNext() ? elements.Current : null;
 		}
 
 		public LazyHtmlElement? GetElementById(string id)

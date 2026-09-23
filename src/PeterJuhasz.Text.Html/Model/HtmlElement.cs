@@ -112,6 +112,10 @@ public sealed class HtmlElement : HtmlNode
 	public IEnumerable<HtmlElement> QuerySelectorAll(string? element = null, StringValues classNames = default, ReadOnlyMemory<KeyValuePair<string, string>> attributes = default)
 		=> Query(Nodes, element, classNames, attributes);
 
+	// Finds the elements at any depth inside this element that match a selector like "a.button[rel=next]", in document order.
+	// Only an element name or '*' followed by classes, IDs and exact attribute values is supported.
+	public IEnumerable<HtmlElement> QuerySelectorAll(string selector) => Query(Nodes, selector);
+
 	// Finds the first element at any depth inside this element that has the given element name (any if null), all of the given classes
 	// and all of the given attributes with the given values.
 	public bool TryQuerySelector([NotNullWhen(true)] out HtmlElement? result, string? element = null, StringValues classNames = default, ReadOnlyMemory<KeyValuePair<string, string>> attributes = default)
@@ -158,6 +162,13 @@ public sealed class HtmlElement : HtmlNode
 		return Descendants(nodes).Where(candidate => candidate.Matches(element, classNames, attributes));
 	}
 
+	// The selector is parsed eagerly, so an unsupported one throws before enumeration.
+	internal static IEnumerable<HtmlElement> Query(ImmutableArray<HtmlNode> nodes, string selector)
+	{
+		SelectorParser.ParseSelector(selector, out var element, out var classNames, out var attributes);
+		return Query(nodes, element.IsEmpty ? null : SyntaxFacts.ToName(element), classNames, attributes);
+	}
+
 	// Same rules as the lazy layer: names are case-insensitive, attribute values and class names are compared case-sensitively
 	// against the decoded values, and an attribute without a value matches "".
 	private bool Matches(string? element, StringValues classNames, ReadOnlyMemory<KeyValuePair<string, string>> attributes)
@@ -184,6 +195,9 @@ public static partial class Extensions
 	{
 		public HtmlElement? QuerySelector(string? element = null, StringValues classNames = default, ReadOnlyMemory<KeyValuePair<string, string>> attributes = default)
 			=> source.TryQuerySelector(out var child, element: element, classNames: classNames, attributes: attributes) ? child : null;
+
+		// Finds the first element at any depth inside this element that matches a selector like "a.button[rel=next]".
+		public HtmlElement? QuerySelector(string selector) => source.QuerySelectorAll(selector).FirstOrDefault();
 
 		public bool TryGetElementById(string id, [NotNullWhen(true)] out HtmlElement? result)
 		{

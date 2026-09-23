@@ -34,6 +34,10 @@ public sealed class HtmlDocument
 	public IEnumerable<HtmlElement> QuerySelectorAll(string? element = null, StringValues classNames = default, ReadOnlyMemory<KeyValuePair<string, string>> attributes = default)
 		=> HtmlElement.Query(Nodes, element, classNames, attributes);
 
+	// Finds the elements at any depth in the document that match a selector like "a.button[rel=next]", in document order.
+	// Only an element name or '*' followed by classes, IDs and exact attribute values is supported.
+	public IEnumerable<HtmlElement> QuerySelectorAll(string selector) => HtmlElement.Query(Nodes, selector);
+
 	// Finds the first element at any depth in the document that has the given element name (any if null), all of the given classes
 	// and all of the given attributes with the given values.
 	public bool TryQuerySelector([NotNullWhen(true)] out HtmlElement? result, string? element = null, StringValues classNames = default, ReadOnlyMemory<KeyValuePair<string, string>> attributes = default)
@@ -49,6 +53,9 @@ public static partial class Extensions
 	{
 		public HtmlElement? QuerySelector(string? element = null, StringValues classNames = default, ReadOnlyMemory<KeyValuePair<string, string>> attributes = default)
 			=> document.TryQuerySelector(out var result, element: element, classNames: classNames, attributes: attributes) ? result : null;
+
+		// Finds the first element at any depth in the document that matches a selector like "a.button[rel=next]".
+		public HtmlElement? QuerySelector(string selector) => document.QuerySelectorAll(selector).FirstOrDefault();
 
 		public bool TryGetElementById(string id, [NotNullWhen(true)] out HtmlElement? result)
 		{
