@@ -221,9 +221,13 @@ public static partial class Extensions
 			return source.TryGetAttribute(name, out var attribute) ? attribute : null;
 		}
 
-		public bool HasClass(string className)
+		public bool HasClass(ReadOnlySpan<char> className)
 		{
-			ArgumentException.ThrowIfNullOrEmpty(className);
+			if (className.IsEmpty)
+			{
+				throw new ArgumentException("Class name cannot be empty.", nameof(className));
+			}
+
 			return source.TryGetAttribute("class", out var attribute) && ElementQuery.HasClass(attribute.ValueSpan, className);
 		}
 

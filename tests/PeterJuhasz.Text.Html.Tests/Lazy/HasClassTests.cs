@@ -208,7 +208,7 @@ public sealed class HasClassTests
 	{
 		var element = TestHelpers.FirstElement(html);
 
-		Assert.AreEqual("className", Assert.ThrowsExactly<ArgumentNullException>(() => element.HasClass((string)null!)).ParamName);
+		Assert.AreEqual("className", Assert.ThrowsExactly<ArgumentException>(() => element.HasClass((string)null!)).ParamName);
 		Assert.AreEqual("className", Assert.ThrowsExactly<ArgumentException>(() => element.HasClass("")).ParamName);
 	}
 }
