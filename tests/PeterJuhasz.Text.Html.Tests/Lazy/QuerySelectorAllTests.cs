@@ -516,6 +516,30 @@ public sealed class QuerySelectorAllTests
 	}
 
 	[TestMethod]
+	public void LongValuesAreMatchedDecoded()
+	{
+		var padding = new string('x', 1500);
+		var classes = string.Join(' ', Enumerable.Range(0, 400).Select(i => $"c{i}"));
+		var document = LazyHtmlDocument.Parse($"<a title=\"{padding}&amp;y\" class=\"{classes} b&#116;n\">1</a><a title=\"{padding}&amp;z\" class=\"{classes}\">2</a>");
+
+		Assert.AreSequenceEqual(["1"], document.QuerySelectorAll(attributes: Attributes(("title", padding + "&y"))).Inners());
+		Assert.AreSequenceEqual(["1"], document.QuerySelectorAll(classNames: "btn").Inners());
+		Assert.AreSequenceEqual(["1"], document.QuerySelectorAll(classNames: new[] { "c399", "btn", "c0" }).Inners());
+		Assert.IsTrue(document.Elements().ToList()[0].HasClass("btn"));
+		Assert.IsFalse(document.Elements().ToList()[1].HasClass("btn"));
+	}
+
+	[TestMethod]
+	public void MatchesMoreClassNamesThanFitInOneBitmask()
+	{
+		var names = Enumerable.Range(0, 70).Select(i => $"c{i}").ToArray();
+		var document = LazyHtmlDocument.Parse($"<a class=\"{string.Join(' ', names.Reverse())}\">1</a><a class=\"{string.Join(' ', names[..69])}\">2</a>");
+
+		Assert.AreSequenceEqual(["1"], document.QuerySelectorAll(classNames: names).Inners());
+		Assert.AreSequenceEqual(["1", "2"], document.QuerySelectorAll(classNames: names[..69]).Inners());
+	}
+
+	[TestMethod]
 	public void MissingOrEmptyClassAttributeDoesNotMatch()
 	{
 		var document = LazyHtmlDocument.Parse("<a>1</a><a class>2</a><a class=\"\">3</a><a class=\"  \">4</a><a id=\"btn\">5</a>");

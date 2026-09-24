@@ -1,4 +1,6 @@
 ﻿using Microsoft.Extensions.Primitives;
+using System.Buffers;
+using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 
 namespace PeterJuhasz.Text.Html;
@@ -72,27 +74,45 @@ internal static class ElementQuery
 			return true;
 		}
 
-		if (!SyntaxFacts.NeedsDecoding(classes))
+		if (!SyntaxFacts.NeedsDecoding(classes, out var referenceStart))
 		{
 			return HasDecodedClasses(classes, classNames);
 		}
 
-		var decodedBuffer = classes.Length < HtmlDecoder.StackAllocThreshold ? stackalloc char[classes.Length] : new char[classes.Length];
-		HtmlDecoder.Decode(classes, decodedBuffer, out int charsWritten);
-		return HasDecodedClasses(decodedBuffer[..charsWritten], classNames);
+		if (classes.Length <= HtmlDecoder.StackAllocThreshold)
+		{
+			Span<char> buffer = stackalloc char[classes.Length];
+			HtmlDecoder.Decode(classes, referenceStart, buffer, out int charsWritten);
+			return HasDecodedClasses(buffer[..charsWritten], classNames);
+		}
+		else
+		{
+			using var array = ArrayPool<char>.Shared.GetPooledArray(classes.Length);
+			HtmlDecoder.Decode(classes, referenceStart, array, out int charsWritten);
+			return HasDecodedClasses(array.Array.AsSpan(0, charsWritten), classNames);
+		}
 	}
 
 	// Checks whether the class attribute value, as written in the document, contains the class name.
 	public static bool HasClass(ReadOnlySpan<char> classes, ReadOnlySpan<char> className)
 	{
-		if (!SyntaxFacts.NeedsDecoding(classes))
+		if (!SyntaxFacts.NeedsDecoding(classes, out var referenceStart))
 		{
 			return HasDecodedClass(classes, className);
 		}
 
-		var decodedBuffer = classes.Length < HtmlDecoder.StackAllocThreshold ? stackalloc char[classes.Length] : new char[classes.Length];
-		HtmlDecoder.Decode(classes, decodedBuffer, out int charsWritten);
-		return HasDecodedClass(decodedBuffer[..charsWritten], className);
+		if (classes.Length <= HtmlDecoder.StackAllocThreshold)
+		{
+			Span<char> buffer = stackalloc char[classes.Length];
+			HtmlDecoder.Decode(classes, referenceStart, buffer, out int charsWritten);
+			return HasDecodedClass(buffer[..charsWritten], className);
+		}
+		else
+		{
+			using var array = ArrayPool<char>.Shared.GetPooledArray(classes.Length);
+			HtmlDecoder.Decode(classes, referenceStart, array, out int charsWritten);
+			return HasDecodedClass(array.Array.AsSpan(0, charsWritten), className);
+		}
 	}
 
 	// Checks whether the attribute value, as written in the document, equals the value.
@@ -104,14 +124,23 @@ internal static class ElementQuery
 			return false;
 		}
 
-		if (!SyntaxFacts.NeedsDecoding(attributeValue))
+		if (!SyntaxFacts.NeedsDecoding(attributeValue, out var referenceStart))
 		{
 			return attributeValue.SequenceEqual(value);
 		}
 
-		var decodedBuffer = attributeValue.Length < HtmlDecoder.StackAllocThreshold ? stackalloc char[attributeValue.Length] : new char[attributeValue.Length];
-		HtmlDecoder.Decode(attributeValue, decodedBuffer, out int charsWritten);
-		return decodedBuffer[..charsWritten].SequenceEqual(value);
+		if (attributeValue.Length <= HtmlDecoder.StackAllocThreshold)
+		{
+			Span<char> buffer = stackalloc char[attributeValue.Length];
+			HtmlDecoder.Decode(attributeValue, referenceStart, buffer, out int charsWritten);
+			return buffer[..charsWritten].SequenceEqual(value);
+		}
+		else
+		{
+			using var array = ArrayPool<char>.Shared.GetPooledArray(attributeValue.Length);
+			HtmlDecoder.Decode(attributeValue, referenceStart, array, out int charsWritten);
+			return array.Array.AsSpan(0, charsWritten).SequenceEqual(value);
+		}
 	}
 
 	// Splits the whitespace-separated class list only once, ticking off each class name as its token is found.
@@ -123,7 +152,8 @@ internal static class ElementQuery
 			return HasDecodedClass(classes, classNames[0]);
 		}
 
-		Span<bool> found = count <= 32 ? stackalloc bool[count] : new bool[count];
+		var bucketCount = ValueBitArray<ushort>.GetRequiredBucketCount(count);
+		var found = new ValueBitArray<ushort>(bucketCount <= 4 ? stackalloc ushort[bucketCount] : new ushort[bucketCount]);
 		var remaining = count;
 
 		foreach (var range in classes.SplitAny(SyntaxFacts.Whitespace))

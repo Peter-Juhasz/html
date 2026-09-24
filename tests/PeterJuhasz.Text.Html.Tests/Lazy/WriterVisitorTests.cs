@@ -67,6 +67,15 @@ public sealed class WriterVisitorTests
 		Assert.AreEqual(ExpectedMinimal, html);
 	}
 
+	[TestMethod]
+	public void WritesLongDecodedTextAndAttributes()
+	{
+		var padding = new string('x', 1500);
+		var html = $"<p title=\"{padding}&amp;y\">{padding}&amp;y&lt;z</p>";
+
+		Assert.AreEqual(html, Write(LazyHtmlDocument.Parse(html), HtmlWriterFormattingOptions.Minimal));
+	}
+
 	private static string Write(LazyHtmlDocument document, HtmlWriterFormattingOptions options)
 	{
 		var buffer = new ArrayBufferWriter<char>();

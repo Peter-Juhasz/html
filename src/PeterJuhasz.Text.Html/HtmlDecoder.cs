@@ -8,7 +8,7 @@ public static partial class HtmlDecoder
 {
 	public static string Decode(string str)
 	{
-		if (!SyntaxFacts.NeedsDecoding(str))
+		if (!SyntaxFacts.NeedsDecoding(str, out var referenceStart))
 		{
 			return str;
 		}
@@ -16,20 +16,20 @@ public static partial class HtmlDecoder
 		if (str.Length <= StackAllocThreshold)
 		{
 			Span<char> buffer = stackalloc char[str.Length];
-			Decode(str.AsSpan(), buffer, out int charsWritten);
+			Decode(str.AsSpan(), referenceStart, buffer, out int charsWritten);
 			return new(buffer[..charsWritten]);
 		}
 		else
 		{
 			using var array = ArrayPool<char>.Shared.GetPooledArray(str.Length);
-			Decode(str.AsSpan(), array, out int charsWritten);
+			Decode(str.AsSpan(), referenceStart, array, out int charsWritten);
 			return new(array.Array.AsSpan(0, charsWritten));
 		}
 	}
 
 	public static string Decode(ReadOnlySpan<char> span)
 	{
-		if (!SyntaxFacts.NeedsDecoding(span))
+		if (!SyntaxFacts.NeedsDecoding(span, out var referenceStart))
 		{
 			return new string(span);
 		}
@@ -37,13 +37,13 @@ public static partial class HtmlDecoder
 		if (span.Length <= StackAllocThreshold)
 		{
 			Span<char> buffer = stackalloc char[span.Length];
-			Decode(span, buffer, out int charsWritten);
+			Decode(span, referenceStart, buffer, out int charsWritten);
 			return new(buffer[..charsWritten]);
 		}
 		else
 		{
 			using var array = ArrayPool<char>.Shared.GetPooledArray(span.Length);
-			Decode(span, array, out int charsWritten);
+			Decode(span, referenceStart, array, out int charsWritten);
 			return new(array.Array.AsSpan(0, charsWritten));
 		}
 	}
@@ -52,30 +52,34 @@ public static partial class HtmlDecoder
 
 	public static void Decode(ReadOnlySpan<char> span, StringBuilder builder)
 	{
-		if (!SyntaxFacts.NeedsDecoding(span))
+		if (!SyntaxFacts.NeedsDecoding(span, out var referenceStart))
 		{
 			builder.Append(span);
 			return;
 		}
-		
+
 		if (span.Length <= StackAllocThreshold)
 		{
 			Span<char> buffer = stackalloc char[span.Length];
-			Decode(span, buffer, out int charsWritten);
+			Decode(span, referenceStart, buffer, out int charsWritten);
 			builder.Append(buffer[..charsWritten]);
 			return;
 		}
 		else
 		{
 			using var array = ArrayPool<char>.Shared.GetPooledArray(span.Length);
-			Decode(span, array, out int charsWritten);
+			Decode(span, referenceStart, array, out int charsWritten);
 			builder.Append(array.Array.AsSpan(0, charsWritten));
 		}
 	}
 
 	// Decodes named (like `&amp;`) and numeric (like `&#60;` or `&#x3C;`) character references; unknown or invalid ones are copied as written.
 	// Decoding never makes the text longer, so the output only has to be as long as the input, and it may even be the input itself.
-	public static void Decode(ReadOnlySpan<char> input, Span<char> output, out int charsWritten)
+	public static void Decode(ReadOnlySpan<char> input, Span<char> output, out int charsWritten) => Decode(input, 0, output, out charsWritten);
+
+	// The same, when the index of the first '&' is already known from checking whether the input needs decoding, so the text before it
+	// is not searched again.
+	internal static void Decode(ReadOnlySpan<char> input, int referenceStart, Span<char> output, out int charsWritten)
 	{
 		if (output.Length < input.Length)
 		{
@@ -84,7 +88,7 @@ public static partial class HtmlDecoder
 
 		int written = 0;
 		int literalStart = 0;
-		int searchStart = 0;
+		int searchStart = referenceStart;
 
 		while (true)
 		{

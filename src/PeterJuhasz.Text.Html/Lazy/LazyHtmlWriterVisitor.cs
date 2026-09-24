@@ -19,16 +19,22 @@ public class LazyHtmlWriterVisitor<TWriter>(HtmlWriter<TWriter> writer) : LazyHt
 	{
 		if (attribute.HasValue)
 		{
-			if (!SyntaxFacts.NeedsDecoding(attribute.ValueSpan))
+			var value = attribute.ValueSpan;
+			if (!SyntaxFacts.NeedsDecoding(value, out var referenceStart))
 			{
-				writer.WriteAttribute(attribute.NameSpan, attribute.ValueSpan);
+				writer.WriteAttribute(attribute.NameSpan, value);
+			}
+			else if (value.Length <= HtmlDecoder.StackAllocThreshold)
+			{
+				Span<char> buffer = stackalloc char[value.Length];
+				HtmlDecoder.Decode(value, referenceStart, buffer, out int charsWritten);
+				writer.WriteAttribute(attribute.NameSpan, buffer[..charsWritten]);
 			}
 			else
 			{
-				var decodedBuffer = attribute.ValueSpan.Length < HtmlDecoder.StackAllocThreshold ? stackalloc char[attribute.ValueSpan.Length] : new char[attribute.ValueSpan.Length];
-				HtmlDecoder.Decode(attribute.ValueSpan, decodedBuffer, out int charsWritten);
-				var decoded = decodedBuffer[..charsWritten];
-				writer.WriteAttribute(attribute.NameSpan, decoded);
+				using var array = ArrayPool<char>.Shared.GetPooledArray(value.Length);
+				HtmlDecoder.Decode(value, referenceStart, array, out int charsWritten);
+				writer.WriteAttribute(attribute.NameSpan, array.Array.AsSpan(0, charsWritten));
 			}
 		}
 		else
@@ -39,20 +45,22 @@ public class LazyHtmlWriterVisitor<TWriter>(HtmlWriter<TWriter> writer) : LazyHt
 
 	public override void VisitText(LazyHtmlText text)
 	{
-		if (text.IsLiteral)
+		var span = text.TextSpan;
+		if (text.IsLiteral || !SyntaxFacts.NeedsDecoding(span, out var referenceStart))
 		{
-			writer.WriteText(text.TextSpan);
+			writer.WriteText(span);
 		}
-		else if (!SyntaxFacts.NeedsDecoding(text.TextSpan))
+		else if (span.Length <= HtmlDecoder.StackAllocThreshold)
 		{
-			writer.WriteText(text.TextSpan);
+			Span<char> buffer = stackalloc char[span.Length];
+			HtmlDecoder.Decode(span, referenceStart, buffer, out int charsWritten);
+			writer.WriteText(buffer[..charsWritten]);
 		}
 		else
 		{
-			var decodedBuffer = text.TextSpan.Length < HtmlDecoder.StackAllocThreshold ? stackalloc char[text.TextSpan.Length] : new char[text.TextSpan.Length];
-			HtmlDecoder.Decode(text.TextSpan, decodedBuffer, out int charsWritten);
-			var decoded = decodedBuffer[..charsWritten];
-			writer.WriteText(decoded);
+			using var array = ArrayPool<char>.Shared.GetPooledArray(span.Length);
+			HtmlDecoder.Decode(span, referenceStart, array, out int charsWritten);
+			writer.WriteText(array.Array.AsSpan(0, charsWritten));
 		}
 	}
 
