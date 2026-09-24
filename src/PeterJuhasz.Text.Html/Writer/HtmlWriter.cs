@@ -5,7 +5,7 @@ using System.Text.Encodings.Web;
 namespace PeterJuhasz.Text.Html.Writer;
 
 [PerformanceCritical]
-public sealed class HtmlWriter<TWriter>(TWriter writer, HtmlEncoder htmlEncoder, HtmlWriterFormattingOptions? options = null) where TWriter : IBufferWriter<char>
+public class HtmlWriter<TWriter>(TWriter writer, HtmlEncoder htmlEncoder, HtmlWriterFormattingOptions? options = null) where TWriter : IBufferWriter<char>
 {
 	private readonly HtmlWriterFormattingOptions options = options ?? HtmlWriterFormattingOptions.Default;
 	private readonly Stack<ElementScope> openElements = new();
@@ -207,7 +207,8 @@ public sealed class HtmlWriter<TWriter>(TWriter writer, HtmlEncoder htmlEncoder,
 	private readonly record struct ElementScope(string Name, bool IsLiteral, bool ParentHasChildren, bool ParentHasText);
 }
 
-public static class HtmlWriter
+public class HtmlWriter(IBufferWriter<char> writer, HtmlEncoder? htmlEncoder = null, HtmlWriterFormattingOptions? options = null)
+	: HtmlWriter<IBufferWriter<char>>(writer, htmlEncoder ?? HtmlEncoder.Default, options)
 {
 	public static HtmlWriter<TWriter> Create<TWriter>(TWriter writer, HtmlEncoder? htmlEncoder = null, HtmlWriterFormattingOptions? options = null)
 		where TWriter : IBufferWriter<char> => 
