@@ -52,6 +52,12 @@ internal static class SyntaxFacts
 	private static readonly FrozenSet<string>.AlternateLookup<ReadOnlySpan<char>> EscapableRawTextElements = CreateNameSet(
 		"textarea", "title");
 
+	// Elements whose end tag can be omitted whenever their content model is respected, because every valid next sibling
+	// and the end of every valid parent implies it. Elements whose omission depends on the next sibling (such as p, rt and rp,
+	// which can be followed by phrasing content) or on whitespace and comments (such as html, head, body, colgroup and caption) are left out.
+	private static readonly FrozenSet<string>.AlternateLookup<ReadOnlySpan<char>> OptionalEndTagElements = CreateNameSet(
+		"li", "dt", "dd", "option", "optgroup", "thead", "tbody", "tfoot", "tr", "td", "th");
+
 	// Start tags that implicitly close an open element, keyed by the open element's name.
 	private static readonly FrozenDictionary<string, FrozenSet<string>.AlternateLookup<ReadOnlySpan<char>>>.AlternateLookup<ReadOnlySpan<char>> ImplicitClosers = CreateImplicitClosers();
 
@@ -64,6 +70,8 @@ internal static class SyntaxFacts
 	public static bool IsRawTextElement(ReadOnlySpan<char> name) => RawTextElements.Contains(name);
 
 	public static bool IsEscapableRawTextElement(ReadOnlySpan<char> name) => EscapableRawTextElements.Contains(name);
+
+	public static bool HasOptionalEndTag(ReadOnlySpan<char> name) => OptionalEndTagElements.Contains(name);
 
 	public static bool TryGetImplicitClosers(ReadOnlySpan<char> name, out FrozenSet<string>.AlternateLookup<ReadOnlySpan<char>> closers)
 		=> ImplicitClosers.TryGetValue(name, out closers);

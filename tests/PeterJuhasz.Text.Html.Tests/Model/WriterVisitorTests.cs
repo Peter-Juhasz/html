@@ -44,7 +44,7 @@ public sealed class WriterVisitorTests
 		"<html lang=en><head><meta charset=\"utf-8\"><title>Tom &amp; Jerry</title></head>" +
 		"<body><!-- header --><h1 class=title>Hello, World!</h1>" +
 		"<p>Read the <a href=\"/docs?a=1&amp;b=2\" target=_blank>docs</a><br>or not.</p>" +
-		"<ul><li>One</li><li>Two</li></ul><input type=checkbox name=agree checked>" +
+		"<ul><li>One<li>Two</ul><input type=checkbox name=agree checked>" +
 		"<script>if (a < b) { go(); }</script></body></html>";
 
 	[TestMethod]
@@ -65,6 +65,25 @@ public sealed class WriterVisitorTests
 		var html = Write(document, HtmlWriterFormattingOptions.Minimal);
 
 		Assert.AreEqual(ExpectedMinimal, html);
+	}
+
+	[TestMethod]
+	public void OmitsOptionalEndTags()
+	{
+		var document = HtmlDocument.Parse(
+			"<table><thead><tr><th>A</th><th>B</th></tr></thead><tbody><tr><td>1</td><td>2</td></tr></tbody></table>" +
+			"<select><optgroup label=x><option>a</option><option>b</option></optgroup></select>" +
+			"<dl><dt>t</dt><dd>d</dd></dl>" +
+			"<p>text</p>");
+
+		var html = Write(document, new HtmlWriterFormattingOptions(OmitOptionalEndTags: true));
+
+		Assert.AreEqual(
+			"<table><thead><tr><th>A<th>B<tbody><tr><td>1<td>2</table>" +
+			"<select><optgroup label=\"x\"><option>a<option>b</select>" +
+			"<dl><dt>t<dd>d</dl>" +
+			"<p>text</p>",
+			html);
 	}
 
 	private static string Write(HtmlDocument document, HtmlWriterFormattingOptions options)

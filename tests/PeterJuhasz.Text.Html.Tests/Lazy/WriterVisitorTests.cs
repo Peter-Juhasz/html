@@ -44,7 +44,7 @@ public sealed class WriterVisitorTests
 		"<html lang=en><head><meta charset=\"utf-8\"><title>Tom &amp; Jerry</title></head>" +
 		"<body><!-- header --><h1 class=title>Hello, World!</h1>" +
 		"<p>Read the <a href=\"/docs?a=1&amp;b=2\" target=_blank>docs</a><br>or not.</p>" +
-		"<ul><li>One</li><li>Two</li></ul><input type=checkbox name=agree checked>" +
+		"<ul><li>One<li>Two</ul><input type=checkbox name=agree checked>" +
 		"<script>if (a < b) { go(); }</script></body></html>";
 
 	[TestMethod]

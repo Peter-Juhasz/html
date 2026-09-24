@@ -4,8 +4,9 @@ public sealed record class HtmlWriterFormattingOptions(
 	bool OmitQuotesIfNotNecessary = false,
 	bool XmlStyleSelfClosingTags = true,
 	bool SpaceBeforeSelfClosingSlash = true,
+	bool OmitOptionalEndTags = false,
 	string? Indent = null,
-	string? NewLine = null
+	string? NewLine = "\n"
 )
 {
 	public static readonly HtmlWriterFormattingOptions Default = new();
@@ -14,6 +15,7 @@ public sealed record class HtmlWriterFormattingOptions(
 		OmitQuotesIfNotNecessary: false,
 		XmlStyleSelfClosingTags: true,
 		SpaceBeforeSelfClosingSlash: true,
+		OmitOptionalEndTags: false,
 		Indent: "\t",
 		NewLine: "\n"
 	);
@@ -22,6 +24,7 @@ public sealed record class HtmlWriterFormattingOptions(
 		OmitQuotesIfNotNecessary: true,
 		XmlStyleSelfClosingTags: false,
 		SpaceBeforeSelfClosingSlash: false,
+		OmitOptionalEndTags: true,
 		Indent: null,
 		NewLine: null
 	);

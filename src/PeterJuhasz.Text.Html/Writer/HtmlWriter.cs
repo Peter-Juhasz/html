@@ -85,7 +85,7 @@ public sealed class HtmlWriter<TWriter>(TWriter writer, HtmlEncoder htmlEncoder,
 		}
 
 		var name = element.Name;
-		if (SyntaxFacts.IsVoidElement(name.AsSpan()))
+		if (SyntaxFacts.IsVoidElement(name))
 		{
 			if (options.XmlStyleSelfClosingTags)
 			{
@@ -100,6 +100,11 @@ public sealed class HtmlWriter<TWriter>(TWriter writer, HtmlEncoder htmlEncoder,
 			{
 				writer.Write(">");
 			}
+		}
+		else if (options.OmitOptionalEndTags && SyntaxFacts.HasOptionalEndTag(name))
+		{
+			// the next sibling or the end of the parent implies the end tag
+			CloseStartTag();
 		}
 		else
 		{
