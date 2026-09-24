@@ -116,10 +116,8 @@ public sealed class AllocationTests
 		Assert.IsLessThanOrEqualTo(64, allocated, $"Allocated {allocated} bytes.");
 	}
 
-	// Values with character references have to be decoded to be compared, which allocates the decoded copy;
-	// values without any are compared in place, and a value that is too long to match is not decoded at all.
 	[TestMethod]
-	public void QueryOnAttributeWithCharacterReferencesAllocatesOnlyTheDecodedValue()
+	public void QueryOnAttributeWithCharacterReferencesDoesNotAllocate()
 	{
 		var document = LazyHtmlDocument.Parse("<a href=\"/link?a=1&amp;b=2\" class=\"x&amp;y\" title=\"plain\">link</a>");
 		KeyValuePair<string, string>[] href = [new("href", "/link?a=1&b=2")];
@@ -137,7 +135,7 @@ public sealed class AllocationTests
 		var allocatedWithoutDecoding = GC.GetAllocatedBytesForCurrentThread() - before;
 
 		Assert.IsTrue(found);
-		Assert.IsGreaterThan(0, allocated);
+		Assert.AreEqual(0, allocated);
 		Assert.IsLessThanOrEqualTo(256, allocated, $"Allocated {allocated} bytes.");
 		Assert.IsTrue(skipped);
 		Assert.AreEqual(0, allocatedWithoutDecoding);

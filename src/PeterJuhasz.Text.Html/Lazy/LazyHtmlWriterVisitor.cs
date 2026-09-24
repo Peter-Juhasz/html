@@ -19,7 +19,17 @@ public class LazyHtmlWriterVisitor<TWriter>(HtmlWriter<TWriter> writer) : LazyHt
 	{
 		if (attribute.HasValue)
 		{
-			writer.WriteAttribute(attribute.NameSpan, SyntaxFacts.DecodeIfNeeded(attribute.ValueSpan));
+			if (!SyntaxFacts.NeedsDecoding(attribute.ValueSpan))
+			{
+				writer.WriteAttribute(attribute.NameSpan, attribute.ValueSpan);
+			}
+			else
+			{
+				var decodedBuffer = attribute.ValueSpan.Length < HtmlDecoder.StackAllocThreshold ? stackalloc char[attribute.ValueSpan.Length] : new char[attribute.ValueSpan.Length];
+				HtmlDecoder.Decode(attribute.ValueSpan, decodedBuffer, out int charsWritten);
+				var decoded = decodedBuffer[..charsWritten];
+				writer.WriteAttribute(attribute.NameSpan, decoded);
+			}
 		}
 		else
 		{
@@ -39,7 +49,9 @@ public class LazyHtmlWriterVisitor<TWriter>(HtmlWriter<TWriter> writer) : LazyHt
 		}
 		else
 		{
-			var decoded = HtmlDecoder.HtmlDecode(text.TextSpan);
+			var decodedBuffer = text.TextSpan.Length < HtmlDecoder.StackAllocThreshold ? stackalloc char[text.TextSpan.Length] : new char[text.TextSpan.Length];
+			HtmlDecoder.Decode(text.TextSpan, decodedBuffer, out int charsWritten);
+			var decoded = decodedBuffer[..charsWritten];
 			writer.WriteText(decoded);
 		}
 	}

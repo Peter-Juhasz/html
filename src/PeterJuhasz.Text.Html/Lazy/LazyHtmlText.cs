@@ -29,7 +29,7 @@ public readonly struct LazyHtmlText
 	public ReadOnlySpan<char> TextSpan => _document.AsSpan()[_start.._end];
 
 	// Text with character references decoded, except for the content of script and style, which is taken literally.
-	public string Text => _isLiteral ? TextSpan.ToString() : HtmlDecoder.HtmlDecode(TextSpan);
+	public string Text => _isLiteral ? TextSpan.ToString() : HtmlDecoder.Decode(TextSpan);
 
 	// Appends the same text as `Text` without creating a string for it.
 	internal void AppendTo(StringBuilder builder)
@@ -40,7 +40,7 @@ public readonly struct LazyHtmlText
 		}
 		else
 		{
-			HtmlDecoder.HtmlDecode(TextSpan, builder);
+			HtmlDecoder.Decode(TextSpan, builder);
 		}
 	}
 

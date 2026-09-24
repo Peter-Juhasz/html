@@ -19,6 +19,10 @@ internal static class SyntaxFacts
 
 	public const char CharacterReferenceStart = '&';
 
+	public const char CharacterReferenceEnd = ';';
+
+	public const char NumericCharacterReferenceStart = '#';
+
 	public const string EndTagStart = "</";
 
 	public const string CommentStart = "<!--";
@@ -32,6 +36,9 @@ internal static class SyntaxFacts
 	public static readonly SearchValues<char> AttributeNameTerminators = SearchValues.Create("\t\n\f\r /=>");
 
 	public static readonly SearchValues<char> UnquotedValueTerminators = SearchValues.Create("\t\n\f\r >");
+
+	// The end of a character reference's name, or the start of another reference, which makes the preceding '&' a literal one.
+	public static readonly SearchValues<char> CharacterReferenceNameTerminators = SearchValues.Create([CharacterReferenceEnd, CharacterReferenceStart]);
 
 	// Elements that never have content or an end tag.
 	private static readonly FrozenSet<string>.AlternateLookup<ReadOnlySpan<char>> VoidElements = CreateNameSet(
@@ -68,10 +75,11 @@ internal static class SyntaxFacts
 	// Whether text as written in the document may contain character references, so that reading its value needs decoding.
 	public static bool NeedsDecoding(ReadOnlySpan<char> text) => text.Contains(CharacterReferenceStart);
 
-	// The value of text as written in the document: the text itself when it has no character references, otherwise a decoded copy.
-	// Decoding never makes the text longer, so the result is at most as long as the input.
-	public static ReadOnlySpan<char> DecodeIfNeeded(ReadOnlySpan<char> text)
-		=> NeedsDecoding(text) ? HtmlDecoder.Decode(text) : text;
+	public static bool NeedsDecoding(ReadOnlySpan<char> text, out int startIndex)
+	{
+		startIndex = text.IndexOf(CharacterReferenceStart);
+		return startIndex >= 0;
+	}
 
 	private static readonly SearchValues<char> AttributeValueWithoutQuotes = SearchValues.Create("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_");
 

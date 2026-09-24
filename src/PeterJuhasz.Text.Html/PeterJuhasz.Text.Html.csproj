@@ -9,7 +9,7 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<VersionPrefix>1.0.0</VersionPrefix>
+		<VersionPrefix>1.1.0</VersionPrefix>
 		<PackageId>PeterJuhasz.Text.Html</PackageId>
 		<PackageTags>html</PackageTags>
 		<PackageProjectUrl>https://github.com/Peter-Juhasz/html</PackageProjectUrl>

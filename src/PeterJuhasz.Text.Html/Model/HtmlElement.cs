@@ -223,11 +223,11 @@ public sealed class HtmlElement : HtmlNode
 		var separator = valueSpan.IndexOfAny(SyntaxFacts.Whitespace);
 		if (separator < 0)
 		{
-			return attribute._value is { } value && value.Length == valueSpan.Length ? value : SyntaxFacts.DecodeIfNeeded(valueSpan.Trim()).ToString();
+			return attribute._value is { } value && value.Length == valueSpan.Length ? value : HtmlDecoder.Decode(valueSpan);
 		}
 
 		using var builder = new PooledArrayBuilder<string>();
-		builder.Add(valueSpan[..separator].ToString());
+		builder.Add(HtmlDecoder.Decode(valueSpan[..separator]));
 
 		var rest = valueSpan[(separator + 1)..];
 		foreach (var range in rest.SplitAny(SyntaxFacts.Whitespace))
@@ -238,7 +238,7 @@ public sealed class HtmlElement : HtmlNode
 				continue;
 			}
 
-			builder.Add(SyntaxFacts.DecodeIfNeeded(classSpan).ToString());
+			builder.Add(HtmlDecoder.Decode(classSpan));
 		}
 
 		return builder.ToStringValues();

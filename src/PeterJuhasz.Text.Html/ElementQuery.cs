@@ -72,13 +72,27 @@ internal static class ElementQuery
 			return true;
 		}
 
-		return HasDecodedClasses(SyntaxFacts.DecodeIfNeeded(classes), classNames);
+		if (!SyntaxFacts.NeedsDecoding(classes))
+		{
+			return HasDecodedClasses(classes, classNames);
+		}
+
+		var decodedBuffer = classes.Length < HtmlDecoder.StackAllocThreshold ? stackalloc char[classes.Length] : new char[classes.Length];
+		HtmlDecoder.Decode(classes, decodedBuffer, out int charsWritten);
+		return HasDecodedClasses(decodedBuffer[..charsWritten], classNames);
 	}
 
 	// Checks whether the class attribute value, as written in the document, contains the class name.
 	public static bool HasClass(ReadOnlySpan<char> classes, ReadOnlySpan<char> className)
 	{
-		return HasDecodedClass(SyntaxFacts.DecodeIfNeeded(classes), className);
+		if (!SyntaxFacts.NeedsDecoding(classes))
+		{
+			return HasDecodedClass(classes, className);
+		}
+
+		var decodedBuffer = classes.Length < HtmlDecoder.StackAllocThreshold ? stackalloc char[classes.Length] : new char[classes.Length];
+		HtmlDecoder.Decode(classes, decodedBuffer, out int charsWritten);
+		return HasDecodedClass(decodedBuffer[..charsWritten], className);
 	}
 
 	// Checks whether the attribute value, as written in the document, equals the value.
@@ -90,11 +104,18 @@ internal static class ElementQuery
 			return false;
 		}
 
-		return SyntaxFacts.DecodeIfNeeded(attributeValue).SequenceEqual(value);
+		if (!SyntaxFacts.NeedsDecoding(attributeValue))
+		{
+			return attributeValue.SequenceEqual(value);
+		}
+
+		var decodedBuffer = attributeValue.Length < HtmlDecoder.StackAllocThreshold ? stackalloc char[attributeValue.Length] : new char[attributeValue.Length];
+		HtmlDecoder.Decode(attributeValue, decodedBuffer, out int charsWritten);
+		return decodedBuffer[..charsWritten].SequenceEqual(value);
 	}
 
 	// Splits the whitespace-separated class list only once, ticking off each class name as its token is found.
-	private static bool HasDecodedClasses(ReadOnlySpan<char> classes, StringValues classNames)
+	internal static bool HasDecodedClasses(ReadOnlySpan<char> classes, StringValues classNames)
 	{
 		var count = classNames.Count;
 		if (count == 1)
@@ -129,7 +150,7 @@ internal static class ElementQuery
 		return false;
 	}
 
-	private static bool HasDecodedClass(ReadOnlySpan<char> classes, ReadOnlySpan<char> className)
+	internal static bool HasDecodedClass(ReadOnlySpan<char> classes, ReadOnlySpan<char> className)
 	{
 		foreach (var range in classes.SplitAny(SyntaxFacts.Whitespace))
 		{

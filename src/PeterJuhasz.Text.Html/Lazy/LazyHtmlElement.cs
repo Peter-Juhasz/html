@@ -111,12 +111,12 @@ public readonly struct LazyHtmlElement
 			var text = _document.AsSpan()[.._contentEnd];
 			if (SyntaxFacts.IsRawTextElement(NameSpan))
 			{
-				return SyntaxFacts.IsEscapableRawTextElement(NameSpan) ? HtmlDecoder.HtmlDecode(InnerSpan) : InnerSpan.ToString();
+				return SyntaxFacts.IsEscapableRawTextElement(NameSpan) ? HtmlDecoder.Decode(InnerSpan) : InnerSpan.ToString();
 			}
 
 			if (!text[_contentStart..].Contains(SyntaxFacts.OpenTag))
 			{
-				return HtmlDecoder.HtmlDecode(InnerSpan);
+				return HtmlDecoder.Decode(InnerSpan);
 			}
 
 			using var pooled = StringBuilderPool.GetPooledObject(out var builder);
@@ -124,7 +124,7 @@ public readonly struct LazyHtmlElement
 			while (position < _contentEnd)
 			{
 				var kind = HtmlScanner.FindMarkup(text, position, out var index);
-				HtmlDecoder.HtmlDecode(text[position..index], builder);
+				HtmlDecoder.Decode(text[position..index], builder);
 				switch (kind)
 				{
 					case MarkupKind.None:
@@ -139,7 +139,7 @@ public readonly struct LazyHtmlElement
 							var rawTextEnd = HtmlScanner.FindRawTextEnd(text, position, name);
 							if (SyntaxFacts.IsEscapableRawTextElement(name))
 							{
-								HtmlDecoder.HtmlDecode(text[position..rawTextEnd], builder);
+								HtmlDecoder.Decode(text[position..rawTextEnd], builder);
 							}
 							else
 							{

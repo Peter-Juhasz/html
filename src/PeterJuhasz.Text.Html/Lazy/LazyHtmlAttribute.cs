@@ -51,5 +51,5 @@ public readonly struct LazyHtmlAttribute
 	}
 
 	// Value with character references decoded; null when the attribute has no value.
-	public string? Value => _hasValue ? HtmlDecoder.HtmlDecode(ValueSpan) : null;
+	public string? Value => _hasValue ? HtmlDecoder.Decode(ValueSpan) : null;
 }
