@@ -72,7 +72,7 @@ public sealed class ElementTests
 			writer.CloseElement();
 		});
 
-		Assert.AreEqual("<ul><li>1</li><li>2</li></ul>", html);
+		Assert.AreEqual("<ul><li>1<li>2</ul>", html);
 	}
 
 	[TestMethod]
@@ -137,7 +137,7 @@ public sealed class ElementTests
 			writer.CloseElement();
 			writer.CloseElement();
 			writer.CloseElement();
-		});
+		}, options: HtmlWriterFormattingOptions.Minimal with { OmitOptionalEndTags = false });
 
 		Assert.AreEqual("<table><tr><td>x</td></tr></table>", html);
 	}

@@ -58,7 +58,7 @@ public sealed class CommentTests
 			writer.CloseElement();
 		});
 
-		Assert.AreEqual("<div id=\"x\"><!--c--></div>", html);
+		Assert.AreEqual("<div id=x><!--c--></div>", html);
 	}
 
 	[TestMethod]

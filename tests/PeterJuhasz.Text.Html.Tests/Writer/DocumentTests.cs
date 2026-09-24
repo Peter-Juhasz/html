@@ -7,9 +7,9 @@ namespace PeterJuhasz.Text.Html.Tests.Writer;
 public sealed class DocumentTests
 {
 	private const string ExpectedDocument =
-		"<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\" /><title>Tom &amp; Jerry</title></head>" +
-		"<body><h1 class=\"title\">Hello</h1><p>a <a href=\"/x?a=1&amp;b=2\" target=\"_blank\">link</a><br /><!-- c --></p>" +
-		"<ul><li>1</li><li>2</li></ul><input type=\"checkbox\" checked /></body></html>";
+		"<!DOCTYPE html><html lang=en><head><meta charset=\"utf-8\"><title>Tom &amp; Jerry</title></head>" +
+		"<body><h1 class=title>Hello</h1><p>a <a href=\"/x?a=1&amp;b=2\" target=_blank>link</a><br><!-- c --></p>" +
+		"<ul><li>1<li>2</ul><input type=checkbox checked></body></html>";
 
 	private static void WriteDocument(HtmlWriter<ArrayBufferWriter<char>> writer)
 	{

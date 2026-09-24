@@ -31,7 +31,7 @@ public sealed class AttributeTests
 			writer.CloseElement();
 		});
 
-		Assert.AreEqual("<div id=\"x\" class=\"a b\" data-value=\"1\"></div>", html);
+		Assert.AreEqual("<div id=x class=\"a b\" data-value=1></div>", html);
 	}
 
 	[TestMethod]
@@ -58,7 +58,7 @@ public sealed class AttributeTests
 			writer.CloseElement();
 		});
 
-		Assert.AreEqual("<option selected value=\"1\"></option>", html);
+		Assert.AreEqual("<option selected value=1>", html);
 	}
 
 	[TestMethod]
@@ -71,7 +71,7 @@ public sealed class AttributeTests
 			writer.CloseElement();
 		});
 
-		Assert.AreEqual("<input value=\"\" />", html);
+		Assert.AreEqual("<input value=\"\">", html);
 	}
 
 	[TestMethod]
@@ -101,7 +101,7 @@ public sealed class AttributeTests
 			writer.CloseElement();
 		});
 
-		Assert.AreEqual("<div id=\"outer\"><span id=\"inner\"></span></div>", html);
+		Assert.AreEqual("<div id=outer><span id=inner></span></div>", html);
 	}
 
 	[TestMethod]
@@ -193,7 +193,7 @@ public sealed class AttributeTests
 			writer.CloseElement();
 		});
 
-		Assert.AreEqual("<div Data-Foo=\"1\" xlink:href=\"#a\"></div>", html);
+		Assert.AreEqual("<div Data-Foo=1 xlink:href=\"#a\"></div>", html);
 	}
 
 	[TestMethod]

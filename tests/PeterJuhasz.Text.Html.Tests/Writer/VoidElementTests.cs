@@ -18,7 +18,7 @@ public sealed class VoidElementTests
 	[DataRow("source")]
 	[DataRow("track")]
 	[DataRow("wbr")]
-	public void VoidElementIsSelfClosed(string name)
+	public void VoidElementHasNoEndTag(string name)
 	{
 		var html = TestHelpers.Write(writer =>
 		{
@@ -26,7 +26,21 @@ public sealed class VoidElementTests
 			writer.CloseElement();
 		});
 
-		Assert.AreEqual($"<{name} />", html);
+		Assert.AreEqual($"<{name}>", html);
+	}
+
+	[TestMethod]
+	[DataRow(true, "<br />")]
+	[DataRow(false, "<br/>")]
+	public void VoidElementIsSelfClosedInXmlStyle(bool spaceBeforeSlash, string expected)
+	{
+		var html = TestHelpers.Write(writer =>
+		{
+			writer.OpenElement("br");
+			writer.CloseElement();
+		}, options: HtmlWriterFormattingOptions.Minimal with { XmlStyleSelfClosingTags = true, SpaceBeforeSelfClosingSlash = spaceBeforeSlash });
+
+		Assert.AreEqual(expected, html);
 	}
 
 	[TestMethod]
@@ -38,7 +52,7 @@ public sealed class VoidElementTests
 			writer.CloseElement();
 		});
 
-		Assert.AreEqual("<BR />", html);
+		Assert.AreEqual("<BR>", html);
 	}
 
 	[TestMethod]
@@ -52,7 +66,7 @@ public sealed class VoidElementTests
 			writer.CloseElement();
 		});
 
-		Assert.AreEqual("<img src=\"a.png\" alt=\"a &gt; b\" />", html);
+		Assert.AreEqual("<img src=\"a.png\" alt=\"a &gt; b\">", html);
 	}
 
 	[TestMethod]
@@ -66,7 +80,7 @@ public sealed class VoidElementTests
 			writer.CloseElement();
 		});
 
-		Assert.AreEqual("<input type=\"checkbox\" checked />", html);
+		Assert.AreEqual("<input type=checkbox checked>", html);
 	}
 
 	[TestMethod]
@@ -82,7 +96,7 @@ public sealed class VoidElementTests
 			writer.CloseElement();
 		});
 
-		Assert.AreEqual("<p>a<br />b</p>", html);
+		Assert.AreEqual("<p>a<br>b</p>", html);
 	}
 
 	[TestMethod]
@@ -100,7 +114,7 @@ public sealed class VoidElementTests
 			writer.CloseElement();
 		});
 
-		Assert.AreEqual("<head><meta charset=\"utf-8\" /><link rel=\"stylesheet\" /></head>", html);
+		Assert.AreEqual("<head><meta charset=\"utf-8\"><link rel=stylesheet></head>", html);
 	}
 
 	[TestMethod]

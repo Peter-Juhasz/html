@@ -76,11 +76,11 @@ public sealed class WriterVisitorTests
 			"<dl><dt>t</dt><dd>d</dd></dl>" +
 			"<p>text</p>");
 
-		var html = Write(document, new HtmlWriterFormattingOptions(OmitOptionalEndTags: true));
+		var html = Write(document, HtmlWriterFormattingOptions.Minimal);
 
 		Assert.AreEqual(
 			"<table><thead><tr><th>A<th>B<tbody><tr><td>1<td>2</table>" +
-			"<select><optgroup label=\"x\"><option>a<option>b</select>" +
+			"<select><optgroup label=x><option>a<option>b</select>" +
 			"<dl><dt>t<dd>d</dl>" +
 			"<p>text</p>",
 			html);

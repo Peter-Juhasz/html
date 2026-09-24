@@ -10,7 +10,7 @@ public sealed class AllocationTests
 	public void WritingDoesNotAllocateAfterWarmUp()
 	{
 		var buffer = new ArrayBufferWriter<char>();
-		var writer = new HtmlWriter<ArrayBufferWriter<char>>(buffer, HtmlEncoder.Default);
+		var writer = new HtmlWriter<ArrayBufferWriter<char>>(buffer, HtmlEncoder.Default, HtmlWriterFormattingOptions.Minimal);
 
 		WriteDocument(writer);
 		var expected = buffer.WrittenSpan.ToString();
