@@ -290,5 +290,16 @@ public static partial class Extensions
 
 			return attribute.ValueSpan.SplitAny(SyntaxFacts.Whitespace);
 		}
+
+		public bool TryGetDataAttribute(ReadOnlySpan<char> name, out LazyHtmlAttribute attribute)
+		{
+			const string prefix = "data-";
+
+			Span<char> attributeName = stackalloc char[prefix.Length + name.Length];
+			prefix.CopyTo(attributeName);
+			name.CopyTo(attributeName[prefix.Length..]);
+
+			return source.TryGetAttribute(attributeName, out attribute);
+		}
 	}
 }

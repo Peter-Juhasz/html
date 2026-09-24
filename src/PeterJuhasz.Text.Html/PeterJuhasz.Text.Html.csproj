@@ -14,6 +14,7 @@
 		<PackageTags>html</PackageTags>
 		<PackageProjectUrl>https://github.com/Peter-Juhasz/html</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/Peter-Juhasz/html</RepositoryUrl>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
 	</PropertyGroup>
 	
 	<PropertyGroup>
@@ -27,6 +28,10 @@
 	<PropertyGroup Condition="$(Configuration) == 'Release'">
 		<TrimmerRemoveSymbols>true</TrimmerRemoveSymbols>
 	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="..\..\README.md" Pack="true" PackagePath="\" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="PeterJuhasz.Extensions" Version="2.*-*" />

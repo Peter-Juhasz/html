@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.Primitives;
+using PeterJuhasz.Text.Html.Lazy;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
-using PeterJuhasz.Text.Html.Lazy;
 
 namespace PeterJuhasz.Text.Html.Model;
 
@@ -31,6 +31,8 @@ public sealed class HtmlElement : HtmlNode
 
 	// The elements directly inside this element, in document order.
 	public IEnumerable<HtmlElement> Elements() => Elements(Nodes);
+
+	public IEnumerable<HtmlElement> Elements(string element) => Elements(Nodes, element);
 
 	public override ReadOnlySpan<char> OuterSpan => _source.OuterSpan;
 
@@ -110,6 +112,8 @@ public sealed class HtmlElement : HtmlNode
 	// Enumerates the elements at any depth inside this element, in document order.
 	public IEnumerable<HtmlElement> Descendants() => Descendants(Nodes);
 
+	public IEnumerable<HtmlElement> Descendants(string element) => Descendants(Nodes, element);
+
 	// Finds the elements at any depth inside this element that have the given element name (any if null), all of the given classes
 	// and all of the given attributes with the given values, in document order.
 	// Attribute memory is retained without copying; keep its storage valid until enumeration completes.
@@ -129,19 +133,52 @@ public sealed class HtmlElement : HtmlNode
 	}
 
 	// Enumerates the elements among the nodes, in order.
-	internal static IEnumerable<HtmlElement> Elements(ImmutableArray<HtmlNode> nodes)
+	internal static IEnumerable<HtmlElement> Elements(ImmutableArray<HtmlNode> nodes, string? element = null)
 	{
-		foreach (var node in nodes)
+		if (nodes.IsDefaultOrEmpty)
 		{
-			if (node is HtmlElement element)
-			{
-				yield return element;
-			}
+			return [];
 		}
+
+		if (nodes is [not HtmlElement])
+		{
+			return [];
+		}
+
+		var elements = nodes.OfType<HtmlElement>();
+
+		if (element != null)
+		{
+			elements = elements.Where(candidate => string.Equals(candidate.Name, element, StringComparison.OrdinalIgnoreCase));
+		}
+
+		return elements;
 	}
 
 	// Enumerates the elements among the nodes and all of their descendants in document order; iterative, so the depth of the tree does not matter.
-	internal static IEnumerable<HtmlElement> Descendants(ImmutableArray<HtmlNode> nodes)
+	internal static IEnumerable<HtmlElement> Descendants(ImmutableArray<HtmlNode> nodes, string? element = null)
+	{
+		if (nodes.IsDefaultOrEmpty)
+		{
+			return [];
+		}
+
+		if (nodes is [not HtmlElement])
+		{
+			return [];
+		}
+
+		var elements = DescendantsCore(nodes);
+
+		if (element != null)
+		{
+			elements = elements.Where(candidate => string.Equals(candidate.Name, element, StringComparison.OrdinalIgnoreCase));
+		}
+
+		return elements;
+	}
+
+	internal static IEnumerable<HtmlElement> DescendantsCore(ImmutableArray<HtmlNode> nodes)
 	{
 		var pending = new Stack<HtmlElement>();
 		PushReversed(pending, nodes);
@@ -167,7 +204,7 @@ public sealed class HtmlElement : HtmlNode
 	internal static IEnumerable<HtmlElement> Query(ImmutableArray<HtmlNode> nodes, string? element, StringValues classNames, ReadOnlyMemory<KeyValuePair<string, string>> attributes)
 	{
 		ElementQuery.ValidateArguments(element, classNames, attributes.Span);
-		return Descendants(nodes).Where(candidate => candidate.Matches(element, classNames, attributes));
+		return DescendantsCore(nodes).Where(candidate => candidate.Matches(element, classNames, attributes));
 	}
 
 	// The selector is parsed eagerly, so an unsupported one throws before enumeration.
@@ -358,6 +395,17 @@ public static partial class Extensions
 			{
 				return ElementQuery.HasClasses(classAttribute.ValueSpan, classNames);
 			}
+		}
+
+		public bool TryGetDataAttribute(ReadOnlySpan<char> name, [NotNullWhen(true)] out HtmlAttribute? attribute)
+		{
+			const string prefix = "data-";
+
+			Span<char> attributeName = stackalloc char[prefix.Length + name.Length];
+			prefix.CopyTo(attributeName);
+			name.CopyTo(attributeName[prefix.Length..]);
+
+			return source.TryGetAttribute(attributeName, out attribute);
 		}
 	}
 }

@@ -202,6 +202,13 @@ public sealed class HtmlWriter<TWriter>(TWriter writer, HtmlEncoder htmlEncoder,
 	private readonly record struct ElementScope(string Name, bool IsLiteral, bool ParentHasChildren, bool ParentHasText);
 }
 
+public static class HtmlWriter
+{
+	public static HtmlWriter<TWriter> Create<TWriter>(TWriter writer, HtmlEncoder? htmlEncoder = null, HtmlWriterFormattingOptions? options = null)
+		where TWriter : IBufferWriter<char> => 
+		new(writer, htmlEncoder ?? HtmlEncoder.Default, options);
+}
+
 public static partial class Extensions
 {
 	extension<TWriter>(HtmlWriter<TWriter> writer) where TWriter : IBufferWriter<char>

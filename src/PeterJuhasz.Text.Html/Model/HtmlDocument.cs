@@ -25,8 +25,12 @@ public sealed class HtmlDocument
 	// The elements at the top level of the document, in document order.
 	public IEnumerable<HtmlElement> Elements() => HtmlElement.Elements(Nodes);
 
+	public IEnumerable<HtmlElement> Elements(string element) => HtmlElement.Elements(Nodes, element);
+
 	// Enumerates the elements at any depth in the document, in document order.
 	public IEnumerable<HtmlElement> Descendants() => HtmlElement.Descendants(Nodes);
+
+	public IEnumerable<HtmlElement> Descendants(string element) => HtmlElement.Descendants(Nodes, element);
 
 	// Finds the elements at any depth in the document that have the given element name (any if null), all of the given classes
 	// and all of the given attributes with the given values, in document order.
