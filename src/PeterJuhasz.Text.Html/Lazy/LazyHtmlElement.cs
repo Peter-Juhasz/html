@@ -222,5 +222,15 @@ public static partial class Extensions
 		{
 			return source.TryGetAttribute("class", out var attribute) && ElementQuery.HasClasses(attribute.ValueSpan, classNames);
 		}
+
+		public MemoryExtensions.SpanSplitEnumerator<char> Classes()
+		{
+			if (!source.TryGetAttribute("class", out var attribute))
+			{
+				return default;
+			}
+
+			return attribute.ValueSpan.SplitAny(SyntaxFacts.Whitespace);
+		}
 	}
 }

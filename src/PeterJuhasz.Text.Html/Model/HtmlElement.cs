@@ -187,6 +187,48 @@ public sealed class HtmlElement : HtmlNode
 
 		return true;
 	}
+
+	public StringValues Classes()
+	{
+		if (!TryGetAttribute("class", out var attribute))
+		{
+			return StringValues.Empty;
+		}
+
+		if (!attribute.HasValue)
+		{
+			return StringValues.Empty;
+		}
+
+		var valueSpan = attribute.ValueSpan.Trim();
+		if (valueSpan.IsEmpty)
+		{
+			return StringValues.Empty;
+		}
+
+		var separator = valueSpan.IndexOfAny(SyntaxFacts.Whitespace);
+		if (separator < 0)
+		{
+			return attribute._value is { } value && value.Length == valueSpan.Length ? value : SyntaxFacts.DecodeIfNeeded(valueSpan.Trim()).ToString();
+		}
+
+		using var builder = new PooledArrayBuilder<string>();
+		builder.Add(valueSpan[..separator].ToString());
+
+		var rest = valueSpan[(separator + 1)..];
+		foreach (var range in rest.SplitAny(SyntaxFacts.Whitespace))
+		{
+			var classSpan = rest[range];
+			if (classSpan.IsEmpty)
+			{
+				continue;
+			}
+
+			builder.Add(SyntaxFacts.DecodeIfNeeded(classSpan).ToString());
+		}
+
+		return builder.ToStringValues();
+	}
 }
 
 public static partial class Extensions

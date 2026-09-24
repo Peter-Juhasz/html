@@ -9,7 +9,7 @@ public sealed class HtmlAttribute
 	private readonly LazyHtmlAttribute _source;
 
 	// The decoded value is created on first access and kept for the next ones.
-	private string? _value;
+	internal string? _value;
 
 	internal HtmlAttribute(HtmlElement element, LazyHtmlAttribute source)
 	{
