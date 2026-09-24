@@ -94,7 +94,7 @@ public sealed class HtmlElement : HtmlNode
 	{
 		foreach (var candidate in Attributes)
 		{
-			if (candidate.Name.AsSpan().Equals(name, StringComparison.OrdinalIgnoreCase))
+			if (candidate.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
 			{
 				attribute = candidate;
 				return true;
@@ -186,14 +186,34 @@ public sealed class HtmlElement : HtmlNode
 			return false;
 		}
 
-		if (classNames.Count > 0 && !(TryGetAttribute("class", out var classAttribute) && ElementQuery.HasClasses(classAttribute.ValueSpan, classNames)))
+		if (classNames.Count > 0)
 		{
-			return false;
+			if (!this.HasClass(classNames))
+			{
+				return false;
+			}
 		}
 
 		foreach (var (attributeName, value) in attributes.Span)
 		{
-			if (!TryGetAttribute(attributeName, out var attribute) || !ElementQuery.HasAttributeValue(attribute.ValueSpan, value))
+			if (!TryGetAttribute(attributeName, out var attribute))
+			{
+				return false;
+			}
+
+			if (!attribute.HasValue && value.Length > 0)
+			{
+				return false;
+			}
+
+			if (attribute._value is string materializedValue)
+			{
+				if (materializedValue != value)
+				{
+					return false;
+				}
+			}
+			else if (!ElementQuery.HasAttributeValue(attribute.ValueSpan, value))
 			{
 				return false;
 			}
@@ -297,12 +317,47 @@ public static partial class Extensions
 		public bool HasClass(string className)
 		{
 			ArgumentException.ThrowIfNullOrEmpty(className);
-			return source.TryGetAttribute("class", out var attribute) && ElementQuery.HasClass(attribute.ValueSpan, className);
+
+			if (!source.TryGetAttribute("class", out var classAttribute))
+			{
+				return false;
+			}
+
+			if (!classAttribute.HasValue)
+			{
+				return false;
+			}
+
+			if (classAttribute._value is string materializedValue)
+			{
+				return ElementQuery.HasDecodedClass(materializedValue, className);
+			}
+			else
+			{
+				return ElementQuery.HasClass(classAttribute.ValueSpan, className);
+			}
 		}
 
 		public bool HasClass(StringValues classNames)
 		{
-			return source.TryGetAttribute("class", out var attribute) && ElementQuery.HasClasses(attribute.ValueSpan, classNames);
+			if (!source.TryGetAttribute("class", out var classAttribute))
+			{
+				return false;
+			}
+
+			if (!classAttribute.HasValue)
+			{
+				return false;
+			}
+
+			if (classAttribute._value is string materializedValue)
+			{
+				return ElementQuery.HasDecodedClasses(materializedValue, classNames);
+			}
+			else
+			{
+				return ElementQuery.HasClasses(classAttribute.ValueSpan, classNames);
+			}
 		}
 	}
 }

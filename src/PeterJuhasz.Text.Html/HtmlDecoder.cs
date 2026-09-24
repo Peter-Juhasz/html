@@ -1,6 +1,5 @@
 ﻿using System.Buffers;
 using System.Globalization;
-using System.Net;
 using System.Text;
 
 namespace PeterJuhasz.Text.Html;
@@ -9,7 +8,23 @@ public static partial class HtmlDecoder
 {
 	public static string Decode(string str)
 	{
-		return WebUtility.HtmlDecode(str);
+		if (!SyntaxFacts.NeedsDecoding(str))
+		{
+			return str;
+		}
+
+		if (str.Length <= StackAllocThreshold)
+		{
+			Span<char> buffer = stackalloc char[str.Length];
+			Decode(str.AsSpan(), buffer, out int charsWritten);
+			return new(buffer[..charsWritten]);
+		}
+		else
+		{
+			using var array = ArrayPool<char>.Shared.GetPooledArray(str.Length);
+			Decode(str.AsSpan(), array, out int charsWritten);
+			return new(array.Array.AsSpan(0, charsWritten));
+		}
 	}
 
 	public static string Decode(ReadOnlySpan<char> span)
