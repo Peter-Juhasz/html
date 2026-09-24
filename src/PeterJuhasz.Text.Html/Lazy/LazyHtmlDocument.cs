@@ -14,6 +14,9 @@ public readonly struct LazyHtmlDocument(StringSegment document)
 	// Enumerates the elements, text and comments at the top level of the document.
 	public NodesEnumerator Nodes() => new(document, 0, document.Length);
 
+	// The same nodes for visiting them, reporting elements without scanning their content.
+	internal NodesEnumerator NodesToVisit() => new(document, 0, document.Length, isLazy: true);
+
 	// Finds the elements at any depth in the document that have the given element name (any if empty), all of the given classes
 	// and all of the given attributes with the given values, in document order.
 	public ElementsQueryEnumerator QuerySelectorAll(ReadOnlySpan<char> element = default, StringValues classNames = default, ReadOnlySpan<KeyValuePair<string, string>> attributes = default)

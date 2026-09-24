@@ -8,6 +8,9 @@ namespace PeterJuhasz.Text.Html.Lazy;
 [PerformanceCritical]
 public readonly struct LazyHtmlElement
 {
+	// The ends of an element whose content has not been scanned yet.
+	private const int Unscanned = -1;
+
 	private readonly StringSegment _document;
 	private readonly int _start;
 	private readonly int _nameLength;
@@ -26,7 +29,7 @@ public readonly struct LazyHtmlElement
 		_end = HtmlScanner.ScanElement(text, startIndex, out _nameLength, out _contentStart, out _contentEnd);
 	}
 
-	// Rebuilds an element from an earlier scan, so a node does not have to scan it again.
+	// Rebuilds an element from an earlier scan, so a node does not have to scan it again; the ends may still be unscanned.
 	internal LazyHtmlElement(StringSegment document, int start, int nameLength, int contentStart, int contentEnd, int end)
 	{
 		_document = document;
@@ -37,28 +40,72 @@ public readonly struct LazyHtmlElement
 		_end = end;
 	}
 
+	// An element whose start tag has already been scanned. Its content is only scanned when its end is needed, and again each time,
+	// so finding an element does not cost scanning everything inside it.
+	internal LazyHtmlElement(StringSegment document, int start, int nameLength, int contentStart, bool isSelfClosing)
+	{
+		Debug.Assert(HtmlScanner.IsStartTagAt(document.AsSpan(), start));
+
+		_document = document;
+		_start = start;
+		_nameLength = nameLength;
+		_contentStart = contentStart;
+
+		// a self-closing element has no content to scan
+		_contentEnd = _end = isSelfClosing ? contentStart : Unscanned;
+	}
+
 	internal StringSegment Document => _document;
 
 	internal int Start => _start;
 
 	internal int NameLength => _nameLength;
 
+	// Whether the ends are known, so reading them does not scan the content.
+	internal bool IsScanned => _end != Unscanned;
+
 	// Index right after the element, used to continue enumeration.
-	internal int End => _end;
+	internal int End => GetEnd(out _);
 
 	// Index right after the start tag, used to continue enumeration inside the element.
 	internal int ContentStart => _contentStart;
 
 	// Index right after the content, at the end tag or at whatever implicitly closed the element.
-	internal int ContentEnd => _contentEnd;
+	internal int ContentEnd
+	{
+		get
+		{
+			GetEnd(out var contentEnd);
+			return contentEnd;
+		}
+	}
+
+	// Returns the index right after the element and gives the index right after its content, scanning the content if they are not known yet.
+	internal int GetEnd(out int contentEnd)
+	{
+		if (IsScanned)
+		{
+			contentEnd = _contentEnd;
+			return _end;
+		}
+
+		return HtmlScanner.ScanContent(_document.AsSpan(), _start, _nameLength, _contentStart, isSelfClosing: false, out contentEnd);
+	}
+
+	// The ends as they are, which are unscanned when the content has not been scanned yet.
+	internal void GetScannedEnds(out int contentEnd, out int end)
+	{
+		contentEnd = _contentEnd;
+		end = _end;
+	}
 
 	public ReadOnlySpan<char> NameSpan => _nameLength == 0 ? default : _document.AsSpan().Slice(_start + 1, _nameLength);
 
 	public string Name => SyntaxFacts.ToName(NameSpan);
 
-	public ReadOnlySpan<char> OuterSpan => _document.AsSpan()[_start.._end];
+	public ReadOnlySpan<char> OuterSpan => _document.AsSpan()[_start..End];
 
-	public ReadOnlySpan<char> InnerSpan => _document.AsSpan()[_contentStart.._contentEnd];
+	public ReadOnlySpan<char> InnerSpan => _document.AsSpan()[_contentStart..ContentEnd];
 
 	public AttributesEnumerator Attributes() => new(_document, _start, _start + 1 + _nameLength, _contentStart);
 
@@ -66,23 +113,19 @@ public readonly struct LazyHtmlElement
 
 	public bool HasAttribute(ReadOnlySpan<char> name) => TryGetAttribute(name, out _);
 
-	public ElementsEnumerator Elements() => SyntaxFacts.IsRawTextElement(NameSpan)
-		? new(_document, _contentEnd, _contentEnd)
-		: new(_document, _contentStart, _contentEnd);
+	// The content is not scanned first when its end is not known yet, but enumerated up to whatever ends it.
+	public ElementsEnumerator Elements() => new(this);
 
 	// Enumerates the elements, text and comments directly inside this element; raw text content is a single text node.
-	public NodesEnumerator Nodes()
-	{
-		var isRawText = SyntaxFacts.IsRawTextElement(NameSpan);
-		return new(_document, _contentStart, _contentEnd, isRawText, isLiteral: isRawText && !SyntaxFacts.IsEscapableRawTextElement(NameSpan));
-	}
+	// The content is not scanned first when its end is not known yet, but enumerated up to whatever ends it.
+	public NodesEnumerator Nodes() => new(this);
 
 	// Finds the elements at any depth inside this element that have the given element name (any if empty), all of the given classes
 	// and all of the given attributes with the given values, in document order.
 	public ElementsQueryEnumerator QuerySelectorAll(ReadOnlySpan<char> element = default, StringValues classNames = default, ReadOnlySpan<KeyValuePair<string, string>> attributes = default)
 		=> SyntaxFacts.IsRawTextElement(NameSpan)
-			? new(_document, element, classNames, attributes, _contentEnd, _contentEnd)
-			: new(_document, element, classNames, attributes, _contentStart, _contentEnd);
+			? new(_document, element, classNames, attributes, _contentStart, _contentStart)
+			: new(_document, element, classNames, attributes, _contentStart, ContentEnd);
 
 	// Finds the elements at any depth inside this element that match a selector like "a.button[rel=next]", in document order.
 	// Only an element name or '*' followed by classes, IDs and exact attribute values is supported.
@@ -108,20 +151,22 @@ public readonly struct LazyHtmlElement
 	{
 		get
 		{
-			var text = _document.AsSpan()[.._contentEnd];
+			var contentEnd = ContentEnd;
+			var text = _document.AsSpan()[..contentEnd];
+			var inner = text[_contentStart..];
 			if (SyntaxFacts.IsRawTextElement(NameSpan))
 			{
-				return SyntaxFacts.IsEscapableRawTextElement(NameSpan) ? HtmlDecoder.Decode(InnerSpan) : InnerSpan.ToString();
+				return SyntaxFacts.IsEscapableRawTextElement(NameSpan) ? HtmlDecoder.Decode(inner) : inner.ToString();
 			}
 
-			if (!text[_contentStart..].Contains(SyntaxFacts.OpenTag))
+			if (!inner.Contains(SyntaxFacts.OpenTag))
 			{
-				return HtmlDecoder.Decode(InnerSpan);
+				return HtmlDecoder.Decode(inner);
 			}
 
 			using var pooled = StringBuilderPool.GetPooledObject(out var builder);
 			var position = _contentStart;
-			while (position < _contentEnd)
+			while (position < contentEnd)
 			{
 				var kind = HtmlScanner.FindMarkup(text, position, out var index);
 				HtmlDecoder.Decode(text[position..index], builder);

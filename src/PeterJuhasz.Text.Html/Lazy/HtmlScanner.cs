@@ -1,4 +1,5 @@
 ﻿using System.Buffers;
+using System.Collections.Frozen;
 using System.Diagnostics.CodeAnalysis;
 
 namespace PeterJuhasz.Text.Html.Lazy;
@@ -141,6 +142,12 @@ internal static class HtmlScanner
 	public static int ScanElement(ReadOnlySpan<char> text, int start, out int nameLength, out int contentStart, out int contentEnd, int depth = 0)
 	{
 		contentStart = ScanStartTag(text, start, out nameLength, out var isSelfClosing);
+		return ScanContent(text, start, nameLength, contentStart, isSelfClosing, out contentEnd, depth);
+	}
+
+	// Scans the content of the element whose start tag at `start` has already been scanned, and returns the index right after the element.
+	public static int ScanContent(ReadOnlySpan<char> text, int start, int nameLength, int contentStart, bool isSelfClosing, out int contentEnd, int depth = 0)
+	{
 		var name = text.Slice(start + 1, nameLength);
 		if (isSelfClosing || SyntaxFacts.IsVoidElement(name) || depth > MaxDepth)
 		{
@@ -159,29 +166,40 @@ internal static class HtmlScanner
 		while (true)
 		{
 			var kind = FindMarkup(text, position, out var index);
-			switch (kind)
+			if (EndsContent(text, kind, index, name, hasClosers, closers, out var end))
 			{
-				case MarkupKind.None:
-					contentEnd = text.Length;
-					return text.Length;
-
-				// a mismatched end tag implicitly closes this element and is left for an ancestor
-				case MarkupKind.EndTag:
-					contentEnd = index;
-					return IsTagNameAt(text, index + 2, name) ? SkipMarkup(text, index) : index;
-
-				case MarkupKind.StartTag when hasClosers && closers.Contains(TagNameAt(text, index + 1)):
-					contentEnd = index;
-					return index;
-
-				case MarkupKind.StartTag:
-					position = ScanElement(text, index, out _, out _, out _, depth + 1);
-					break;
-
-				default:
-					position = SkipMarkup(text, index);
-					break;
+				contentEnd = index;
+				return end;
 			}
+
+			position = kind == MarkupKind.StartTag
+				? ScanElement(text, index, out _, out _, out _, depth + 1)
+				: SkipMarkup(text, index);
+		}
+	}
+
+	// Checks whether the markup found at `index` ends the content of the element named `name`, which has the given implicit closers;
+	// if so, `end` is the index right after the element. The content ends at `index` in that case.
+	public static bool EndsContent(ReadOnlySpan<char> text, MarkupKind kind, int index, ReadOnlySpan<char> name, bool hasClosers, FrozenSet<string>.AlternateLookup<ReadOnlySpan<char>> closers, out int end)
+	{
+		switch (kind)
+		{
+			case MarkupKind.None:
+				end = text.Length;
+				return true;
+
+			// a mismatched end tag implicitly closes this element and is left for an ancestor
+			case MarkupKind.EndTag:
+				end = IsTagNameAt(text, index + 2, name) ? SkipMarkup(text, index) : index;
+				return true;
+
+			case MarkupKind.StartTag when hasClosers && closers.Contains(TagNameAt(text, index + 1)):
+				end = index;
+				return true;
+
+			default:
+				end = 0;
+				return false;
 		}
 	}
 

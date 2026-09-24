@@ -53,24 +53,23 @@ public ref struct ElementsQueryEnumerator
 			}
 
 			// the start tag is scanned as a whole so a '<' inside an attribute value is not mistaken for markup
-			_position = HtmlScanner.ScanStartTag(text, index, out var nameLength, out var isSelfClosing);
+			var contentStart = HtmlScanner.ScanStartTag(text, index, out var nameLength, out var isSelfClosing);
 			var name = text.Slice(index + 1, nameLength);
-			var isRawText = !isSelfClosing && SyntaxFacts.IsRawTextElement(name);
 
-			// the attributes are only looked at when the name matches, and the element is only scanned when everything matches
-			if ((_element.IsEmpty || name.Equals(_element, StringComparison.OrdinalIgnoreCase))
-				&& (!_filtersAttributes || HasAttributes(index, index + 1 + nameLength, _position)))
+			// the attributes are only looked at when the name matches
+			var matches = (_element.IsEmpty || name.Equals(_element, StringComparison.OrdinalIgnoreCase))
+				&& (!_filtersAttributes || HasAttributes(index, index + 1 + nameLength, contentStart));
+
+			// continue inside the content so nested matches are found too; raw text has no elements inside
+			_position = !isSelfClosing && SyntaxFacts.IsRawTextElement(name)
+				? HtmlScanner.SkipMarkup(text, HtmlScanner.FindRawTextEnd(text, contentStart, name))
+				: contentStart;
+
+			if (matches)
 			{
-				_current = new LazyHtmlElement(_document, index);
-
-				// continue inside the content so nested matches are found too; raw text has no elements inside
-				_position = isRawText ? _current.End : _current.ContentStart;
+				// the content of the match is not scanned, as it is enumerated next anyway; it is only scanned when its end is needed
+				_current = new LazyHtmlElement(_document, index, nameLength, contentStart, isSelfClosing);
 				return true;
-			}
-
-			if (isRawText)
-			{
-				_position = HtmlScanner.SkipMarkup(text, HtmlScanner.FindRawTextEnd(text, _position, name));
 			}
 		}
 

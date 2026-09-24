@@ -77,6 +77,19 @@ public class LazyHtmlBenchmarks
 		return count;
 	}
 
+	// Every element with attributes is checked against several filters.
+	[Benchmark]
+	public int QuerySelectorAllByClassNameAndAttributes()
+	{
+		var count = 0;
+		foreach (var element in document.QuerySelectorAll(classNames: "btn", attributes: [new("rel", "author"), new("href", "/")]))
+		{
+			count += element.NameSpan.Length;
+		}
+
+		return count;
+	}
+
 	[Benchmark]
 	public int TryQuerySelectorByElementAndAttribute()
 		=> document.TryQuerySelector(out var element, element: "a", attributes: [new("class", "btn"), new("rel", "author")]) ? element.OuterSpan.Length : 0;

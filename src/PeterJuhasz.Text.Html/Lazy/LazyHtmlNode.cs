@@ -12,7 +12,8 @@ public enum LazyHtmlNodeKind
 }
 
 // An element, text or comment; `Kind` tells which one, and the matching member gives the typed view.
-// The element's scan result is kept, so viewing it as an element does not scan it again.
+// The element's scan result is kept, so viewing it as an element does not scan it again; an element whose content has not been
+// scanned yet stays unscanned until its end is needed.
 [PerformanceCritical]
 public readonly struct LazyHtmlNode
 {
@@ -32,8 +33,7 @@ public readonly struct LazyHtmlNode
 		_start = element.Start;
 		_nameLength = element.NameLength;
 		_contentStart = element.ContentStart;
-		_contentEnd = element.ContentEnd;
-		_end = element.End;
+		element.GetScannedEnds(out _contentEnd, out _end);
 	}
 
 	// A text or comment node spanning the [start, end) range of the document.
@@ -49,13 +49,17 @@ public readonly struct LazyHtmlNode
 		_isLiteral = isLiteral;
 	}
 
-	// Index right after the node, used to continue enumeration.
-	internal int End => _end;
+	internal StringSegment Document => _document;
+
+	internal int Start => _start;
+
+	// Index right after the node, used to continue enumeration; scans the content of an element that has not been scanned yet.
+	internal int End => _kind == LazyHtmlNodeKind.Element ? AsElement().End : _end;
 
 	public LazyHtmlNodeKind Kind => _kind;
 
 	// The whole node as written: the element with its tags, the text, or the comment with its delimiters.
-	public ReadOnlySpan<char> OuterSpan => _document.AsSpan()[_start.._end];
+	public ReadOnlySpan<char> OuterSpan => _document.AsSpan()[_start..End];
 
 	public LazyHtmlElement Element => TryGetElement(out var element) ? element : throw new InvalidOperationException("The node is not an element.");
 
@@ -71,9 +75,11 @@ public readonly struct LazyHtmlNode
 			return false;
 		}
 
-		element = new(_document, _start, _nameLength, _contentStart, _contentEnd, _end);
+		element = AsElement();
 		return true;
 	}
+
+	private LazyHtmlElement AsElement() => new(_document, _start, _nameLength, _contentStart, _contentEnd, _end);
 
 	public bool TryGetText(out LazyHtmlText text)
 	{

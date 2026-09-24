@@ -360,6 +360,20 @@ public sealed class QuerySelectorAllTests
 	}
 
 	[TestMethod]
+	public void FirstOfDuplicateAttributesWinsWithMultipleFilters()
+	{
+		var document = LazyHtmlDocument.Parse("<a rel=\"x\" id=\"1\" REL=\"y\" class=\"c\" class=\"d\">1</a>");
+
+		Assert.IsTrue(document.QuerySelectorAll(attributes: Attributes(("id", "1"), ("rel", "x"))).MoveNext());
+		Assert.IsFalse(document.QuerySelectorAll(attributes: Attributes(("id", "1"), ("rel", "y"))).MoveNext());
+		Assert.IsTrue(document.QuerySelectorAll(attributes: Attributes(("rel", "x"), ("rel", "x"))).MoveNext());
+		Assert.IsFalse(document.QuerySelectorAll(attributes: Attributes(("rel", "x"), ("rel", "y"))).MoveNext());
+		Assert.IsTrue(document.QuerySelectorAll(classNames: "c", attributes: Attributes(("class", "c"), ("id", "1"))).MoveNext());
+		Assert.IsFalse(document.QuerySelectorAll(classNames: "d", attributes: Attributes(("id", "1"))).MoveNext());
+		Assert.IsFalse(document.QuerySelectorAll(classNames: "c", attributes: Attributes(("class", "d"))).MoveNext());
+	}
+
+	[TestMethod]
 	public void AttributeValueWithMarkupCharactersIsMatched()
 	{
 		var document = LazyHtmlDocument.Parse("<a title=\"a<b>c\">1</a><a title=\"x\">2</a>");

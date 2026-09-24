@@ -9,6 +9,10 @@ public struct ElementsEnumerator
 {
 	private readonly StringSegment _document;
 	private readonly int _end;
+
+	// The element whose content is enumerated up to whatever ends it, when the range is not known.
+	private readonly OpenElement _parent;
+
 	private int _position;
 	private LazyHtmlElement _current;
 
@@ -17,6 +21,32 @@ public struct ElementsEnumerator
 		_document = document;
 		_position = start;
 		_end = end;
+	}
+
+	// Enumerates the child elements of the element. When the end of the element is not known yet, its content is enumerated up to
+	// whatever ends it instead of being scanned first.
+	internal ElementsEnumerator(LazyHtmlElement parent)
+	{
+		var name = parent.NameSpan;
+		_document = parent.Document;
+		_position = parent.ContentStart;
+
+		// raw text has no elements inside
+		if (SyntaxFacts.IsRawTextElement(name))
+		{
+			_end = _position;
+			return;
+		}
+
+		// a void element has no content, so finding its end is cheap
+		if (parent.IsScanned || SyntaxFacts.IsVoidElement(name))
+		{
+			_end = parent.ContentEnd;
+			return;
+		}
+
+		_end = _document.Length;
+		_parent = new(parent);
 	}
 
 	public readonly LazyHtmlElement Current => _current;
@@ -29,8 +59,9 @@ public struct ElementsEnumerator
 		while (_position < _end)
 		{
 			var kind = HtmlScanner.FindMarkup(text, _position, out var index);
-			if (kind == MarkupKind.None)
+			if (kind == MarkupKind.None || (_parent.Exists && _parent.Ends(text, kind, index, out _)))
 			{
+				_position = _end;
 				break;
 			}
 
