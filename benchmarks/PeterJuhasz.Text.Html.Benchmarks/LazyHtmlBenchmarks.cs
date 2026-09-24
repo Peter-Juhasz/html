@@ -46,7 +46,10 @@ public class LazyHtmlBenchmarks
 	{
 		var count = 0;
 		foreach (var element in document.QuerySelectorAll(element: "a"))
+		{
 			count += element.NameSpan.Length;
+		}
+
 		return count;
 	}
 
@@ -55,7 +58,10 @@ public class LazyHtmlBenchmarks
 	{
 		var count = 0;
 		foreach (var element in document.QuerySelectorAll(element: "a", attributes: [new("class", "btn")]))
+		{
 			count += element.NameSpan.Length;
+		}
+
 		return count;
 	}
 
@@ -64,7 +70,10 @@ public class LazyHtmlBenchmarks
 	{
 		var count = 0;
 		foreach (var element in document.QuerySelectorAll(attributes: [new("rel", "author")]))
+		{
 			count += element.NameSpan.Length;
+		}
+
 		return count;
 	}
 
@@ -77,7 +86,10 @@ public class LazyHtmlBenchmarks
 	{
 		var count = 0;
 		foreach (var element in document.QuerySelectorAll(classNames: "btn"))
+		{
 			count += element.NameSpan.Length;
+		}
+
 		return count;
 	}
 
@@ -104,7 +116,9 @@ public class LazyHtmlBenchmarks
 				foreach (var child in element.Elements())
 				{
 					if (child.NameSpan.Equals("body", StringComparison.OrdinalIgnoreCase))
+					{
 						return child;
+					}
 				}
 			}
 		}
@@ -152,10 +166,14 @@ public class LazyHtmlBenchmarks
 		public override void VisitElement(LazyHtmlElement element)
 		{
 			if (element.NameSpan.Equals(name, StringComparison.OrdinalIgnoreCase))
+			{
 				Count += element.NameSpan.Length;
+			}
 
 			foreach (var child in element.Elements())
+			{
 				VisitElement(child);
+			}
 		}
 	}
 }

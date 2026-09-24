@@ -1,4 +1,4 @@
-namespace PeterJuhasz.Text.Html.Tests.Writer;
+﻿namespace PeterJuhasz.Text.Html.Tests.Writer;
 
 [TestClass]
 public sealed class ElementTests
@@ -150,12 +150,16 @@ public sealed class ElementTests
 		var html = TestHelpers.Write(writer =>
 		{
 			for (var i = 0; i < depth; i++)
+			{
 				writer.OpenElement("div");
+			}
 
 			writer.WriteText("x");
 
 			for (var i = 0; i < depth; i++)
+			{
 				writer.CloseElement();
+			}
 		});
 
 		var expected = string.Concat(Enumerable.Repeat("<div>", depth)) + "x" + string.Concat(Enumerable.Repeat("</div>", depth));

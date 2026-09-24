@@ -27,9 +27,13 @@ public sealed class HtmlText : HtmlNode
 	internal void AppendTo(StringBuilder builder)
 	{
 		if (_text is not null)
+		{
 			builder.Append(_text);
+		}
 		else
+		{
 			_source.AppendTo(builder);
+		}
 	}
 
 	public override ReadOnlySpan<char> OuterSpan => _source.TextSpan;

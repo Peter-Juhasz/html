@@ -25,7 +25,9 @@ public sealed class AttributeTests
 		var element = TestHelpers.FirstElement("<a href=\"/\" target=_blank></a>");
 
 		foreach (var attribute in element.Attributes)
+		{
 			Assert.AreSame(element, attribute.Element);
+		}
 	}
 
 	[TestMethod]

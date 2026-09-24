@@ -38,7 +38,10 @@ public class ModelHtmlBenchmarks
 	public void ParseBodies()
 	{
 		for (var i = 0; i < bodies.Length; i++)
+		{
 			bodies[i] = HtmlDocument.Parse(html).TryGetBody(out var body) ? body : throw new InvalidOperationException("Sample has no <body>.");
+		}
+
 		nextBody = 0;
 	}
 
@@ -51,7 +54,10 @@ public class ModelHtmlBenchmarks
 	{
 		var count = 0;
 		foreach (var element in document.QuerySelectorAll(element: "a"))
+		{
 			count += element.Name.Length;
+		}
+
 		return count;
 	}
 
@@ -61,7 +67,10 @@ public class ModelHtmlBenchmarks
 		KeyValuePair<string, string>[] attributes = [new("class", "btn")];
 		var count = 0;
 		foreach (var element in document.QuerySelectorAll(element: "a", attributes: attributes))
+		{
 			count += element.Name.Length;
+		}
+
 		return count;
 	}
 
@@ -71,7 +80,10 @@ public class ModelHtmlBenchmarks
 		KeyValuePair<string, string>[] attributes = [new("rel", "author")];
 		var count = 0;
 		foreach (var element in document.QuerySelectorAll(attributes: attributes))
+		{
 			count += element.Name.Length;
+		}
+
 		return count;
 	}
 
@@ -87,7 +99,10 @@ public class ModelHtmlBenchmarks
 	{
 		var count = 0;
 		foreach (var element in document.QuerySelectorAll(classNames: "btn"))
+		{
 			count += element.Name.Length;
+		}
+
 		return count;
 	}
 

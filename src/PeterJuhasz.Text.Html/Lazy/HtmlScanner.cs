@@ -33,13 +33,19 @@ internal static class HtmlScanner
 			index = position + offset;
 			var next = index + 1 < text.Length ? text[index + 1] : '\0';
 			if (char.IsAsciiLetter(next))
+			{
 				return MarkupKind.StartTag;
+			}
 
 			if (next == SyntaxFacts.Slash && index + 2 < text.Length && char.IsAsciiLetter(text[index + 2]))
+			{
 				return MarkupKind.EndTag;
+			}
 
 			if (next is '!' or '?' or SyntaxFacts.Slash)
+			{
 				return MarkupKind.Other;
+			}
 
 			position = index + 1;
 		}
@@ -75,7 +81,9 @@ internal static class HtmlScanner
 		{
 			var c = text[position];
 			if (c == SyntaxFacts.CloseTag)
+			{
 				return position + 1;
+			}
 
 			if (c == SyntaxFacts.Slash && position + 1 < text.Length && text[position + 1] == SyntaxFacts.CloseTag)
 			{
@@ -84,9 +92,13 @@ internal static class HtmlScanner
 			}
 
 			if (c == SyntaxFacts.Slash || SyntaxFacts.Whitespace.Contains(c))
+			{
 				position++;
+			}
 			else
+			{
 				position = ScanAttribute(text, position, out _, out _, out _, out _);
+			}
 		}
 
 		return text.Length;
@@ -180,11 +192,15 @@ internal static class HtmlScanner
 		{
 			var offset = text[position..].IndexOf(SyntaxFacts.EndTagStart);
 			if (offset < 0)
+			{
 				return text.Length;
+			}
 
 			position += offset;
 			if (IsTagNameAt(text, position + SyntaxFacts.EndTagStart.Length, name))
+			{
 				return position;
+			}
 
 			position += SyntaxFacts.EndTagStart.Length;
 		}

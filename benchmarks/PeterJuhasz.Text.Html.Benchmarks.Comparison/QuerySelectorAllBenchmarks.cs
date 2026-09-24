@@ -1,4 +1,4 @@
-using BenchmarkDotNet.Attributes;
+﻿using BenchmarkDotNet.Attributes;
 
 namespace PeterJuhasz.Text.Html.Benchmarks.Comparison;
 
@@ -15,7 +15,10 @@ public class QuerySelectorAllBenchmarks : ComparisonBenchmarks
 		var count = 0;
 		var elements = AngleSharpDocument.QuerySelectorAll(Selector);
 		for (var i = 0; i < elements.Length; i++)
+		{
 			count += elements[i].LocalName.Length;
+		}
+
 		return count;
 	}
 
@@ -24,7 +27,10 @@ public class QuerySelectorAllBenchmarks : ComparisonBenchmarks
 	{
 		var count = 0;
 		foreach (var element in ModelDocument.QuerySelectorAll(element: "article", classNames: "article", attributes: Attributes))
+		{
 			count += element.Name.Length;
+		}
+
 		return count;
 	}
 
@@ -33,7 +39,10 @@ public class QuerySelectorAllBenchmarks : ComparisonBenchmarks
 	{
 		var count = 0;
 		foreach (var element in LazyDocument.QuerySelectorAll(element: "article", classNames: "article", attributes: Attributes))
+		{
 			count += element.NameSpan.Length;
+		}
+
 		return count;
 	}
 }

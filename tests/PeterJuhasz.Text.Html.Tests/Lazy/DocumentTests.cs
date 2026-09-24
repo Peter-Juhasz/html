@@ -68,7 +68,9 @@ public sealed class DocumentTests
 		var count = 0;
 
 		foreach (var element in document.Elements())
+		{
 			count++;
+		}
 
 		Assert.AreEqual(2, count);
 	}
@@ -144,13 +146,22 @@ public sealed class DocumentTests
 		Assert.AreEqual(hasHead, document.TryGetHead(out var head));
 		Assert.AreEqual(hasBody, document.TryGetBody(out var body));
 		if (hasHead)
+		{
 			Assert.AreEqual("<head>H</head>", head.OuterSpan.ToString());
+		}
 		else
+		{
 			Assert.AreEqual(default, head);
+		}
+
 		if (hasBody)
+		{
 			Assert.AreEqual("<body>B</body>", body.OuterSpan.ToString());
+		}
 		else
+		{
 			Assert.AreEqual(default, body);
+		}
 	}
 
 	[TestMethod]

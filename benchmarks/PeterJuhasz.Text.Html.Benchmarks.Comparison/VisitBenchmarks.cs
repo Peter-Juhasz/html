@@ -1,4 +1,4 @@
-using AngleSharp.Dom;
+﻿using AngleSharp.Dom;
 using BenchmarkDotNet.Attributes;
 using PeterJuhasz.Text.Html.Lazy;
 using PeterJuhasz.Text.Html.Model;
@@ -58,7 +58,9 @@ public class VisitBenchmarks : ComparisonBenchmarks
 
 			var children = node.ChildNodes;
 			for (var i = 0; i < children.Length; i++)
+			{
 				Visit(children[i]);
+			}
 		}
 	}
 

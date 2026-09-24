@@ -13,7 +13,10 @@ internal static class TestHelpers
 	{
 		var list = new List<LazyHtmlElement>();
 		foreach (var element in elements)
+		{
 			list.Add(element);
+		}
+
 		return list;
 	}
 
@@ -21,7 +24,10 @@ internal static class TestHelpers
 	{
 		var list = new List<LazyHtmlElement>();
 		foreach (var element in elements)
+		{
 			list.Add(element);
+		}
+
 		return list;
 	}
 
@@ -29,7 +35,10 @@ internal static class TestHelpers
 	{
 		var list = new List<LazyHtmlAttribute>();
 		foreach (var attribute in attributes)
+		{
 			list.Add(attribute);
+		}
+
 		return list;
 	}
 
@@ -37,7 +46,10 @@ internal static class TestHelpers
 	{
 		var list = new List<LazyHtmlNode>();
 		foreach (var node in nodes)
+		{
 			list.Add(node);
+		}
+
 		return list;
 	}
 

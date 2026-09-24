@@ -36,7 +36,9 @@ public sealed class TreeTests
 
 		Assert.AreSequenceEqual(["a", "b", "i"], element.Elements().Names());
 		foreach (var child in element.Elements())
+		{
 			Assert.AreSame(element, child.Parent);
+		}
 	}
 
 	[TestMethod]
@@ -69,7 +71,9 @@ public sealed class TreeTests
 
 		Assert.AreSequenceEqual(["script", "style", "textarea", "title"], document.Elements().Names());
 		foreach (var element in document.Elements())
+		{
 			Assert.IsEmpty(element.Elements());
+		}
 	}
 
 	[TestMethod]
@@ -186,7 +190,9 @@ public sealed class TreeTests
 		for (var iteration = 0; iteration < 2000; iteration++)
 		{
 			for (var i = 0; i < buffer.Length; i++)
+			{
 				buffer[i] = alphabet[random.Next(alphabet.Length)];
+			}
 
 			var document = HtmlDocument.Parse(new string(buffer));
 			foreach (var element in document.Descendants())
@@ -206,7 +212,9 @@ public sealed class TreeTests
 				}
 
 				foreach (var child in element.Elements())
+				{
 					Assert.AreSame(element, child.Parent);
+				}
 
 				foreach (var node in element.Nodes)
 				{
@@ -216,9 +224,13 @@ public sealed class TreeTests
 					Assert.AreSame(document, node.Document);
 
 					if (node is HtmlText text)
+					{
 						Assert.IsFalse(text.TextSpan.IsEmpty);
+					}
 					else if (node is HtmlComment comment)
+					{
 						Assert.IsTrue(comment.OuterSpan.StartsWith("<!--"));
+					}
 				}
 			}
 		}

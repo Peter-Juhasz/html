@@ -1,4 +1,4 @@
-using AngleSharp.Dom;
+﻿using AngleSharp.Dom;
 using BenchmarkDotNet.Attributes;
 using PeterJuhasz.Text.Html.Lazy;
 using PeterJuhasz.Text.Html.Model;
@@ -30,7 +30,10 @@ public class BodyTextContentBenchmarks : ComparisonBenchmarks
 	public void ParseModel()
 	{
 		for (var i = 0; i < modelBodies.Length; i++)
+		{
 			modelBodies[i] = HtmlDocument.Parse(Html).TryGetBody(out var body) ? body : throw new InvalidOperationException("Sample has no <body>.");
+		}
+
 		nextModelBody = 0;
 	}
 

@@ -1,4 +1,4 @@
-using System.Text.Encodings.Web;
+﻿using System.Text.Encodings.Web;
 using System.Text.Unicode;
 
 namespace PeterJuhasz.Text.Html.Tests.Writer;
@@ -190,7 +190,10 @@ public sealed class TextTests
 		{
 			writer.OpenElement("p");
 			for (var i = 0; i < 1000; i++)
+			{
 				writer.WriteText("<");
+			}
+
 			writer.CloseElement();
 		}, initialCapacity: 1);
 

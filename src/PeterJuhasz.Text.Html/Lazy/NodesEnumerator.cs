@@ -33,7 +33,9 @@ public struct NodesEnumerator
 	public bool MoveNext()
 	{
 		if (_position >= _end)
+		{
 			return false;
+		}
 
 		if (_isRawText)
 		{
@@ -84,7 +86,9 @@ public static partial class Extensions
 		public IEnumerable<LazyHtmlNode> AsEnumerable()
 		{
 			foreach (var node in enumerator)
+			{
 				yield return node;
+			}
 		}
 	}
 }

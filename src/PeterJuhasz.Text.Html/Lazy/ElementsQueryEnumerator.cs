@@ -42,7 +42,9 @@ public ref struct ElementsQueryEnumerator
 		{
 			var kind = HtmlScanner.FindMarkup(text, _position, out var index);
 			if (kind == MarkupKind.None)
+			{
 				break;
+			}
 
 			if (kind != MarkupKind.StartTag)
 			{
@@ -67,7 +69,9 @@ public ref struct ElementsQueryEnumerator
 			}
 
 			if (isRawText)
+			{
 				_position = HtmlScanner.SkipMarkup(text, HtmlScanner.FindRawTextEnd(text, _position, name));
+			}
 		}
 
 		return false;
@@ -78,12 +82,16 @@ public ref struct ElementsQueryEnumerator
 	private readonly bool HasAttributes(int elementStart, int start, int end)
 	{
 		if (_classNames.Count > 0 && !(TryFindAttribute(elementStart, start, end, "class", out var @class) && ElementQuery.HasClasses(@class.ValueSpan, _classNames)))
+		{
 			return false;
+		}
 
 		foreach (var (name, value) in _attributes)
 		{
 			if (!TryFindAttribute(elementStart, start, end, name, out var attribute) || !ElementQuery.HasAttributeValue(attribute.ValueSpan, value))
+			{
 				return false;
+			}
 		}
 
 		return true;
@@ -101,7 +109,10 @@ public static partial class Extensions
 		{
 			using var builder = new PooledArrayBuilder<LazyHtmlElement>();
 			foreach (var element in enumerator)
+			{
 				builder.Add(element);
+			}
+
 			return builder.ToArray();
 		}
 	}

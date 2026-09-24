@@ -119,7 +119,9 @@ public sealed class TryQuerySelectorTests
 
 			Assert.AreEqual(all.Count > 0, found, $"Mismatch for <{name}>.");
 			if (found)
+			{
 				Assert.AreEqual(all[0].OuterSpan.ToString(), first.OuterSpan.ToString(), $"Mismatch for <{name}>.");
+			}
 		}
 	}
 

@@ -74,7 +74,9 @@ public sealed class QuerySelectorTests
 
 			Assert.AreEqual(all.Count > 0, found, $"Mismatch for <{name}>.");
 			if (found)
+			{
 				Assert.AreSame(all[0], first, $"Mismatch for <{name}>.");
+			}
 		}
 	}
 

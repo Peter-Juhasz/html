@@ -35,9 +35,13 @@ public readonly struct LazyHtmlText
 	internal void AppendTo(StringBuilder builder)
 	{
 		if (_isLiteral)
+		{
 			builder.Append(TextSpan);
+		}
 		else
+		{
 			HtmlDecoder.HtmlDecode(TextSpan, builder);
+		}
 	}
 
 	public bool IsLiteral => _isLiteral;

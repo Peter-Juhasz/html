@@ -17,7 +17,9 @@ internal static class ElementQuery
 	public static void ValidateArguments(StringValues classNames, ReadOnlySpan<KeyValuePair<string, string>> attributes)
 	{
 		foreach (var className in classNames)
+		{
 			ValidateClassName(className, nameof(classNames));
+		}
 
 		ValidateAttributes(attributes);
 	}
@@ -26,29 +28,39 @@ internal static class ElementQuery
 	public static void ValidateClassNames(StringValues classNames)
 	{
 		if (classNames.Count == 0)
+		{
 			throw new ArgumentException("At least one class name is required.", nameof(classNames));
+		}
 
 		foreach (var className in classNames)
+		{
 			ValidateClassName(className, nameof(classNames));
+		}
 	}
 
 	private static void ValidateElement(string? element)
 	{
 		if (element is { Length: 0 })
+		{
 			throw new ArgumentException("The element name must not be empty.", nameof(element));
+		}
 	}
 
 	// Each entry must be exactly one class token, so a whitespace-separated list is rejected instead of silently split.
 	private static void ValidateClassName(string? className, string paramName)
 	{
 		if (string.IsNullOrEmpty(className) || className.AsSpan().ContainsAny(SyntaxFacts.Whitespace))
+		{
 			throw new ArgumentException("Each class name must be a single, non-empty class name.", paramName);
+		}
 	}
 
 	private static void ValidateAttributes(ReadOnlySpan<KeyValuePair<string, string>> attributes)
 	{
 		foreach (var attribute in attributes)
+		{
 			ArgumentException.ThrowIfNullOrEmpty(attribute.Key, nameof(attributes));
+		}
 	}
 
 	// Checks whether the class attribute value, as written in the document, contains every one of the class names.
@@ -56,7 +68,9 @@ internal static class ElementQuery
 	public static bool HasClasses(ReadOnlySpan<char> classes, StringValues classNames)
 	{
 		if (classNames.Count == 0)
+		{
 			return true;
+		}
 
 		return HasDecodedClasses(SyntaxFacts.DecodeIfNeeded(classes), classNames);
 	}
@@ -72,7 +86,9 @@ internal static class ElementQuery
 	{
 		// decoding never makes the text longer, so a longer value cannot match and the decoding is skipped
 		if (value.Length > attributeValue.Length)
+		{
 			return false;
+		}
 
 		return SyntaxFacts.DecodeIfNeeded(attributeValue).SequenceEqual(value);
 	}
@@ -82,7 +98,9 @@ internal static class ElementQuery
 	{
 		var count = classNames.Count;
 		if (count == 1)
+		{
 			return HasDecodedClass(classes, classNames[0]);
+		}
 
 		Span<bool> found = count <= 32 ? stackalloc bool[count] : new bool[count];
 		var remaining = count;
@@ -91,7 +109,9 @@ internal static class ElementQuery
 		{
 			var token = classes[range];
 			if (token.IsEmpty)
+			{
 				continue;
+			}
 
 			for (var i = 0; i < count; i++)
 			{
@@ -99,7 +119,9 @@ internal static class ElementQuery
 				{
 					found[i] = true;
 					if (--remaining == 0)
+					{
 						return true;
+					}
 				}
 			}
 		}
@@ -112,7 +134,9 @@ internal static class ElementQuery
 		foreach (var range in classes.SplitAny(SyntaxFacts.Whitespace))
 		{
 			if (classes[range].SequenceEqual(className))
+			{
 				return true;
+			}
 		}
 
 		return false;

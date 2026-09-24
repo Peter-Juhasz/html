@@ -19,7 +19,10 @@ public sealed class LazyEquivalenceTests
 
 		var lazyElements = new List<LazyHtmlElement>();
 		foreach (var element in lazy.QuerySelectorAll())
+		{
 			lazyElements.Add(element);
+		}
+
 		var elements = document.Descendants().ToList();
 
 		Assert.HasCount(lazyElements.Count, elements);
@@ -33,7 +36,10 @@ public sealed class LazyEquivalenceTests
 
 			var lazyAttributes = new List<(string, string?)>();
 			foreach (var attribute in lazyElements[i].Attributes())
+			{
 				lazyAttributes.Add((attribute.Name, attribute.Value));
+			}
+
 			Assert.AreSequenceEqual(lazyAttributes, elements[i].Attributes.Select(a => (a.Name, a.Value)).ToList());
 		}
 	}
@@ -145,7 +151,9 @@ public sealed class LazyEquivalenceTests
 			var required = Array.ConvertAll(attributes, a => KeyValuePair.Create(a.Item1, a.Item2));
 			var expected = new List<string>();
 			foreach (var match in lazy.QuerySelectorAll(element: element, classNames: classNames, attributes: required))
+			{
 				expected.Add(match.OuterSpan.ToString());
+			}
 
 			var actual = document.QuerySelectorAll(element: element, classNames: classNames, attributes: required).Outers();
 
@@ -167,7 +175,9 @@ public sealed class LazyEquivalenceTests
 		{
 			var expected = new List<string>();
 			foreach (var element in lazyBody.QuerySelectorAll(element: name))
+			{
 				expected.Add(element.OuterSpan.ToString());
+			}
 
 			Assert.AreSequenceEqual(expected, body.QuerySelectorAll(element: name).Outers(), $"Mismatch for <{name}>.");
 		}

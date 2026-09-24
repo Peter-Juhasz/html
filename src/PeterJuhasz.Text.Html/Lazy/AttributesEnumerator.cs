@@ -49,7 +49,9 @@ public struct AttributesEnumerator
 		{
 			var c = text[_position];
 			if (c == SyntaxFacts.CloseTag)
+			{
 				break;
+			}
 
 			if (c == SyntaxFacts.Slash || SyntaxFacts.Whitespace.Contains(c))
 			{
@@ -62,7 +64,9 @@ public struct AttributesEnumerator
 
 			// an attribute without a name (e.g. a stray '=') is invalid and skipped
 			if (!_current.NameSpan.IsEmpty)
+			{
 				return true;
+			}
 		}
 
 		return false;
@@ -76,7 +80,9 @@ public static partial class Extensions
 		public IEnumerable<LazyHtmlAttribute> AsEnumerable()
 		{
 			foreach (var attribute in enumerator)
+			{
 				yield return attribute;
+			}
 		}
 	}
 }

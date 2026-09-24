@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Primitives;
+﻿using Microsoft.Extensions.Primitives;
 using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 
@@ -24,7 +24,9 @@ internal static class SelectorParser
 		ArgumentNullException.ThrowIfNull(selector);
 
 		if (!TryParseSelector(selector, out element, out classNames, out attributes))
+		{
 			throw new ArgumentException($"'{selector}' is not a supported selector. Only an element name or '*' followed by classes (.name), IDs (#name) and exact attribute values ([name=value]) are supported.", nameof(selector));
+		}
 	}
 
 	// The element name is a slice of the selector, and it is empty when the selector does not restrict the element name.
@@ -38,14 +40,20 @@ internal static class SelectorParser
 		var rest = SkipWhitespace(selector);
 		rest = rest[..(rest.LastIndexOfAnyExcept(SyntaxFacts.Whitespace) + 1)];
 		if (rest.IsEmpty)
+		{
 			return false;
+		}
 
 		// the universal selector is the same as no element name
 		var name = ReadOnlySpan<char>.Empty;
 		if (rest[0] == '*')
+		{
 			rest = rest[1..];
+		}
 		else if (rest[0] is not ('.' or '#' or '[') && !TryReadIdentifier(ref rest, out name))
+		{
 			return false;
+		}
 
 		using var classes = new PooledArrayBuilder<string>();
 		using var filters = new PooledArrayBuilder<KeyValuePair<string, string>>();
@@ -85,11 +93,15 @@ internal static class SelectorParser
 
 		var rest = SkipWhitespace(text);
 		if (!TryReadIdentifier(ref rest, out var name))
+		{
 			return false;
+		}
 
 		rest = SkipWhitespace(rest);
 		if (rest is not [SyntaxFacts.EqualsSign, ..])
+		{
 			return false;
+		}
 
 		rest = SkipWhitespace(rest[1..]);
 		ReadOnlySpan<char> value;
@@ -98,7 +110,9 @@ internal static class SelectorParser
 			rest = rest[1..];
 			var end = rest.IndexOfAny(quote == SyntaxFacts.DoubleQuote ? DoubleQuotedValueTerminators : SingleQuotedValueTerminators);
 			if (end < 0 || rest[end] != quote)
+			{
 				return false;
+			}
 
 			value = rest[..end];
 			rest = rest[(end + 1)..];
@@ -110,7 +124,9 @@ internal static class SelectorParser
 
 		rest = SkipWhitespace(rest);
 		if (rest is not [']', ..])
+		{
 			return false;
+		}
 
 		text = rest[1..];
 		attribute = new(SyntaxFacts.ToName(name), value.ToString());
@@ -123,7 +139,9 @@ internal static class SelectorParser
 		var length = text.IndexOfAny(IdentifierTerminators);
 		identifier = length < 0 ? text : text[..length];
 		if (identifier is [] or ['-'] or [>= '0' and <= '9', ..] or ['-', >= '0' and <= '9', ..])
+		{
 			return false;
+		}
 
 		text = text[identifier.Length..];
 		return true;
@@ -141,7 +159,9 @@ internal static class SelectorParser
 		for (var c = '\0'; c < '\x80'; c++)
 		{
 			if (!char.IsAsciiLetterOrDigit(c) && c is not ('-' or '_'))
+			{
 				terminators.Add(c);
+			}
 		}
 
 		return [.. terminators];

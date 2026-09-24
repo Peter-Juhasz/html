@@ -87,12 +87,18 @@ public sealed class ContentTests
 
 		var childFirst = TestHelpers.FirstElement(html);
 		foreach (var child in childFirst.Descendants().Reverse())
+		{
 			_ = child.TextContent;
+		}
+
 		Assert.AreEqual(expected, childFirst.TextContent);
 
 		var textFirst = TestHelpers.FirstElement(html);
 		foreach (var text in textFirst.Nodes.OfType<HtmlText>())
+		{
 			_ = text.Text;
+		}
+
 		Assert.AreEqual(expected, textFirst.TextContent);
 
 		Assert.AreEqual("a & bc < def &amp; gh", expected);

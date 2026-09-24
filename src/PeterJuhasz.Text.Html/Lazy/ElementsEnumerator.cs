@@ -30,7 +30,9 @@ public struct ElementsEnumerator
 		{
 			var kind = HtmlScanner.FindMarkup(text, _position, out var index);
 			if (kind == MarkupKind.None)
+			{
 				break;
+			}
 
 			if (kind == MarkupKind.StartTag)
 			{
@@ -53,7 +55,9 @@ public static partial class Extensions
 		public IEnumerable<LazyHtmlElement> AsEnumerable()
 		{
 			foreach (var element in enumerator)
+			{
 				yield return element;
+			}
 		}
 	}
 }

@@ -45,10 +45,14 @@ public sealed class HtmlElement : HtmlNode
 	{
 		// a single text child is the common case for leaves; its decoded text is shared instead of copied
 		if (Nodes is [HtmlText text])
+		{
 			return text.Text;
+		}
 
 		if (Nodes.IsEmpty)
+		{
 			return IsTruncated ? _source.TextContent : string.Empty;
+		}
 
 		using var pooled = StringBuilderPool.GetPooledObject(out var builder);
 		AppendTextContent(builder);
@@ -130,7 +134,9 @@ public sealed class HtmlElement : HtmlNode
 		foreach (var node in nodes)
 		{
 			if (node is HtmlElement element)
+			{
 				yield return element;
+			}
 		}
 	}
 
@@ -150,7 +156,9 @@ public sealed class HtmlElement : HtmlNode
 			for (var i = nodes.Length - 1; i >= 0; i--)
 			{
 				if (nodes[i] is HtmlElement element)
+				{
 					pending.Push(element);
+				}
 			}
 		}
 	}
@@ -174,15 +182,21 @@ public sealed class HtmlElement : HtmlNode
 	private bool Matches(string? element, StringValues classNames, ReadOnlyMemory<KeyValuePair<string, string>> attributes)
 	{
 		if (element is not null && !string.Equals(Name, element, StringComparison.OrdinalIgnoreCase))
+		{
 			return false;
+		}
 
 		if (classNames.Count > 0 && !(TryGetAttribute("class", out var classAttribute) && ElementQuery.HasClasses(classAttribute.ValueSpan, classNames)))
+		{
 			return false;
+		}
 
 		foreach (var (attributeName, value) in attributes.Span)
 		{
 			if (!TryGetAttribute(attributeName, out var attribute) || !ElementQuery.HasAttributeValue(attribute.ValueSpan, value))
+			{
 				return false;
+			}
 		}
 
 		return true;

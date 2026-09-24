@@ -209,7 +209,9 @@ public sealed class QuerySelectorAllTests
 		var count = 0;
 
 		foreach (var element in document.QuerySelectorAll(element: "a"))
+		{
 			count++;
+		}
 
 		Assert.AreEqual(2, count);
 	}
@@ -721,7 +723,9 @@ public sealed class QuerySelectorAllTests
 		public override void VisitElement(LazyHtmlElement candidate)
 		{
 			if ((element is null || candidate.NameSpan.Equals(element, StringComparison.OrdinalIgnoreCase)) && HasClasses(candidate) && HasAttributes(candidate))
+			{
 				Outers.Add(candidate.OuterSpan.ToString());
+			}
 
 			base.VisitElement(candidate);
 		}
@@ -730,10 +734,14 @@ public sealed class QuerySelectorAllTests
 		private bool HasClasses(LazyHtmlElement element)
 		{
 			if (classNames is null or [])
+			{
 				return true;
+			}
 
 			if (!element.TryGetAttribute("class", out var attribute))
+			{
 				return false;
+			}
 
 			var classes = (attribute.Value ?? "").Split(['\t', '\n', '\f', '\r', ' '], StringSplitOptions.RemoveEmptyEntries);
 			return Array.TrueForAll(classNames, className => classes.Contains(className, StringComparer.Ordinal));
@@ -744,7 +752,9 @@ public sealed class QuerySelectorAllTests
 			foreach (var (attributeName, value) in attributes)
 			{
 				if (!element.TryGetAttribute(attributeName, out var attribute) || (attribute.Value ?? "") != value)
+				{
 					return false;
+				}
 			}
 
 			return true;

@@ -150,7 +150,9 @@ public sealed class AttributeLookupTests
 		var element = TestHelpers.FirstElement("<input type=\"text\" name=\"q\" required>");
 
 		foreach (var attribute in element.Attributes())
+		{
 			Assert.AreEqual(element.OuterSpan.ToString(), attribute.Element.OuterSpan.ToString(), $"Attribute {attribute.Name}.");
+		}
 	}
 
 	[TestMethod]

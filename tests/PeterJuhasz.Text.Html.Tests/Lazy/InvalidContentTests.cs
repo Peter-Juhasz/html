@@ -257,14 +257,20 @@ public sealed class InvalidContentTests
 		for (var iteration = 0; iteration < 2000; iteration++)
 		{
 			for (var i = 0; i < buffer.Length; i++)
+			{
 				buffer[i] = alphabet[random.Next(alphabet.Length)];
+			}
 
 			var html = new string(buffer);
 			foreach (var element in LazyHtmlDocument.Parse(html).Elements())
+			{
 				Visit(element);
+			}
 
 			foreach (var node in LazyHtmlDocument.Parse(html).Nodes())
+			{
 				Visit(node);
+			}
 		}
 	}
 
@@ -311,7 +317,9 @@ public sealed class InvalidContentTests
 		{
 			Visit(child);
 			if (child.TryGetElement(out var childElement))
+			{
 				elementNodes.Add(childElement.Name);
+			}
 		}
 
 		Assert.AreSequenceEqual(elements, elementNodes);

@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Primitives;
+﻿using Microsoft.Extensions.Primitives;
 
 namespace PeterJuhasz.Text.Html.Tests.Lazy;
 
@@ -183,75 +183,113 @@ public sealed class AllocationTests
 			foreach (var link in element.QuerySelectorAll(element: "a"))
 			{
 				if (link.TryGetAttribute("href", out var href))
+				{
 					count += href.ValueSpan.Length;
+				}
 			}
 
 			foreach (var script in element.QuerySelectorAll(element: "script"))
+			{
 				count += script.InnerSpan.Length;
+			}
 
 			if (element.TryQuerySelector(out var bold, element: "b"))
+			{
 				count += bold.InnerSpan.Length;
+			}
 		}
 
 		if (document.TryQuerySelector(out var title, element: "title"))
+		{
 			count += title.InnerSpan.Length;
+		}
 
 		count += document.TryQuerySelector(out _, element: "missing") ? 0 : 1;
 
 		foreach (var element in document.QuerySelectorAll(attributes: ClassQuery))
+		{
 			count += element.NameSpan.Length;
+		}
 
 		foreach (var element in document.QuerySelectorAll())
+		{
 			count++;
+		}
 
 		if (document.TryQuerySelector(out var anchor, element: "a", attributes: LinkQuery))
+		{
 			count += anchor.InnerSpan.Length;
+		}
 
 		count += document.TryQuerySelector(out _, attributes: LinkQuery) ? 1 : 0;
 
 		// inline attributes are stack-allocated by the compiler, so these must not allocate either
 		foreach (var element in document.QuerySelectorAll(element: "a", attributes: [new("target", "_blank")]))
+		{
 			count += element.NameSpan.Length;
+		}
 
 		foreach (var element in document.QuerySelectorAll(attributes: [new("class", "a"), new("id", "x")]))
+		{
 			count += element.NameSpan.Length;
+		}
 
 		if (document.TryQuerySelector(out var blank, element: "a", attributes: [new("href", "/link?a=1"), new("target", "_blank")]))
+		{
 			count += blank.InnerSpan.Length;
+		}
 
 		count += document.TryQuerySelector(out _, element: "meta", attributes: [new("charset", "utf-8")]) ? 1 : 0;
 
 		// ID attribute and class matching, including the class list split, must not allocate either
 		foreach (var element in document.QuerySelectorAll(attributes: [new("id", "x")]))
+		{
 			count += element.NameSpan.Length;
+		}
 
 		foreach (var element in document.QuerySelectorAll(classNames: "a"))
+		{
 			count += element.NameSpan.Length;
+		}
 
 		foreach (var element in document.QuerySelectorAll(classNames: TwoClasses))
+		{
 			count += element.NameSpan.Length;
+		}
 
 		if (document.TryQuerySelector(out var box, element: "div", classNames: "a", attributes: [new("id", "x")]))
+		{
 			count += box.OuterSpan.Length;
+		}
 
 		if (document.TryQuerySelector(out var multiClassBox, element: "div", classNames: TwoClassesReversed, attributes: [new("id", "x")]))
+		{
 			count += multiClassBox.OuterSpan.Length;
+		}
 
 		count += document.TryQuerySelector(out _, classNames: "missing") ? 1 : 0;
 		count += document.TryQuerySelector(out _, classNames: MissingClasses) ? 1 : 0;
 
 		// a single class name is stored in the StringValues without an array, so this must not allocate either
 		foreach (var element in document.GetElementsByClassName("a"))
+		{
 			count += element.NameSpan.Length;
+		}
 
 		foreach (var element in document.GetElementsByClassName(TwoClasses))
+		{
 			count += element.NameSpan.Length;
+		}
 
 		if (document.GetElementById("x") is { } byId)
+		{
 			count += byId.OuterSpan.Length;
+		}
 
 		if (document.TryQuerySelector(out var body, element: "body") && body.GetElementById("x") is { } childById)
+		{
 			count += childById.OuterSpan.Length;
+		}
 
 		count += document.GetElementById("missing") is null ? 1 : 0;
 
@@ -268,10 +306,14 @@ public sealed class AllocationTests
 			Count += 1 + element.NameSpan.Length + element.OuterSpan.Length + element.InnerSpan.Length;
 
 			if (element.TryGetAttribute("href", out var href))
+			{
 				Count += href.ValueSpan.Length;
+			}
 
 			if (element.HasAttribute("class"))
+			{
 				Count++;
+			}
 
 			base.VisitElement(element);
 		}

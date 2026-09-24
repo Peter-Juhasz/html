@@ -44,7 +44,10 @@ internal static class HtmlParser
 	{
 		using var builder = new PooledArrayBuilder<HtmlAttribute>();
 		foreach (var attribute in attributes)
+		{
 			builder.Add(new HtmlAttribute(element, attribute));
+		}
+
 		return builder.ToImmutableArray();
 	}
 }

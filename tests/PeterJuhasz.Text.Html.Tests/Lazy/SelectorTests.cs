@@ -1,4 +1,4 @@
-namespace PeterJuhasz.Text.Html.Tests.Lazy;
+﻿namespace PeterJuhasz.Text.Html.Tests.Lazy;
 
 [TestClass]
 public sealed class SelectorTests
@@ -46,7 +46,9 @@ public sealed class SelectorTests
 		var document = LazyHtmlDocument.Parse("<a rel=next>1</a><a rel=\"prev\">2</a><a REL='next'>3</a><a rel=\"Next\">4</a>");
 
 		foreach (var selector in new[] { "[rel=next]", "[rel=\"next\"]", "[rel='next']", "a[ rel = next ]", "[REL=next]" })
+		{
 			Assert.AreSequenceEqual(["1", "3"], document.QuerySelectorAll(selector).Inners(), selector);
+		}
 	}
 
 	[TestMethod]
