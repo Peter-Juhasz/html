@@ -63,7 +63,7 @@ public sealed class SelectorTests
 		var document = HtmlDocument.Parse("<a></a>");
 		var element = document.Elements().First();
 
-		foreach (var selector in new[] { "", "div p", "a > b", "a,b", "a:hover", "[href]", "[href~=x]", ".1", "a[href=x" })
+		foreach (var selector in new[] { "", "a ~ b", "a >", "a,", "a:hover", "p::before", "[href~]", ".1", "a[href=x" })
 		{
 			Assert.AreEqual("selector", Assert.ThrowsExactly<ArgumentException>(() => document.QuerySelectorAll(selector), selector).ParamName);
 			Assert.AreEqual("selector", Assert.ThrowsExactly<ArgumentException>(() => element.QuerySelectorAll(selector), selector).ParamName);

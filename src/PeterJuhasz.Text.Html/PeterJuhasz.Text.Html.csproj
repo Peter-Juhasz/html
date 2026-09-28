@@ -37,4 +37,9 @@
 		<PackageReference Include="PeterJuhasz.Extensions" Version="2.*-*" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<InternalsVisibleTo Include="PeterJuhasz.Text.Html.Tests" />
+		<InternalsVisibleTo Include="PeterJuhasz.Text.Html.Benchmarks" />
+	</ItemGroup>
+
 </Project>

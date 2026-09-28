@@ -11,12 +11,12 @@ namespace PeterJuhasz.Text.Html;
 internal static class SelectorParser
 {
 	// Every ASCII character other than letters, digits, '-' and '_'; non-ASCII characters are part of identifiers, as in CSS.
-	private static readonly SearchValues<char> IdentifierTerminators = SearchValues.Create(CreateIdentifierTerminators());
+	internal static readonly SearchValues<char> IdentifierTerminators = SearchValues.Create(CreateIdentifierTerminators());
 
 	// The closing quote, or a character that is not supported inside a string: an escape or a newline.
-	private static readonly SearchValues<char> DoubleQuotedValueTerminators = SearchValues.Create("\"\\\n\r\f");
+	internal static readonly SearchValues<char> DoubleQuotedValueTerminators = SearchValues.Create("\"\\\n\r\f");
 
-	private static readonly SearchValues<char> SingleQuotedValueTerminators = SearchValues.Create("'\\\n\r\f");
+	internal static readonly SearchValues<char> SingleQuotedValueTerminators = SearchValues.Create("'\\\n\r\f");
 
 	// Parses the selector of a query method, throwing if it is not a selector this parser supports.
 	public static void ParseSelector(string selector, out ReadOnlySpan<char> element, out StringValues classNames, out KeyValuePair<string, string>[] attributes)

@@ -38,8 +38,9 @@ public sealed class HtmlDocument
 	public IEnumerable<HtmlElement> QuerySelectorAll(string? element = null, StringValues classNames = default, ReadOnlyMemory<KeyValuePair<string, string>> attributes = default)
 		=> HtmlElement.Query(Nodes, element, classNames, attributes);
 
-	// Finds the elements at any depth in the document that match a selector like "a.button[rel=next]", in document order.
-	// Only an element name or '*' followed by classes, IDs and exact attribute values is supported.
+	// Finds the elements at any depth in the document that match a CSS selector like "ul > li:nth-child(odd) a[href^='https:']", in document order.
+	// Selector lists; the descendant, child and next-sibling combinators; type, class, ID and attribute selectors; and the :not(), :has(),
+	// :nth-child(), :nth-last-child(), :first-child, :last-child, :empty and :disabled pseudo-classes are supported.
 	public IEnumerable<HtmlElement> QuerySelectorAll(string selector) => HtmlElement.Query(Nodes, selector);
 
 	// Finds the first element at any depth in the document that has the given element name (any if null), all of the given classes
@@ -58,7 +59,7 @@ public static partial class Extensions
 		public HtmlElement? QuerySelector(string? element = null, StringValues classNames = default, ReadOnlyMemory<KeyValuePair<string, string>> attributes = default)
 			=> document.TryQuerySelector(out var result, element: element, classNames: classNames, attributes: attributes) ? result : null;
 
-		// Finds the first element at any depth in the document that matches a selector like "a.button[rel=next]".
+		// Finds the first element at any depth in the document that matches a CSS selector, with the same support as QuerySelectorAll.
 		public HtmlElement? QuerySelector(string selector) => document.QuerySelectorAll(selector).FirstOrDefault();
 
 		public bool TryGetElementById(string id, [NotNullWhen(true)] out HtmlElement? result)

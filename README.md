@@ -25,6 +25,7 @@ var element = document.GetElementById("id");
 var elements = document.GetElementsByTagName("div");
 var elements = document.GetElementsByClassName("class");
 var elements = document.QuerySelectorAll("div.class");
+var links = document.QuerySelectorAll("ul > li:nth-child(odd) a[href^='https:']");
 ```
 
 ## Low-level lazy API

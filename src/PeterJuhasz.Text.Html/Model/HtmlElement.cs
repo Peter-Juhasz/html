@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Primitives;
 using PeterJuhasz.Text.Html.Lazy;
+using PeterJuhasz.Text.Html.Selectors;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
@@ -120,8 +121,10 @@ public sealed class HtmlElement : HtmlNode
 	public IEnumerable<HtmlElement> QuerySelectorAll(string? element = null, StringValues classNames = default, ReadOnlyMemory<KeyValuePair<string, string>> attributes = default)
 		=> Query(Nodes, element, classNames, attributes);
 
-	// Finds the elements at any depth inside this element that match a selector like "a.button[rel=next]", in document order.
-	// Only an element name or '*' followed by classes, IDs and exact attribute values is supported.
+	// Finds the elements at any depth inside this element that match a CSS selector like "ul > li:nth-child(odd) a[href^='https:']", in document order.
+	// As in the DOM, the whole selector is matched against the document, so in "div p" the div may also be outside this element.
+	// Selector lists; the descendant, child and next-sibling combinators; type, class, ID and attribute selectors; and the :not(), :has(),
+	// :nth-child(), :nth-last-child(), :first-child, :last-child, :empty and :disabled pseudo-classes are supported.
 	public IEnumerable<HtmlElement> QuerySelectorAll(string selector) => Query(Nodes, selector);
 
 	// Finds the first element at any depth inside this element that has the given element name (any if null), all of the given classes
@@ -207,11 +210,31 @@ public sealed class HtmlElement : HtmlNode
 		return DescendantsCore(nodes).Where(candidate => candidate.Matches(element, classNames, attributes));
 	}
 
-	// The selector is parsed eagerly, so an unsupported one throws before enumeration.
+	// A selector made of an element name, classes, IDs and exact attribute values takes the structured query, which is the fastest;
+	// any other is parsed into an ElementSelector that each element is matched against.
+	// The selector is parsed eagerly, so an invalid or unsupported one throws before enumeration.
 	internal static IEnumerable<HtmlElement> Query(ImmutableArray<HtmlNode> nodes, string selector)
 	{
-		SelectorParser.ParseSelector(selector, out var element, out var classNames, out var attributes);
-		return Query(nodes, element.IsEmpty ? null : SyntaxFacts.ToName(element), classNames, attributes);
+		ArgumentNullException.ThrowIfNull(selector);
+
+		if (SelectorParser.TryParseSelector(selector, out var element, out var classNames, out var attributes))
+		{
+			return Query(nodes, element.IsEmpty ? null : SyntaxFacts.ToName(element), classNames, attributes);
+		}
+
+		if (!ElementSelectorParser.TryParse(selector, out var parsed, out var error))
+		{
+			throw new ArgumentException(error, nameof(selector));
+		}
+
+		return Query(nodes, parsed);
+	}
+
+	// Finds the elements at any depth among the nodes that match the selector, in document order.
+	internal static IEnumerable<HtmlElement> Query(ImmutableArray<HtmlNode> nodes, ElementSelector selector)
+	{
+		var context = new SelectorContext(Anchor: null);
+		return DescendantsCore(nodes).Where(candidate => selector.Matches(candidate, context));
 	}
 
 	// Same rules as the lazy layer: names are case-insensitive, attribute values and class names are compared case-sensitively
@@ -309,7 +332,7 @@ public static partial class Extensions
 		public HtmlElement? QuerySelector(string? element = null, StringValues classNames = default, ReadOnlyMemory<KeyValuePair<string, string>> attributes = default)
 			=> source.TryQuerySelector(out var child, element: element, classNames: classNames, attributes: attributes) ? child : null;
 
-		// Finds the first element at any depth inside this element that matches a selector like "a.button[rel=next]".
+		// Finds the first element at any depth inside this element that matches a CSS selector, with the same support as QuerySelectorAll.
 		public HtmlElement? QuerySelector(string selector) => source.QuerySelectorAll(selector).FirstOrDefault();
 
 		public bool TryGetElementById(string id, [NotNullWhen(true)] out HtmlElement? result)
