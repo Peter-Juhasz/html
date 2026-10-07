@@ -1,5 +1,6 @@
 ﻿using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Text.Encodings.Web;
 
 namespace PeterJuhasz.Text.Html.Writer;
@@ -7,6 +8,10 @@ namespace PeterJuhasz.Text.Html.Writer;
 [PerformanceCritical]
 public class HtmlWriter<TWriter>(TWriter writer, HtmlEncoder htmlEncoder, HtmlWriterFormattingOptions? options = null) where TWriter : IBufferWriter<char>
 {
+	/// <summary>
+	/// The underlying buffer writer. Not readonly, so struct writers are mutated in place instead of on defensive copies.
+	/// </summary>
+	private TWriter writer = writer ?? throw new ArgumentNullException(nameof(writer));
 	private readonly HtmlWriterFormattingOptions options = options ?? HtmlWriterFormattingOptions.Default;
 	private readonly Stack<ElementScope> openElements = new();
 	private bool inTag = false;
@@ -22,8 +27,8 @@ public class HtmlWriter<TWriter>(TWriter writer, HtmlEncoder htmlEncoder, HtmlWr
 	{
 		CloseStartTag();
 		StartChildNode();
-		writer.Write("<");
-		writer.Write(name);
+		WriteCore("<");
+		WriteCore(name);
 		var isLiteral = SyntaxFacts.IsRawTextElement(name) && !SyntaxFacts.IsEscapableRawTextElement(name);
 		openElements.Push(new(name, isLiteral, hasChildren, hasText));
 		hasChildren = false;
@@ -38,22 +43,22 @@ public class HtmlWriter<TWriter>(TWriter writer, HtmlEncoder htmlEncoder, HtmlWr
 			throw new InvalidOperationException("Cannot write an attribute outside of an open tag.");
 		}
 
-		writer.Write(" ");
-		writer.Write(name);
+		WriteCore(" ");
+		WriteCore(name);
 		if (value.IsEmpty)
 		{
-			writer.Write("=\"\"");
+			WriteCore("=\"\"");
 		}
 		else if (options.OmitQuotesIfNotNecessary && !SyntaxFacts.AttributeValueNeedsQuotes(value))
 		{
-			writer.Write("=");
+			WriteCore("=");
 			WriteEncoded(value);
 		}
 		else
 		{
-			writer.Write("=\"");
+			WriteCore("=\"");
 			WriteEncoded(value);
-			writer.Write("\"");
+			WriteCore("\"");
 		}
 	}
 
@@ -64,17 +69,17 @@ public class HtmlWriter<TWriter>(TWriter writer, HtmlEncoder htmlEncoder, HtmlWr
 			throw new InvalidOperationException("Cannot write an attribute outside of an open tag.");
 		}
 
-		writer.Write(" ");
-		writer.Write(name);
+		WriteCore(" ");
+		WriteCore(name);
 	}
 
 	public void WriteComment(ReadOnlySpan<char> comment)
 	{
 		CloseStartTag();
 		StartChildNode();
-		writer.Write("<!--");
+		WriteCore("<!--");
 		WriteHtml(comment);
-		writer.Write("-->");
+		WriteCore("-->");
 	}
 
 	public void CloseElement()
@@ -91,14 +96,14 @@ public class HtmlWriter<TWriter>(TWriter writer, HtmlEncoder htmlEncoder, HtmlWr
 			{
 				if (options.SpaceBeforeSelfClosingSlash)
 				{
-					writer.Write(" ");
+					WriteCore(" ");
 				}
 
-				writer.Write("/>");
+				WriteCore("/>");
 			}
 			else
 			{
-				writer.Write(">");
+				WriteCore(">");
 			}
 		}
 		else if (options.OmitOptionalEndTags && SyntaxFacts.HasOptionalEndTag(name))
@@ -114,9 +119,9 @@ public class HtmlWriter<TWriter>(TWriter writer, HtmlEncoder htmlEncoder, HtmlWr
 				WriteLine();
 			}
 
-			writer.Write("</");
-			writer.Write(name);
-			writer.Write(">");
+			WriteCore("</");
+			WriteCore(name);
+			WriteCore(">");
 		}
 		inTag = false;
 		hasChildren = element.ParentHasChildren;
@@ -131,7 +136,7 @@ public class HtmlWriter<TWriter>(TWriter writer, HtmlEncoder htmlEncoder, HtmlWr
 		// parsers take the content of script and style literally, so encoding it would change it
 		if (openElements.TryPeek(out var element) && element.IsLiteral)
 		{
-			writer.Write(text);
+			WriteCore(text);
 		}
 		else
 		{
@@ -143,7 +148,7 @@ public class HtmlWriter<TWriter>(TWriter writer, HtmlEncoder htmlEncoder, HtmlWr
 	{
 		if (inTag)
 		{
-			writer.Write(">");
+			WriteCore(">");
 			inTag = false;
 		}
 	}
@@ -169,7 +174,22 @@ public class HtmlWriter<TWriter>(TWriter writer, HtmlEncoder htmlEncoder, HtmlWr
 
 	public void WriteHtml(ReadOnlySpan<char> html)
 	{
-		writer.Write(html);
+		WriteCore(html);
+	}
+
+	/// <summary>
+	/// Copies <paramref name="value"/> to the writer. Avoids <see cref="BuffersExtensions.Write{T}(IBufferWriter{T}, ReadOnlySpan{T})"/>, which boxes struct writers and relies on <c>GetSpan(0)</c>.
+	/// </summary>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	private void WriteCore(ReadOnlySpan<char> value)
+	{
+		if (value.IsEmpty)
+		{
+			return;
+		}
+
+		value.CopyTo(writer.GetSpan(value.Length));
+		writer.Advance(value.Length);
 	}
 
 
@@ -180,7 +200,7 @@ public class HtmlWriter<TWriter>(TWriter writer, HtmlEncoder htmlEncoder, HtmlWr
 			return;
 		}
 
-		writer.Write(options.NewLine);
+		WriteCore(options.NewLine);
 		WriteIndent();
 	}
 
