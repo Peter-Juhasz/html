@@ -16,7 +16,7 @@ public sealed class AttributeTests
 			writer.CloseElement();
 		});
 
-		Assert.AreEqual("<a href=\"/x\"></a>", html);
+		Assert.AreEqual("<a href=/x></a>", html);
 	}
 
 	[TestMethod]
@@ -85,7 +85,7 @@ public sealed class AttributeTests
 			writer.CloseElement();
 		});
 
-		Assert.AreEqual("<a href=\"/x\">link</a>", html);
+		Assert.AreEqual("<a href=/x>link</a>", html);
 	}
 
 	[TestMethod]
@@ -166,7 +166,7 @@ public sealed class AttributeTests
 			writer.CloseElement();
 		});
 
-		Assert.AreEqual("<p title=\"&#xF1;\"></p>", html);
+		Assert.AreEqual("<p title=&#xF1;></p>", html);
 	}
 
 	[TestMethod]
@@ -193,7 +193,7 @@ public sealed class AttributeTests
 			writer.CloseElement();
 		});
 
-		Assert.AreEqual("<div Data-Foo=1 xlink:href=\"#a\"></div>", html);
+		Assert.AreEqual("<div Data-Foo=1 xlink:href=#a></div>", html);
 	}
 
 	[TestMethod]
@@ -234,6 +234,6 @@ public sealed class AttributeTests
 			writer.CloseElement();
 		}, initialCapacity: 1);
 
-		Assert.AreEqual("<div title=\"" + string.Concat(Enumerable.Repeat("a&amp;", 5000)) + "\"></div>", html);
+		Assert.AreEqual("<div title=" + string.Concat(Enumerable.Repeat("a&amp;", 5000)) + "></div>", html);
 	}
 }

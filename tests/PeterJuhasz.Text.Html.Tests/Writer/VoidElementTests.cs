@@ -66,7 +66,7 @@ public sealed class VoidElementTests
 			writer.CloseElement();
 		});
 
-		Assert.AreEqual("<img src=\"a.png\" alt=\"a &gt; b\">", html);
+		Assert.AreEqual("<img src=a.png alt=\"a &gt; b\">", html);
 	}
 
 	[TestMethod]
@@ -114,7 +114,7 @@ public sealed class VoidElementTests
 			writer.CloseElement();
 		});
 
-		Assert.AreEqual("<head><meta charset=\"utf-8\"><link rel=stylesheet></head>", html);
+		Assert.AreEqual("<head><meta charset=utf-8><link rel=stylesheet></head>", html);
 	}
 
 	[TestMethod]

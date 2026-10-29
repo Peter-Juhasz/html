@@ -89,9 +89,11 @@ internal static class SyntaxFacts
 		return startIndex >= 0;
 	}
 
-	private static readonly SearchValues<char> AttributeValueWithoutQuotes = SearchValues.Create("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_");
+	// Characters that an unquoted attribute value cannot contain.
+	private static readonly SearchValues<char> UnquotedAttributeValueForbidden = SearchValues.Create("\t\n\f\r \"'=<>`");
 
-	public static bool AttributeValueNeedsQuotes(ReadOnlySpan<char> value) => value.ContainsAnyExcept(AttributeValueWithoutQuotes);
+	// An unquoted value cannot be empty, and cannot contain whitespace, quotes, '=', '<', '>' or '`'.
+	public static bool AttributeValueNeedsQuotes(ReadOnlySpan<char> value) => value.IsEmpty || value.ContainsAny(UnquotedAttributeValueForbidden);
 
 	private static FrozenDictionary<string, FrozenSet<string>.AlternateLookup<ReadOnlySpan<char>>>.AlternateLookup<ReadOnlySpan<char>> CreateImplicitClosers()
 	{

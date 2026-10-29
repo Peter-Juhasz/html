@@ -41,7 +41,7 @@ public sealed class WriterVisitorTests
 	]);
 
 	private const string ExpectedMinimal =
-		"<html lang=en><head><meta charset=\"utf-8\"><title>Tom &amp; Jerry</title></head>" +
+		"<html lang=en><head><meta charset=utf-8><title>Tom &amp; Jerry</title></head>" +
 		"<body><!-- header --><h1 class=title>Hello, World!</h1>" +
 		"<p>Read the <a href=\"/docs?a=1&amp;b=2\" target=_blank>docs</a><br>or not.</p>" +
 		"<ul><li>One<li>Two</ul><input type=checkbox name=agree checked>" +
@@ -73,7 +73,7 @@ public sealed class WriterVisitorTests
 		var padding = new string('x', 1500);
 		var html = $"<p title=\"{padding}&amp;y\">{padding}&amp;y&lt;z</p>";
 
-		Assert.AreEqual(html, Write(LazyHtmlDocument.Parse(html), HtmlWriterFormattingOptions.Minimal));
+		Assert.AreEqual($"<p title={padding}&amp;y>{padding}&amp;y&lt;z</p>", Write(LazyHtmlDocument.Parse(html), HtmlWriterFormattingOptions.Minimal));
 	}
 
 	private static string Write(LazyHtmlDocument document, HtmlWriterFormattingOptions options)
