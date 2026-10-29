@@ -16,6 +16,9 @@ public class HtmlWriter<TWriter>(TWriter writer, HtmlEncoder htmlEncoder, HtmlWr
 	private readonly Stack<ElementScope> openElements = new();
 	private bool inTag = false;
 
+	// Whether the last thing written in the open start tag is an unquoted attribute value, which would take a '/' right after it as part of the value.
+	private bool endsWithUnquotedValue = false;
+
 	// Whether the innermost open element (or the document, when there is none) has child elements or comments, and whether it has text.
 	// When formatting, an element with children but no text gets its children and end tag on their own lines; one with text stays on one line.
 	private bool hasChildren = false;
@@ -34,6 +37,7 @@ public class HtmlWriter<TWriter>(TWriter writer, HtmlEncoder htmlEncoder, HtmlWr
 		hasChildren = false;
 		hasText = false;
 		inTag = true;
+		endsWithUnquotedValue = false;
 	}
 
 	public void WriteAttribute(ReadOnlySpan<char> name, ReadOnlySpan<char> value)
@@ -45,6 +49,7 @@ public class HtmlWriter<TWriter>(TWriter writer, HtmlEncoder htmlEncoder, HtmlWr
 
 		WriteCore(" ");
 		WriteCore(name);
+		endsWithUnquotedValue = false;
 		if (value.IsEmpty)
 		{
 			WriteCore("=\"\"");
@@ -53,6 +58,7 @@ public class HtmlWriter<TWriter>(TWriter writer, HtmlEncoder htmlEncoder, HtmlWr
 		{
 			WriteCore("=");
 			WriteEncoded(value);
+			endsWithUnquotedValue = true;
 		}
 		else
 		{
@@ -71,6 +77,7 @@ public class HtmlWriter<TWriter>(TWriter writer, HtmlEncoder htmlEncoder, HtmlWr
 
 		WriteCore(" ");
 		WriteCore(name);
+		endsWithUnquotedValue = false;
 	}
 
 	public void WriteComment(ReadOnlySpan<char> comment)
@@ -94,7 +101,8 @@ public class HtmlWriter<TWriter>(TWriter writer, HtmlEncoder htmlEncoder, HtmlWr
 		{
 			if (options.XmlStyleSelfClosingTags)
 			{
-				if (options.SpaceBeforeSelfClosingSlash)
+				// the space is required after an unquoted value, otherwise the slash would be read as part of it
+				if (options.SpaceBeforeSelfClosingSlash || endsWithUnquotedValue)
 				{
 					WriteCore(" ");
 				}

@@ -44,6 +44,35 @@ public sealed class VoidElementTests
 	}
 
 	[TestMethod]
+	[DataRow("a.png", "<img src=a.png />")]
+	[DataRow("a b.png", "<img src=\"a b.png\"/>")]
+	public void SelfClosingSlashIsSeparatedFromUnquotedValue(string src, string expected)
+	{
+		var html = TestHelpers.Write(writer =>
+		{
+			writer.OpenElement("img");
+			writer.WriteAttribute("src", src);
+			writer.CloseElement();
+		}, options: HtmlWriterFormattingOptions.Minimal with { XmlStyleSelfClosingTags = true, SpaceBeforeSelfClosingSlash = false });
+
+		Assert.AreEqual(expected, html);
+	}
+
+	[TestMethod]
+	public void SelfClosingSlashFollowsBareAttributeAfterUnquotedValue()
+	{
+		var html = TestHelpers.Write(writer =>
+		{
+			writer.OpenElement("input");
+			writer.WriteAttribute("type", "checkbox");
+			writer.WriteAttribute("checked");
+			writer.CloseElement();
+		}, options: HtmlWriterFormattingOptions.Minimal with { XmlStyleSelfClosingTags = true, SpaceBeforeSelfClosingSlash = false });
+
+		Assert.AreEqual("<input type=checkbox checked/>", html);
+	}
+
+	[TestMethod]
 	public void VoidElementNameIsCaseInsensitive()
 	{
 		var html = TestHelpers.Write(writer =>
