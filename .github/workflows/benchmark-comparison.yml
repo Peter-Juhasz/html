@@ -2,7 +2,7 @@ name: Benchmark comparison
 
 env:
   PROJECT_NAME: 'PeterJuhasz.Text.Html.Benchmarks.Comparison'
-  DOTNET_VERSION: '10'
+  DOTNET_VERSION: '11.0'
   BUILD_CONFIGURATION: 'Release'
   DOTNET_NOLOGO: true
   DOTNET_CLI_TELEMETRY_OPTOUT: true

@@ -1,4 +1,4 @@
-using PeterJuhasz.Text.Html.Model;
+﻿using PeterJuhasz.Text.Html.Model;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
@@ -9,7 +9,7 @@ namespace PeterJuhasz.Text.Html.Selectors;
 /// A parsed CSS selector. Selectors are predicates: each one checks a single element, looking at its ancestors when it needs to,
 /// so a query enumerates the candidates once, in document order, and keeps the ones that match.
 /// </summary>
-internal abstract record class ElementSelector
+internal closed record class ElementSelector
 {
 	/// <summary>
 	/// Checks whether the element matches the selector.

@@ -308,7 +308,7 @@ public static partial class HtmlDecoder
 			0x73, 0x6D, 0x61, 0x69, 0x64, 0x00, 0x00, 0x00, /*ToUInt64Key("diams")*/   0x66, 0x26, /*'\x2666'*/
 				];
 
-		var dictionary = new Dictionary<ulong, char>(tableData.Length / (sizeof(ulong) + sizeof(char)));
+		Dictionary<ulong, char> dictionary = [with(capacity: tableData.Length / (sizeof(ulong) + sizeof(char)))];
 		while (!tableData.IsEmpty)
 		{
 			ulong key = BinaryPrimitives.ReadUInt64LittleEndian(tableData);

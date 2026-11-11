@@ -1,8 +1,16 @@
 ﻿<Project>
 	<PropertyGroup>
+		<TargetFramework>net11.0</TargetFramework>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<EnableNETAnalyzers>true</EnableNETAnalyzers>
-		<AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
+		<AnalysisLevel>latest-recommended</AnalysisLevel>
+		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 		<MSTestAnalysisMode>Recommended</MSTestAnalysisMode>
-		<AnalysisLevel>latest</AnalysisLevel>
+		<AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
+		<LangVersion>latest</LangVersion>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<Features>$(Features);runtime-async=on</Features>
+		<WarningsAsErrors>$(WarningsAsErrors);CA2016</WarningsAsErrors>
 	</PropertyGroup>
 </Project>

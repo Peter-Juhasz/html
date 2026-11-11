@@ -1,4 +1,5 @@
 using PeterJuhasz.Text.Html.Selectors;
+using System.Globalization;
 using System.Text;
 using static PeterJuhasz.Text.Html.Tests.Selectors.TestHelpers;
 
@@ -122,7 +123,7 @@ public sealed class ComplexSelectorTests
 		for (var i = 0; i < count; i++)
 		{
 			var name = Names[random.Next(Names.Length)];
-			builder.Append($"<{name}>{RandomHtml(random, depth + 1)}</{name}>");
+			builder.Append(CultureInfo.InvariantCulture, $"<{name}>{RandomHtml(random, depth + 1)}</{name}>");
 		}
 
 		return builder.ToString();

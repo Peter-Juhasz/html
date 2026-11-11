@@ -1,4 +1,4 @@
-using PeterJuhasz.Text.Html.Model;
+﻿using PeterJuhasz.Text.Html.Model;
 using System.Text;
 
 namespace PeterJuhasz.Text.Html.Selectors;
@@ -10,7 +10,7 @@ namespace PeterJuhasz.Text.Html.Selectors;
 /// </summary>
 /// <param name="Left">The selector the related elements must match; may itself be a complex selector, so <c>a b > c</c> is a child selector whose left is <c>a b</c>.</param>
 /// <param name="Right">The selector the element itself must match.</param>
-internal abstract record class ComplexSelector(ElementSelector Left, CompoundSelector Right) : ElementSelector
+internal closed record class ComplexSelector(ElementSelector Left, CompoundSelector Right) : ElementSelector
 {
 	/// <summary>
 	/// The combinator as written between the two selectors.

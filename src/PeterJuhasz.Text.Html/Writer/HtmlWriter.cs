@@ -14,15 +14,15 @@ public class HtmlWriter<TWriter>(TWriter writer, HtmlEncoder htmlEncoder, HtmlWr
 	private TWriter writer = writer ?? throw new ArgumentNullException(nameof(writer));
 	private readonly HtmlWriterFormattingOptions options = options ?? HtmlWriterFormattingOptions.Default;
 	private readonly Stack<ElementScope> openElements = new();
-	private bool inTag = false;
+	private bool inTag;
 
 	// Whether the last thing written in the open start tag is an unquoted attribute value, which would take a '/' right after it as part of the value.
-	private bool endsWithUnquotedValue = false;
+	private bool endsWithUnquotedValue;
 
 	// Whether the innermost open element (or the document, when there is none) has child elements or comments, and whether it has text.
 	// When formatting, an element with children but no text gets its children and end tag on their own lines; one with text stays on one line.
-	private bool hasChildren = false;
-	private bool hasText = false;
+	private bool hasChildren;
+	private bool hasText;
 
 	public HtmlWriterFormattingOptions Options => options;
 

@@ -40,7 +40,6 @@ internal sealed record class HasSelector(ElementSelector Selector) : SimpleSelec
 		SimpleSelector simple => join(new CompoundSelector(Selectors: [simple])),
 		ComplexSelector complex => complex with { Left = Anchor(complex.Left, join) },
 		OrSelector list => new OrSelector(Selectors: [.. list.Selectors.Select(branch => Anchor(branch, join))]),
-		_ => throw new ArgumentException($"'{selector}' cannot be made relative.", nameof(selector)),
 	};
 
 	/// <inheritdoc/>
