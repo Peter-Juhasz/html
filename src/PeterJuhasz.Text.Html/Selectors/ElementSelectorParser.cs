@@ -9,7 +9,8 @@ namespace PeterJuhasz.Text.Html.Selectors;
 /// <summary>
 /// Parses CSS selectors into <see cref="ElementSelector"/> trees. Supported are selector lists; the descendant, child (<c>&gt;</c>) and next-sibling (<c>+</c>) combinators;
 /// type, universal, class, ID and attribute selectors with every operator and the <c>i</c> and <c>s</c> flags; and the <c>:not()</c>, <c>:has()</c>, <c>:nth-child()</c>,
-/// <c>:nth-last-child()</c>, <c>:first-child</c>, <c>:last-child</c>, <c>:empty</c> and <c>:disabled</c> pseudo-classes. Escapes are decoded in identifiers and strings.
+/// <c>:nth-last-child()</c>, <c>:nth-of-type()</c>, <c>:nth-last-of-type()</c>, <c>:first-child</c>, <c>:last-child</c>, <c>:only-child</c>, <c>:first-of-type</c>,
+/// <c>:last-of-type</c>, <c>:only-of-type</c>, <c>:empty</c> and <c>:disabled</c> pseudo-classes. Escapes are decoded in identifiers and strings.
 /// Namespaces, comments, pseudo-elements, the <c>~</c> combinator and other pseudo-classes are rejected.
 /// </summary>
 /// <remarks>
@@ -40,6 +41,10 @@ internal ref struct ElementSelectorParser(ReadOnlySpan<char> text)
 		["empty"] = EmptySelector.Instance,
 		["first-child"] = NthChildSelector.First,
 		["last-child"] = NthChildSelector.Last,
+		["only-child"] = OnlyChildSelector.OnlyChild,
+		["first-of-type"] = NthChildSelector.FirstOfType,
+		["last-of-type"] = NthChildSelector.LastOfType,
+		["only-of-type"] = OnlyChildSelector.OnlyOfType,
 	}.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 
 	/// <summary>
@@ -56,6 +61,8 @@ internal ref struct ElementSelectorParser(ReadOnlySpan<char> text)
 		["has"] = FunctionalPseudoClass.Has,
 		["nth-child"] = FunctionalPseudoClass.NthChild,
 		["nth-last-child"] = FunctionalPseudoClass.NthLastChild,
+		["nth-of-type"] = FunctionalPseudoClass.NthOfType,
+		["nth-last-of-type"] = FunctionalPseudoClass.NthLastOfType,
 	}.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 
 	/// <summary>
@@ -403,7 +410,7 @@ internal ref struct ElementSelectorParser(ReadOnlySpan<char> text)
 	}
 
 	/// <summary>
-	/// Reads a pseudo-class, with the arguments of <c>:not()</c>, <c>:has()</c>, <c>:nth-child()</c> and <c>:nth-last-child()</c> in parentheses.
+	/// Reads a pseudo-class, with the arguments of the functional ones, like <c>:not()</c> or <c>:nth-child()</c>, in parentheses.
 	/// </summary>
 	private bool TryReadPseudoClass([NotNullWhen(true)] out SimpleSelector? selector)
 	{
@@ -491,6 +498,12 @@ internal ref struct ElementSelectorParser(ReadOnlySpan<char> text)
 			case FunctionalPseudoClass.NthLastChild:
 				return TryReadNthChild(fromEnd: true, out selector);
 
+			case FunctionalPseudoClass.NthOfType:
+				return TryReadNthOfType(fromEnd: false, out selector);
+
+			case FunctionalPseudoClass.NthLastOfType:
+				return TryReadNthOfType(fromEnd: true, out selector);
+
 			default:
 				throw new InvalidOperationException($"Unknown pseudo-class '{pseudoClass}'.");
 		}
@@ -525,6 +538,27 @@ internal ref struct ElementSelectorParser(ReadOnlySpan<char> text)
 			(2, 1, false, null) => NthChildSelector.Odd,
 			(2, 0, false, null) => NthChildSelector.Even,
 			_ => new NthChildSelector(A: a, B: b, FromEnd: fromEnd, Of: of),
+		};
+		return true;
+	}
+
+	/// <summary>
+	/// Reads the argument of <c>:nth-of-type()</c> and <c>:nth-last-of-type()</c>: An+B alone, as they take no selector after <c>of</c>.
+	/// </summary>
+	private bool TryReadNthOfType(bool fromEnd, [NotNullWhen(true)] out SimpleSelector? selector)
+	{
+		selector = null;
+		if (!TryReadAnPlusB(out var a, out var b))
+		{
+			return false;
+		}
+
+		// the well-known variations are shared, however they are written, like 1
+		selector = (a, b, fromEnd) switch
+		{
+			(0, 1, false) => NthChildSelector.FirstOfType,
+			(0, 1, true) => NthChildSelector.LastOfType,
+			_ => new NthChildSelector(A: a, B: b, FromEnd: fromEnd, OfType: true),
 		};
 		return true;
 	}
@@ -884,5 +918,15 @@ internal ref struct ElementSelectorParser(ReadOnlySpan<char> text)
 		/// <c>:nth-last-child()</c>, with the same arguments as <c>:nth-child()</c>.
 		/// </summary>
 		NthLastChild,
+
+		/// <summary>
+		/// <c>:nth-of-type()</c>, with An+B.
+		/// </summary>
+		NthOfType,
+
+		/// <summary>
+		/// <c>:nth-last-of-type()</c>, with An+B.
+		/// </summary>
+		NthLastOfType,
 	}
 }

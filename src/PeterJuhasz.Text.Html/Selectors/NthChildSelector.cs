@@ -5,14 +5,18 @@ namespace PeterJuhasz.Text.Html.Selectors;
 
 /// <summary>
 /// <c>:nth-child(An+B)</c> and its variations: matches elements whose position among their sibling elements, counted from 1, is <c>A*n+B</c> for some n ≥ 0.
-/// The static fields hold the common variations and the static methods create the ones with a parameter; <c>with</c> adds <see cref="FromEnd"/> or <see cref="Of"/> to any of them.
+/// The static fields hold the common variations and the static methods create the ones with a parameter; <c>with</c> adds <see cref="FromEnd"/>, <see cref="Of"/> or <see cref="OfType"/> to any of them.
 /// Positions are found by scanning the siblings when an element is checked, as the model does not keep them for the few queries that need them.
 /// </summary>
 /// <param name="A">The step between the matching positions; 0 matches position <paramref name="B"/> only, and a negative step counts down from it.</param>
 /// <param name="B">The first matching position.</param>
 /// <param name="FromEnd">Whether the positions are counted from the last sibling, as with <c>:nth-last-child</c>.</param>
 /// <param name="Of">If set, only the siblings that match this selector are counted and the element must match it too, as with <c>:nth-child(An+B of S)</c>.</param>
-internal sealed record class NthChildSelector(int A, int B, bool FromEnd = false, ElementSelector? Of = null) : SimpleSelector
+/// <param name="OfType">
+/// Whether only the siblings with the same name as the element are counted, compared case-insensitively, as with <c>:nth-of-type</c>.
+/// Together with <paramref name="Of"/> both filters apply, which CSS cannot express, so such a selector is written in a syntax the parser does not accept.
+/// </param>
+internal sealed record class NthChildSelector(int A, int B, bool FromEnd = false, ElementSelector? Of = null, bool OfType = false) : SimpleSelector
 {
 	/// <summary>
 	/// <c>:first-child</c>: the first of its siblings.
@@ -33,6 +37,16 @@ internal sealed record class NthChildSelector(int A, int B, bool FromEnd = false
 	/// <c>:nth-child(even)</c>: the 2nd, 4th, 6th and so on.
 	/// </summary>
 	public static readonly NthChildSelector Even = new(A: 2, B: 0);
+
+	/// <summary>
+	/// <c>:first-of-type</c>: the first of its siblings with the same name.
+	/// </summary>
+	public static readonly NthChildSelector FirstOfType = new(A: 0, B: 1, OfType: true);
+
+	/// <summary>
+	/// <c>:last-of-type</c>: the last of its siblings with the same name.
+	/// </summary>
+	public static readonly NthChildSelector LastOfType = new(A: 0, B: 1, FromEnd: true, OfType: true);
 
 	/// <summary>
 	/// <c>:nth-child(-n+count)</c>: the first <paramref name="count"/> of the siblings.
@@ -98,7 +112,8 @@ internal sealed record class NthChildSelector(int A, int B, bool FromEnd = false
 	}
 
 	/// <summary>
-	/// Finds the position of the element by counting the sibling elements before it, or after it when counting from the end, that match <see cref="Of"/>, if set.
+	/// Finds the position of the element by counting the sibling elements before it, or after it when counting from the end,
+	/// that have its name if <see cref="OfType"/> is set and match <see cref="Of"/>, if set.
 	/// Returns false without scanning further once the position is known to be greater than <paramref name="maxPosition"/>.
 	/// </summary>
 	private bool TryGetPosition(HtmlElement element, int maxPosition, in SelectorContext context, out int position)
@@ -110,7 +125,7 @@ internal sealed record class NthChildSelector(int A, int B, bool FromEnd = false
 		position = 1;
 		for (var i = start; siblings[i] != element; i += step)
 		{
-			if (siblings[i] is HtmlElement sibling && (Of is null || Of.Matches(sibling, context)) && ++position > maxPosition)
+			if (siblings[i] is HtmlElement sibling && IsCounted(element, sibling, context) && ++position > maxPosition)
 			{
 				return false;
 			}
@@ -119,10 +134,30 @@ internal sealed record class NthChildSelector(int A, int B, bool FromEnd = false
 		return position <= maxPosition;
 	}
 
+	/// <summary>
+	/// Checks whether the sibling counts toward the position of the element.
+	/// </summary>
+	private bool IsCounted(HtmlElement element, HtmlElement sibling, in SelectorContext context)
+	{
+		// the name is compared first, as it is cheaper than a selector
+		if (OfType && !sibling.Name.Equals(element.Name, StringComparison.OrdinalIgnoreCase))
+		{
+			return false;
+		}
+
+		return Of is null || Of.Matches(sibling, context);
+	}
+
 	/// <inheritdoc/>
 	internal override void AppendTo(StringBuilder builder)
 	{
-		builder.Append(FromEnd ? ":nth-last-child(" : ":nth-child(");
+		builder.Append((FromEnd, OfType) switch
+		{
+			(false, false) => ":nth-child(",
+			(true, false) => ":nth-last-child(",
+			(false, true) => ":nth-of-type(",
+			(true, true) => ":nth-last-of-type(",
+		});
 		AppendFormula(builder);
 
 		if (Of is not null)

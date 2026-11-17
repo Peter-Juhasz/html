@@ -40,7 +40,8 @@ public sealed class HtmlDocument
 
 	// Finds the elements at any depth in the document that match a CSS selector like "ul > li:nth-child(odd) a[href^='https:']", in document order.
 	// Selector lists; the descendant, child and next-sibling combinators; type, class, ID and attribute selectors; and the :not(), :has(),
-	// :nth-child(), :nth-last-child(), :first-child, :last-child, :empty and :disabled pseudo-classes are supported.
+	// :nth-child(), :nth-last-child(), :nth-of-type(), :nth-last-of-type(), :first-child, :last-child, :only-child, :first-of-type, :last-of-type,
+	// :only-of-type, :empty and :disabled pseudo-classes are supported.
 	public IEnumerable<HtmlElement> QuerySelectorAll(string selector) => HtmlElement.Query(Nodes, selector);
 
 	// Finds the first element at any depth in the document that has the given element name (any if null), all of the given classes

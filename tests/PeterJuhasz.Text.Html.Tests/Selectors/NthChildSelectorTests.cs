@@ -1,3 +1,4 @@
+using PeterJuhasz.Text.Html.Model;
 using PeterJuhasz.Text.Html.Selectors;
 using static PeterJuhasz.Text.Html.Tests.Selectors.TestHelpers;
 
@@ -119,12 +120,43 @@ public sealed class NthChildSelectorTests
 		=> AssertInvalid($":nth-child({written})");
 
 	[TestMethod]
-	[DataRow(":only-child")]
-	[DataRow(":nth-of-type(1)")]
-	[DataRow(":first-of-type")]
 	[DataRow(":first-child(1)")]
-	public void RejectsOtherStructuralPseudoClasses(string selector)
+	[DataRow(":only-child(1)")]
+	[DataRow(":first-of-type(1)")]
+	[DataRow(":nth-of-type")]
+	public void RejectsStructuralPseudoClassesWithTheWrongForm(string selector)
 		=> AssertInvalid(selector, "unsupported pseudo-class");
+
+	[TestMethod]
+	[DynamicData(nameof(AnPlusB))]
+	public void ParsesAnPlusBOfType(string written, int a, int b)
+		=> AssertParses($":nth-of-type({written})", Compound(new NthChildSelector(A: a, B: b, OfType: true)));
+
+	[TestMethod]
+	[DynamicData(nameof(AnPlusB))]
+	public void ParsesAnPlusBOfTypeCountedFromTheEnd(string written, int a, int b)
+		=> AssertParses($":nth-last-of-type({written})", Compound(new NthChildSelector(A: a, B: b, FromEnd: true, OfType: true)));
+
+	[TestMethod]
+	public void ParsesTheWellKnownVariationsOfTypeToSharedInstances()
+	{
+		Assert.AreSame(NthChildSelector.FirstOfType, ParseSimple(":first-of-type"));
+		Assert.AreSame(NthChildSelector.FirstOfType, ParseSimple(":First-Of-Type"));
+		Assert.AreSame(NthChildSelector.FirstOfType, ParseSimple(":nth-of-type(1)"));
+		Assert.AreSame(NthChildSelector.LastOfType, ParseSimple(":last-of-type"));
+		Assert.AreSame(NthChildSelector.LastOfType, ParseSimple(":nth-last-of-type(1)"));
+		Assert.AreSame(OnlyChildSelector.OnlyChild, ParseSimple(":only-child"));
+		Assert.AreSame(OnlyChildSelector.OnlyChild, ParseSimple(":ONLY-CHILD"));
+		Assert.AreSame(OnlyChildSelector.OnlyOfType, ParseSimple(":only-of-type"));
+	}
+
+	[TestMethod]
+	[DataRow(":nth-of-type(1 of a)")]
+	[DataRow(":nth-last-of-type(odd of .x)")]
+	[DataRow(":nth-of-type()")]
+	[DataRow(":nth-of-type(3px)")]
+	public void RejectsInvalidArgumentsOfType(string selector)
+		=> AssertInvalid(selector);
 
 	private const string List =
 		"<ul id=u><li id=l1></li><li id=l2 class=x></li><!-- comment --><li id=l3></li>text<li id=l4 class=x></li><li id=l5></li></ul>";
@@ -156,6 +188,44 @@ public sealed class NthChildSelectorTests
 
 		AssertSelects(html, "p:first-child", "a");
 		AssertSelects(html, "p:nth-last-child(2)", "b");
+		AssertSelects(html, "p:last-of-type", "c");
+		AssertSelects(html, "p:only-child");
+	}
+
+	private const string Mixed =
+		"<div id=d><h2 id=h1></h2><p id=p1></p>text<P id=p2></P><!-- comment --><h2 id=h2></h2><p id=p3></p><span id=s1></span></div>";
+
+	[TestMethod]
+	[DataRow("p:first-of-type", new[] { "p1" })]
+	[DataRow("p:last-of-type", new[] { "p3" })]
+	[DataRow("h2:first-of-type", new[] { "h1" })]
+	[DataRow("#d > :first-of-type", new[] { "h1", "p1", "s1" })]
+	[DataRow("#d > :last-of-type", new[] { "h2", "p3", "s1" })]
+	[DataRow("p:nth-of-type(2)", new[] { "p2" })]
+	[DataRow("p:nth-of-type(odd)", new[] { "p1", "p3" })]
+	[DataRow("p:nth-of-type(-n+2)", new[] { "p1", "p2" })]
+	[DataRow("p:nth-last-of-type(2)", new[] { "p2" })]
+	[DataRow("#d > :nth-of-type(2)", new[] { "p2", "h2" })]
+	[DataRow("p:nth-of-type(4)", new string[0])]
+	[DataRow("#d > :only-of-type", new[] { "s1" })]
+	[DataRow("#d > :only-child", new string[0])]
+	[DataRow("#d:only-child", new[] { "d" })]
+	[DataRow(":only-of-type", new[] { "d", "s1" })]
+	public void SelectsByThePositionAmongTheSiblingElementsOfTheSameType(string selector, string[] expected)
+		=> AssertSelects(Mixed, selector, expected);
+
+	[TestMethod]
+	public void OnlyChildIgnoresTextAndComments()
+		=> AssertSelects("<div>text<!-- c --><b id=b></b>more</div><ul><li id=x></li><li id=y></li></ul>", ":only-child", "b");
+
+	[TestMethod]
+	public void OfTypeCombinesWithOf()
+	{
+		// the span is the first .x of its type too, so only the paragraphs are queried
+		var selector = Compound(ElementName("p"), NthChildSelector.FirstOfType with { Of = Compound(Class("x")) });
+		var document = HtmlDocument.Parse("<div><p id=a></p><span class=x></span><p id=b class=x></p><p id=c class=x></p></div>");
+
+		Assert.AreSequenceEqual(["b"], document.QuerySelectorAll(selector).Select(Describe).ToList());
 	}
 
 	[TestMethod]
@@ -170,6 +240,12 @@ public sealed class NthChildSelectorTests
 	[DataRow(":first-child", ":nth-child(1)")]
 	[DataRow(":last-child", ":nth-last-child(1)")]
 	[DataRow(":nth-last-child(odd of .x)", ":nth-last-child(2n+1 of .x)")]
+	[DataRow(":nth-of-type(odd)", ":nth-of-type(2n+1)")]
+	[DataRow(":nth-last-of-type(-n + 3)",":nth-last-of-type(-n+3)")]
+	[DataRow(":first-of-type", ":nth-of-type(1)")]
+	[DataRow(":last-of-type", ":nth-last-of-type(1)")]
+	[DataRow(":only-child", ":only-child")]
+	[DataRow(":only-of-type", ":only-of-type")]
 	public void IsWrittenBackInItsCanonicalForm(string selector, string expected)
 		=> AssertPrints(selector, expected);
 }
